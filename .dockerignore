@@ -1,0 +1,14 @@
+.venv/
+.git/
+.env
+.env.local
+logs/
+saves/
+__pycache__/
+**/__pycache__/
+*.egg-info/
+.pytest_cache/
+tests/
+scripts/
+MVP-Plan.md
+pitch.md

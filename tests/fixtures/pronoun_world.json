@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "title": "Pronoun Test World",
+  "intro": "The dock clerk has already told them everything, and {they} {are} not sorry.",
+  "pronouns": "she",
+  "win_epilogue": "{They} {have} what {they} came for, and the lane takes {them}.",
+  "player_location": "yard",
+  "rooms": {
+    "yard": {
+      "id": "yard",
+      "name": "Yard",
+      "description": "Rain, a loading sled, and the light from the hatch {they} came out of.",
+      "sounds": "Someone inside is asking after {them} by name.",
+      "exits": {}
+    }
+  },
+  "doors": {},
+  "items": {
+    "pack": {
+      "id": "pack",
+      "name": "pack",
+      "description": "{Their} pack. It is heavier than {theirs} was last week.",
+      "location": "yard"
+    }
+  },
+  "npcs": {
+    "porter": {
+      "id": "porter",
+      "name": "porter",
+      "description": "The porter, waiting where the sled hides {them} both.",
+      "location": "yard",
+      "dialogue": [
+        {
+          "text": "\"{They} walk{s} like a spacer,\" the porter says. \"{They} always {have}.\"",
+          "effects": []
+        }
+      ]
+    }
+  },
+  "interactions": [],
+  "triggers": [],
+  "flags": {},
+  "counters": {}
+}

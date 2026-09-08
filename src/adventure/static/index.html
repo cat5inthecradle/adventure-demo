@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Wayfarer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+  :root {
+    --ground: #ECEFF1;
+    --panel: #FFFFFF;
+    --sunk: #DFE5E9;
+    --ink: #131C24;
+    --ink-soft: #4C5D68;
+    --ink-faint: #74858F;
+    --rule: #C8D2D8;
+    --ember: #B4532A;
+    --system: #16697C;
+    --good: #2C6B4E;
+    --bad: #A32C2C;
+    --focus: #16697C;
+
+    --ui: "Archivo", system-ui, sans-serif;
+    --prose: "Source Serif 4", Georgia, serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0B1016;
+      --panel: #141D25;
+      --sunk: #0F171E;
+      --ink: #DEE7EC;
+      --ink-soft: #9DB0BB;
+      --ink-faint: #74878F;
+      --rule: #253440;
+      --ember: #E08A55;
+      --system: #63B4C2;
+      --good: #79C79B;
+      --bad: #E58A8A;
+      --focus: #63B4C2;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0B1016; --panel: #141D25; --sunk: #0F171E;
+    --ink: #DEE7EC; --ink-soft: #9DB0BB; --ink-faint: #74878F;
+    --rule: #253440; --ember: #E08A55; --system: #63B4C2;
+    --good: #79C79B; --bad: #E58A8A; --focus: #63B4C2;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--prose);
+    font-size: 18px;
+    line-height: 1.6;
+  }
+
+  a { color: var(--system); }
+
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .skip {
+    position: absolute; left: -9999px;
+    background: var(--panel); color: var(--ink);
+    padding: 12px 18px; z-index: 10; font-family: var(--ui);
+  }
+  .skip:focus { left: 12px; top: 12px; }
+
+  header {
+    border-bottom: 1px solid var(--rule);
+    background: var(--panel);
+  }
+  .bar {
+    max-width: 1180px; margin: 0 auto;
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .title {
+    font-family: var(--ui); font-weight: 600; font-size: 19px;
+    letter-spacing: -0.01em; margin: 0; flex: 1 1 auto;
+  }
+  .title span { color: var(--ember); }
+
+  button {
+    font-family: var(--ui); font-size: 14px; font-weight: 500;
+    background: var(--sunk); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 7px 14px; cursor: pointer;
+  }
+  button:hover:not(:disabled) { border-color: var(--system); color: var(--system); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button[aria-pressed="true"] {
+    background: var(--system); border-color: var(--system); color: var(--panel);
+  }
+
+  /* Opens under the bar rather than over the page: a dropdown that covers the
+     transcript is a worse trade than a header that grows by one row. */
+  .settings {
+    border-top: 1px solid var(--rule);
+    background: var(--sunk);
+  }
+  .settings[hidden] { display: none; }
+  .setting {
+    max-width: 1180px; margin: 0 auto;
+    padding: 16px 20px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .setting label {
+    font-family: var(--ui); font-size: 14px; font-weight: 500;
+  }
+  .setting .hint {
+    flex: 1 1 260px; margin: 0;
+    font-size: 15px; font-style: italic; color: var(--ink-soft);
+  }
+
+  .layout {
+    max-width: 1180px; margin: 0 auto;
+    padding: 24px 20px 40px;
+    display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px;
+    align-items: start;
+  }
+
+  /* ---- transcript ---- */
+  #log {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    padding: 26px 30px;
+    min-height: 60vh;
+    max-height: 74vh;
+    overflow-y: auto;
+  }
+  .entry { margin: 0 0 22px; }
+  .entry:last-child { margin-bottom: 0; }
+  .said {
+    font-family: var(--mono); font-size: 15px;
+    color: var(--system); margin: 0 0 8px;
+  }
+  .said::before { content: "› "; color: var(--ink-faint); }
+  .out { margin: 0; white-space: pre-wrap; }
+  .out.room-head { font-family: var(--ui); font-weight: 600; }
+  .intro { color: var(--ink-soft); font-style: italic; }
+
+  /* Hands-free state, said in words rather than only shown as a colour, because the
+     player this matters most to may not be looking at it. */
+  .mic {
+    margin: 0 0 12px;
+    font-family: var(--ui); font-size: 15px;
+    display: flex; align-items: center; gap: 9px;
+    color: var(--system);
+  }
+  .mic::before {
+    content: ""; width: 9px; height: 9px; border-radius: 50%; flex: none;
+    background: currentColor;
+  }
+  .mic[data-state="listening"] { color: var(--good); }
+  .mic[data-state="thinking"]  { color: var(--ink-faint); }
+  .mic[data-state="speaking"]  { color: var(--ember); }
+  @media (prefers-reduced-motion: no-preference) {
+    .mic[data-state="listening"]::before { animation: pulse 1.4s ease-in-out infinite; }
+  }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+
+  /* Only appears once a turn has actually taken a while — parser-only turns come
+     back in milliseconds and a spinner that flashes on those is worse than none. */
+  .pending {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--ui); font-size: 15px; color: var(--ink-faint);
+    margin: 0 0 22px;
+  }
+  .spinner {
+    width: 14px; height: 14px; flex: none;
+    border: 2px solid var(--rule); border-top-color: var(--system);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .spinner { display: none; }
+  }
+  .win { color: var(--good); font-weight: 600; }
+  .loss { color: var(--bad); font-weight: 600; }
+  .note { color: var(--ember); font-family: var(--ui); font-size: 15px; }
+
+  /* ---- input ---- */
+  form {
+    margin-top: 16px;
+    display: flex; gap: 10px;
+  }
+  label.visually-hidden {
+    position: absolute; width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  input[type="text"] {
+    flex: 1; font-family: var(--mono); font-size: 16px;
+    padding: 12px 14px;
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+  }
+  input[type="text"]::placeholder { color: var(--ink-faint); }
+
+  /* ---- side panel ---- */
+  aside { display: flex; flex-direction: column; gap: 18px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    padding: 16px 18px;
+  }
+  .card h2 {
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 10px;
+  }
+  .card p { margin: 0; font-size: 16px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip {
+    font-family: var(--ui); font-size: 13.5px;
+    padding: 5px 10px; border-radius: 3px;
+    background: var(--sunk); border: 1px solid var(--rule);
+    color: var(--ink-soft);
+  }
+  .exits { display: flex; flex-wrap: wrap; gap: 7px; }
+  .exits button { font-size: 13.5px; padding: 6px 12px; }
+  .exits button.shut { color: var(--ember); border-color: var(--ember); }
+
+  select {
+    font-family: var(--ui); font-size: 14px;
+    background: var(--sunk); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 7px 10px; cursor: pointer;
+  }
+  select:hover { border-color: var(--system); }
+  .empty { color: var(--ink-faint); font-style: italic; font-size: 15px; }
+  .turns { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  /* On a phone the story and the command box come first — a status panel you have
+     to scroll past is a status panel that gets in the way. */
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; gap: 20px; padding: 16px 14px 32px; }
+    main { display: flex; flex-direction: column; }
+    #log { min-height: 44vh; max-height: 52vh; padding: 20px 18px; }
+    aside { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    aside .card:nth-child(1),
+    aside .card:nth-child(2) { grid-column: 1 / -1; }
+    .bar { padding: 10px 14px; gap: 10px; }
+    .title { font-size: 17px; flex: 1 1 100%; }
+    body { font-size: 17px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip" href="#entry">Skip to the command box</a>
+
+<header>
+  <div class="bar">
+    <h1 class="title" id="title">The <span>Wayfarer</span></h1>
+    <label class="visually-hidden" for="world">Choose a world</label>
+    <select id="world" title="Switch to a different world"></select>
+    <button id="replay" type="button"
+            title="Read the current description again">
+      Replay
+    </button>
+    <button id="speak" type="button" aria-pressed="false"
+            title="Read each response aloud using your browser's speech synthesis">
+      Speech: off
+    </button>
+    <button id="handsfree" type="button" aria-pressed="false"
+            title="Listen and speak continuously, so the game can be played without
+                   touching the screen">
+      Hands-free: off
+    </button>
+    <button id="settings-toggle" type="button" aria-expanded="false"
+            aria-controls="settings"
+            title="Choose how the game refers to your character">
+      Settings
+    </button>
+    <button id="restart" type="button">New game</button>
+  </div>
+
+  <div class="settings" id="settings" role="group"
+       aria-label="Game settings" hidden>
+    <div class="setting">
+      <label for="pronouns">Your character&rsquo;s pronouns</label>
+      <select id="pronouns"></select>
+      <p class="hint" id="pronoun-example">&nbsp;</p>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <main>
+    <p id="mic" class="mic" role="status" aria-live="polite" hidden></p>
+
+    <div id="log" role="log" aria-live="polite" aria-label="Game transcript" tabindex="0">
+      <p class="out intro">Connecting to the ship…</p>
+    </div>
+
+    <form id="form" autocomplete="off">
+      <label class="visually-hidden" for="entry">Type a command</label>
+      <input id="entry" type="text" name="entry"
+             placeholder="look, go east, take the manual…"
+             enterkeyhint="send" autocapitalize="none" spellcheck="false" disabled>
+      <button type="submit" id="send" disabled>Send</button>
+    </form>
+  </main>
+
+  <aside aria-label="Ship status">
+    <section class="card">
+      <h2>Location</h2>
+      <p id="room">—</p>
+    </section>
+    <section class="card">
+      <h2>Exits</h2>
+      <div class="exits" id="exits"></div>
+    </section>
+    <section class="card">
+      <h2>You can see</h2>
+      <div class="chips" id="here"></div>
+    </section>
+    <section class="card">
+      <h2>Carrying</h2>
+      <div class="chips" id="inventory"></div>
+    </section>
+    <section class="card">
+      <h2>Turns</h2>
+      <p class="turns" id="turns">0</p>
+    </section>
+  </aside>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const log = document.getElementById("log");
+  const form = document.getElementById("form");
+  const entry = document.getElementById("entry");
+  const send = document.getElementById("send");
+  const speakBtn = document.getElementById("speak");
+  const restartBtn = document.getElementById("restart");
+
+  const ttsSupported = "speechSynthesis" in window;
+  let speaking = false;
+  let lastSpoken = null;
+  let sessionId = null;
+  let busy = false;
+
+  if (!ttsSupported) {
+    speakBtn.disabled = true;
+    speakBtn.textContent = "Speech: unavailable";
+    speakBtn.title = "This browser has no speech synthesis";
+  }
+
+  function write(text, className) {
+    const p = document.createElement("p");
+    p.className = "out" + (className ? " " + className : "");
+    p.textContent = text;
+    log.appendChild(p);
+    log.scrollTop = log.scrollHeight;
+    return p;
+  }
+
+  function echo(line) {
+    const p = document.createElement("p");
+    p.className = "said";
+    p.textContent = line;
+    log.appendChild(p);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  // Waiting indicator. Held back by PENDING_DELAY so it never flashes on the
+  // instant offline turns; role="status" so a screen reader hears that the game
+  // is working rather than sitting in silence through a slow model call.
+  const PENDING_DELAY = 350;
+  let pendingTimer = null;
+
+  function showPending(message) {
+    clearPending();
+    pendingTimer = window.setTimeout(function () {
+      const p = document.createElement("p");
+      p.className = "pending";
+      p.id = "pending";
+      p.setAttribute("role", "status");
+      const dot = document.createElement("span");
+      dot.className = "spinner";
+      dot.setAttribute("aria-hidden", "true");
+      p.appendChild(dot);
+      p.appendChild(document.createTextNode(message));
+      log.appendChild(p);
+      log.scrollTop = log.scrollHeight;
+    }, PENDING_DELAY);
+  }
+
+  function clearPending() {
+    window.clearTimeout(pendingTimer);
+    pendingTimer = null;
+    const existing = document.getElementById("pending");
+    if (existing) existing.remove();
+  }
+
+  // The server sends a separate `speech` rendering — no decoration, blocked ways as
+  // sentences, and no repeated room description once you have been somewhere. We
+  // speak that, never the written text.
+  // Two voices: one narrating, one for whoever is talking. The server marks which
+  // is which, because NpcSpoke is its own event — free to separate here, and
+  // impossible if the prose had arrived as one undifferentiated blob.
+  let npcVoice = null;
+  let speechWatchdog = null;
+  let speechRetried = false;
+
+  // The narrator keeps the browser's own default voice. Overriding it bought
+  // nothing and risked everything: assigning an unavailable or novelty voice makes
+  // speech synthesis fail silently, and a system's en list can be full of things
+  // like "Bad News" and "Bahh". Only the character needs to sound different.
+  const NOVELTY = /bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|albert|fred|junior|kathy|ralph/i;
+
+  function pickVoices() {
+    if (!ttsSupported) return;
+    const voices = window.speechSynthesis.getVoices()
+      .filter(v => /^en/i.test(v.lang) && !NOVELTY.test(v.name));
+    const defaultName = (voices.find(v => v.default) || {}).name;
+    npcVoice = voices.find(v => v.name !== defaultName) || null;
+  }
+  if (ttsSupported) {
+    pickVoices();
+    window.speechSynthesis.onvoiceschanged = pickVoices;   // they load late
+  }
+
+  function speak(parts, onDone) {
+    if (typeof parts === "string") parts = [{ voice: "narrator", text: parts }];
+    if (!speaking || !ttsSupported || !parts || !parts.length) {
+      if (onDone) onDone();
+      return;
+    }
+    // Cancel once, here, then queue. Cancelling between utterances is what made
+    // the ending say nothing at all — and cancelling an idle synthesiser can wedge
+    // Chrome outright, so only do it when there is something to stop.
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+      window.speechSynthesis.cancel();
+    }
+    window.speechSynthesis.resume();
+    setState("speaking", "Speaking…");
+    // Chrome's synthesiser can wedge: speaking stays true, no start event ever
+    // fires, and nothing plays — with no error anywhere. Cancelling an utterance
+    // mid-flight is one way in, which this page used to do. Watch for it, recover
+    // once, and if it is genuinely stuck say so rather than sitting there mute.
+    let started = false;
+    window.clearTimeout(speechWatchdog);
+    speechWatchdog = window.setTimeout(function () {
+      if (started) return;
+      window.speechSynthesis.cancel();
+      if (speechRetried) {
+        speechRetried = false;
+        toggleSpeech(false);
+        write("The browser's speech engine has stopped responding — it reports that "
+              + "it is speaking, but never starts. Quitting and reopening the browser "
+              + "clears it. Speech is off for now; the game plays normally.", "note");
+        if (onDone) onDone();
+        return;
+      }
+      speechRetried = true;
+      speak(parts, onDone);          // one retry, then we stop pretending
+    }, 1500);
+
+    parts.forEach(function (part, index) {
+      const utterance = new SpeechSynthesisUtterance(part.text);
+      if (index === 0) {
+        utterance.onstart = function () {
+          started = true;
+          speechRetried = false;
+          window.clearTimeout(speechWatchdog);
+        };
+      }
+      if (part.voice === "npc") {
+        if (npcVoice) utterance.voice = npcVoice;
+        // Pitch and rate carry the difference even where only one voice exists,
+        // so a machine still sounds like a machine on a bare system.
+        utterance.pitch = 0.7;
+        utterance.rate = 1.06;
+      } else {
+        utterance.rate = 1.0;      // browser default voice: the one that works
+      }
+      if (index === parts.length - 1) {
+        // Turn-taking: the microphone stays shut until the last part is done, or
+        // recognition transcribes our own voice and the game answers itself.
+        utterance.onend = function () {
+          window.clearTimeout(speechWatchdog);
+          if (onDone) onDone();
+        };
+        utterance.onerror = function () {
+          window.clearTimeout(speechWatchdog);
+          if (onDone) onDone();
+        };
+      }
+      window.speechSynthesis.speak(utterance);
+    });
+  }
+
+  // --- hands-free -----------------------------------------------------------
+
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const micLine = document.getElementById("mic");
+  const handsfreeBtn = document.getElementById("handsfree");
+  let handsfree = false;
+  let recognition = null;
+  let listening = false;
+
+  // Speech OUTPUT works anywhere. Speech INPUT needs a secure context — https,
+  // localhost, or file — so over plain http on a LAN address the browser refuses
+  // before it will even offer a permission prompt. That is an origin rule, not a
+  // permission, and no amount of allowing will change it. Say so plainly rather
+  // than letting the player fight a dialog that is never going to appear.
+  const insecureOrigin = !window.isSecureContext;
+
+  if (!Recognition || insecureOrigin) {
+    handsfreeBtn.disabled = true;
+    handsfreeBtn.textContent = "Hands-free: unavailable";
+    handsfreeBtn.title = insecureOrigin
+      ? "Listening needs a secure page (https, or localhost). This page is plain " +
+        "http, so the browser will not allow the microphone. Speech output still works."
+      : "This browser has no speech recognition";
+  }
+
+  function setState(state, label) {
+    if (!handsfree && state !== "off") return;
+    micLine.hidden = state === "off";
+    micLine.dataset.state = state;
+    micLine.textContent = label;
+  }
+
+  // A short tone when the microphone opens. Without it there is no way to know
+  // whose turn it is, so you talk into a closed mic and then repeat yourself —
+  // which is exactly what the logged session shows ("go north go north").
+  let audio = null;
+  function cue(kind) {
+    if (!speaking) return;                       // silent mode stays silent
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const play = function () {
+        const now = audio.currentTime;
+        // Two rising notes for "your turn", one lower note for "heard you". A rise
+        // reads as a question even to someone not looking at anything.
+        const tones = kind === "listen" ? [[660, 0], [990, 0.1]] : [[480, 0]];
+        tones.forEach(function (tone) {
+          const osc = audio.createOscillator();
+          const gain = audio.createGain();
+          const at = now + tone[1];
+          osc.type = "sine";
+          osc.frequency.value = tone[0];
+          // Ramp rather than a hard start, so it is a chime and not a click.
+          gain.gain.setValueAtTime(0.0001, at);
+          gain.gain.exponentialRampToValueAtTime(0.18, at + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.16);
+          osc.connect(gain).connect(audio.destination);
+          osc.start(at);
+          osc.stop(at + 0.18);
+        });
+      };
+      // resume() is a promise. Starting an oscillator on a suspended context is
+      // how a chime turns into silence.
+      if (audio.state === "suspended") audio.resume().then(play);
+      else play();
+    } catch (err) { /* audio is a nicety, never a failure */ }
+  }
+
+  function startListening() {
+    if (!handsfree || listening || busy || entry.disabled) return;
+    try {
+      recognition.start();
+      listening = true;
+      cue("listen");                             // your turn
+      setState("listening", "Listening — say what you want to do.");
+    } catch (err) {
+      // start() throws if it is already running; that is harmless.
+    }
+  }
+
+  function stopListening() {
+    listening = false;
+    if (recognition) { try { recognition.abort(); } catch (err) {} }
+  }
+
+  function buildRecognition() {
+    const r = new Recognition();
+    r.lang = "en-US";
+    r.interimResults = false;
+    r.continuous = false;          // one utterance per turn; we restart deliberately
+    r.maxAlternatives = 1;
+
+    r.onresult = (event) => {
+      const said = (event.results[0][0].transcript || "").trim();
+      listening = false;
+      if (said) {
+        cue("heard");                            // heard you
+        setState("thinking", "Thinking…");
+        submit(said);
+      }
+    };
+    r.onerror = (event) => {
+      listening = false;
+      if (event.error === "no-speech" || event.error === "aborted") return;
+      if (event.error === "not-allowed") {
+        setHandsfree(false);
+        write("The browser blocked microphone access, so hands-free is off. " +
+              "Allow the microphone and switch it on again.", "note");
+        return;
+      }
+      setState("listening", "Listening — say what you want to do.");
+    };
+    // Recognition stops itself after each utterance and after silence. Restarting
+    // here is what makes the loop continuous rather than push-to-talk.
+    r.onend = () => {
+      listening = false;
+      if (handsfree && !busy && !entry.disabled) window.setTimeout(startListening, 250);
+    };
+    return r;
+  }
+
+  function setHandsfree(on) {
+    handsfree = on && !!Recognition;
+    handsfreeBtn.setAttribute("aria-pressed", String(handsfree));
+    handsfreeBtn.textContent = "Hands-free: " + (handsfree ? "on" : "off");
+    if (handsfree) {
+      if (!speaking) toggleSpeech(true);      // hands-free without speech is silence
+      recognition = recognition || buildRecognition();
+      startListening();
+    } else {
+      stopListening();
+      setState("off", "");
+    }
+  }
+
+  function chips(container, refs, emptyText) {
+    container.replaceChildren();
+    if (!refs.length) {
+      const span = document.createElement("span");
+      span.className = "empty";
+      span.textContent = emptyText;
+      container.appendChild(span);
+      return;
+    }
+    for (const ref of refs) {
+      const span = document.createElement("span");
+      span.className = "chip";
+      span.textContent = ref.name;
+      container.appendChild(span);
+    }
+  }
+
+  function drawView(view) {
+    document.getElementById("room").textContent = view.room.name;
+    document.getElementById("turns").textContent = view.turn_count;
+    chips(document.getElementById("here"), view.items.concat(view.npcs), "nothing of note");
+    chips(document.getElementById("inventory"), view.inventory, "nothing");
+
+    const exits = document.getElementById("exits");
+    exits.replaceChildren();
+    if (!view.exits.length) {
+      const span = document.createElement("span");
+      span.className = "empty";
+      span.textContent = "no way out";
+      exits.appendChild(span);
+      return;
+    }
+    for (const exit of view.exits) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = exit.direction;
+      if (!exit.passable) {
+        button.classList.add("shut");
+        button.setAttribute("aria-label",
+          exit.direction + " — blocked by the " + (exit.door ? exit.door.name : "door"));
+      }
+      button.addEventListener("click", function () { submit("go " + exit.direction); });
+      exits.appendChild(button);
+    }
+  }
+
+  async function api(path, options) {
+    const response = await fetch(path, Object.assign({
+      headers: { "Content-Type": "application/json" }
+    }, options || {}));
+    if (!response.ok) {
+      const detail = await response.json().catch(function () { return {}; });
+      throw new Error(detail.detail || ("Server returned " + response.status));
+    }
+    return response.status === 204 ? null : response.json();
+  }
+
+  async function newGame(worldId) {
+    busy = true;
+    log.replaceChildren();
+    showPending("Connecting to the ship…");
+    try {
+      const query = [];
+      if (worldId) query.push("world_id=" + encodeURIComponent(worldId));
+      // Only sent once the player has actually chosen. Otherwise the world's own
+      // default stands, which is what its prose was written for.
+      if (chosenPronouns) query.push("pronouns=" + encodeURIComponent(chosenPronouns));
+      const data = await api(
+        "/api/sessions" + (query.length ? "?" + query.join("&") : ""),
+        { method: "POST" });
+      sessionId = data.session_id;
+      if (data.title) titleEl.textContent = data.title;
+      if (data.world_id) worldSelect.value = data.world_id;
+      // Until the player chooses, the panel shows what this world is actually
+      // running as — which is the world's own default, and changes when they
+      // switch worlds. A menu that disagrees with the prose is worse than no menu.
+      if (!chosenPronouns && data.view && data.view.pronouns) {
+        pronounSelect.value = data.view.pronouns;
+        showExample();
+      }
+      clearPending();
+      log.replaceChildren();
+      write(data.intro, "intro");
+      write(data.text);
+      drawView(data.view);
+      entry.disabled = false;
+      send.disabled = false;
+      entry.focus();
+      lastSpoken = [{ voice: "narrator", text: data.intro }].concat(
+        (data.speech_parts && data.speech_parts.length)
+          ? data.speech_parts
+          : [{ voice: "narrator", text: data.speech || data.text }]);
+      speak(lastSpoken, resumeListening);
+      if (insecureOrigin && Recognition) {
+        write("Speaking to the game needs a secure page. Over plain http the browser " +
+              "blocks the microphone, whatever you answer to a permission prompt. " +
+              "Open this over https, or at http://localhost:8090 on the machine " +
+              "running it. Reading aloud works here either way — turn on Speech.",
+              "note");
+      }
+    } catch (error) {
+      clearPending();
+      log.replaceChildren();
+      write("Could not start a game: " + error.message +
+            " Check that the server is running, then press New game.", "note");
+    } finally {
+      clearPending();
+      busy = false;
+    }
+  }
+
+  async function submit(line) {
+    if (busy || !sessionId) return;
+    // Said aloud constantly, and a round trip would be silly: nothing changed.
+    if (/^(repeat|say that again|again|what|pardon)\??$/i.test(line.trim())) {
+      echo(line);
+      speak((lastSpoken && lastSpoken.length) ? lastSpoken
+                                                : "There is nothing to repeat yet.",
+            resumeListening);
+      return;
+    }
+    busy = true;
+    send.disabled = true;
+    stopListening();
+    echo(line);
+    showPending("Thinking\u2026");
+    try {
+      const data = await api("/api/sessions/" + sessionId + "/turn", {
+        method: "POST",
+        body: JSON.stringify({ input: line })
+      });
+      clearPending();
+      write(data.text, data.ended ? (data.won ? "win" : "loss") : null);
+      drawView(data.view);
+
+      var tally = null;
+      if (data.ended) {
+        tally = data.won
+          ? "Escaped in " + data.view.turn_count + " turns."
+          : "You lasted " + data.view.turn_count + " turns.";
+        write(tally + " Press New game to play again.", "note");
+        entry.disabled = true;
+        setHandsfree(false);        // nothing left to listen for
+      }
+
+      // ONE speak call. Speaking twice meant the second cancel() killed the first
+      // mid-sentence, and cancel() immediately followed by speak() is dropped
+      // outright by Chrome — so the ending, of all things, said nothing at all.
+      lastSpoken = (data.speech_parts && data.speech_parts.length)
+        ? data.speech_parts.slice()
+        : [{ voice: "narrator", text: data.speech || data.text }];
+      if (tally) lastSpoken = lastSpoken.concat([{ voice: "narrator", text: tally }]);
+      speak(lastSpoken, tally ? null : resumeListening);
+    } catch (error) {
+      clearPending();
+      write(error.message, "note");
+    } finally {
+      clearPending();
+      busy = false;
+      send.disabled = entry.disabled;
+      if (!entry.disabled) entry.focus();
+    }
+  }
+
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
+    const line = entry.value.trim();
+    if (!line) return;
+    entry.value = "";
+    submit(line);
+  });
+
+  function toggleSpeech(on) {
+    speaking = on === undefined ? !speaking : on;
+    speakBtn.setAttribute("aria-pressed", String(speaking));
+    speakBtn.textContent = "Speech: " + (speaking ? "on" : "off");
+    if (!ttsSupported) return;
+    if (!speaking) { window.speechSynthesis.cancel(); return; }
+    // Spoken from inside the click, which is what unlocks synthesis for the page.
+    // Also the only way to find out it is working without moving a room first.
+    window.speechSynthesis.resume();
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance("Speech on."));
+  }
+
+  function resumeListening() {
+    if (handsfree && !entry.disabled) startListening();
+    else setState(handsfree ? "listening" : "off", "");
+  }
+
+  // Replay. The commonest moment to want this is right after switching speech on,
+  // having just watched a description scroll past unread — so it must not cost a
+  // turn, and it must work whether or not anything has been spoken yet.
+  const replayBtn = document.getElementById("replay");
+  replayBtn.addEventListener("click", function () {
+    if (!speaking) toggleSpeech(true);        // pressing replay means "say it"
+    if (lastSpoken && lastSpoken.length) {
+      speak(lastSpoken, resumeListening);
+    } else {
+      speak("There is nothing to replay yet.", resumeListening);
+    }
+  });
+
+  // ---- settings -------------------------------------------------------------
+  // One setting so far. The panel exists so the second one has somewhere to go,
+  // and so that the choice is not buried in a command a speech player cannot see.
+
+  const settingsPanel = document.getElementById("settings");
+  const settingsToggle = document.getElementById("settings-toggle");
+  const pronounSelect = document.getElementById("pronouns");
+  const pronounExample = document.getElementById("pronoun-example");
+  const PRONOUN_KEY = "adventure.pronouns";
+
+  // Remembered per browser, so a returning player never has to choose twice.
+  // Private windows and locked-down browsers throw on access rather than
+  // returning nothing, which must not take the page down with it.
+  let chosenPronouns = null;
+  try {
+    chosenPronouns = window.localStorage.getItem(PRONOUN_KEY);
+  } catch (err) {
+    chosenPronouns = null;
+  }
+
+  function rememberPronouns(id) {
+    chosenPronouns = id;
+    try {
+      window.localStorage.setItem(PRONOUN_KEY, id);
+    } catch (err) {
+      /* the choice still holds for this session */
+    }
+  }
+
+  function showExample() {
+    const option = pronounSelect.selectedOptions[0];
+    pronounExample.textContent = (option && option.dataset.example) || "\u00a0";
+  }
+
+  async function loadPronouns() {
+    try {
+      const data = await api("/api/pronouns");
+      pronounSelect.replaceChildren();
+      data.options.forEach(function (option) {
+        const el = document.createElement("option");
+        el.value = option.id;
+        el.textContent = option.label;
+        el.dataset.example = option.example;
+        pronounSelect.appendChild(el);
+      });
+      if (chosenPronouns) pronounSelect.value = chosenPronouns;
+      showExample();
+    } catch (err) {
+      settingsToggle.hidden = true;      // nothing to settle
+    }
+  }
+
+  function setSettingsOpen(open) {
+    settingsPanel.hidden = !open;
+    settingsToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) pronounSelect.focus();
+  }
+
+  settingsToggle.addEventListener("click", function () {
+    setSettingsOpen(settingsPanel.hidden);
+  });
+
+  settingsPanel.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+      setSettingsOpen(false);
+      settingsToggle.focus();
+    }
+  });
+
+  pronounSelect.addEventListener("change", async function () {
+    const id = pronounSelect.value;
+    rememberPronouns(id);
+    showExample();
+    if (!sessionId) return;             // it will be sent with the next new game
+    try {
+      // Not a turn: nothing in the world moves, and the room comes back only so
+      // the page can redraw it in the new words.
+      const data = await api("/api/sessions/" + sessionId + "/settings", {
+        method: "PUT",
+        body: JSON.stringify({ pronouns: id })
+      });
+      drawView(data.view);
+      const option = pronounSelect.selectedOptions[0];
+      const confirmation = "Your character now uses " + (option ? option.textContent : id) +
+                           ". " + ((option && option.dataset.example) || "");
+      write(confirmation, "note");
+      // Said aloud as well, because for a player with the screen off this panel
+      // is otherwise entirely silent.
+      if (speaking) speak(confirmation.trim(), resumeListening);
+    } catch (error) {
+      write("Could not change that setting: " + error.message, "note");
+    }
+  });
+
+  const worldSelect = document.getElementById("world");
+  const titleEl = document.getElementById("title");
+
+  async function loadWorlds() {
+    try {
+      const worlds = await api("/api/worlds");
+      worldSelect.replaceChildren();
+      worlds.forEach(function (w) {
+        const option = document.createElement("option");
+        option.value = w.id;
+        option.textContent = w.title;
+        if (w.default) option.selected = true;
+        worldSelect.appendChild(option);
+      });
+      worldSelect.hidden = worlds.length < 2;   // no point choosing between one
+    } catch (err) {
+      worldSelect.hidden = true;
+    }
+  }
+
+  worldSelect.addEventListener("change", function () {
+    // Switching world is starting a different game, so say so rather than
+    // silently discarding one in progress.
+    newGame(worldSelect.value);
+  });
+
+  speakBtn.addEventListener("click", function () { toggleSpeech(); });
+  handsfreeBtn.addEventListener("click", function () { setHandsfree(!handsfree); });
+
+  restartBtn.addEventListener("click", function () {
+    if (ttsSupported) window.speechSynthesis.cancel();
+    newGame(worldSelect.value || undefined);
+  });
+
+  loadWorlds();
+  // The options have to exist before the first game can select one in them.
+  loadPronouns().then(newGame);
+})();
+</script>
+</body>
+</html>
