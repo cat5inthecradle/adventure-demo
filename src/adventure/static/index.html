@@ -739,7 +739,8 @@
       if (insecureOrigin && Recognition) {
         write("Speaking to the game needs a secure page. Over plain http the browser " +
               "blocks the microphone, whatever you answer to a permission prompt. " +
-              "Open this over https, or at http://localhost:8090 on the machine " +
+              "Open this over https, or at http://localhost" +
+              (location.port ? ":" + location.port : "") + " on the machine " +
               "running it. Reading aloud works here either way — turn on Speech.",
               "note");
       }
