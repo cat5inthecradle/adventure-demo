@@ -133,7 +133,7 @@
   "final": {
    "schema_version": 1,
    "title": "The Wayfarer",
-   "intro": "You wake on the deck of the SS Wayfarer, a small freighter drifting dead in space. Emergency lighting bathes everything in dim red. Main power is offline, life support is on reserve, and the ship is silent. Restore power and get off this ship.",
+   "intro": "You wake on the deck of the Wayfarer, a small freighter drifting dead in space. Emergency lighting bathes everything in dim red. Main power is offline, life support is on reserve, and the ship is silent. Restore power and get off this ship.",
    "pronouns": "they",
    "win_epilogue": "You strap in and pull the launch lever. Clamps release with a thud, and the pod kicks free of the Wayfarer. Through the porthole, the dark freighter shrinks against the stars. You made it.",
    "player_location": "escape_pod_bay",
@@ -269,7 +269,7 @@
       "book",
       "procedures"
      ],
-     "description": "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
+     "description": "WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
      "location": "crew_quarters",
      "portable": true,
      "alt_description": null,
@@ -650,8 +650,8 @@
      "type": "examine",
      "target": "emergency_manual"
     },
-    "text": "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
-    "speech": "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate."
+    "text": "WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
+    "speech": "WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate."
    },
    {
     "line": "read manual",
@@ -659,8 +659,8 @@
      "type": "examine",
      "target": "emergency_manual"
     },
-    "text": "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
-    "speech": "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate."
+    "text": "WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
+    "speech": "WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate."
    },
    {
     "line": "take manual",
@@ -1058,7 +1058,7 @@
   "final": {
    "schema_version": 1,
    "title": "The Wayfarer",
-   "intro": "You wake on the deck of the SS Wayfarer, a small freighter drifting dead in space. Emergency lighting bathes everything in dim red. Main power is offline, life support is on reserve, and the ship is silent. Restore power and get off this ship.",
+   "intro": "You wake on the deck of the Wayfarer, a small freighter drifting dead in space. Emergency lighting bathes everything in dim red. Main power is offline, life support is on reserve, and the ship is silent. Restore power and get off this ship.",
    "pronouns": "they",
    "win_epilogue": "You strap in and pull the launch lever. Clamps release with a thud, and the pod kicks free of the Wayfarer. Through the porthole, the dark freighter shrinks against the stars. You made it.",
    "player_location": "crew_quarters",
@@ -1192,7 +1192,7 @@
       "book",
       "procedures"
      ],
-     "description": "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
+     "description": "WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
      "location": "corridor",
      "portable": true,
      "alt_description": null,

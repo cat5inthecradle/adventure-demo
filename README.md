@@ -35,7 +35,7 @@ pip install -e ".[dev]"
 adventure
 ```
 
-You wake aboard the *SS Wayfarer*, a freighter drifting dead in space. Restore main
+You wake aboard the *Wayfarer*, a freighter drifting dead in space. Restore main
 power and get off the ship. Type `help` for the command list.
 
 ```

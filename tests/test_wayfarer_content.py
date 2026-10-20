@@ -18,7 +18,7 @@ def world() -> WorldState:
 def test_world_loads_and_validates(world: WorldState) -> None:
     assert world.title == "The Wayfarer"
     assert world.player_location == "crew_quarters"
-    assert world.intro.startswith("You wake on the deck of the SS Wayfarer")
+    assert world.intro.startswith("You wake on the deck of the Wayfarer")
     assert world.win_epilogue.endswith("You made it.")
 
 

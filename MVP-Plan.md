@@ -757,7 +757,7 @@ never tracebacks.
 
 **Design — top-level:**
 - `title`: "The Wayfarer"
-- `intro`: "You wake on the deck of the SS Wayfarer, a small freighter drifting dead
+- `intro`: "You wake on the deck of the Wayfarer, a small freighter drifting dead
   in space. Emergency lighting bathes everything in dim red. Main power is offline,
   life support is on reserve, and the ship is silent. Restore power and get off this
   ship."
@@ -788,7 +788,7 @@ it won't budge."
 
 | id | name | aliases | portable | location | description |
 |---|---|---|---|---|---|
-| `emergency_manual` | emergency manual | manual, book, procedures | yes | crew_quarters | "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate." |
+| `emergency_manual` | emergency manual | manual, book, procedures | yes | crew_quarters | "WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate." |
 | `status_console` | status console | console, screen, terminal | no | corridor | "MAIN POWER: OFFLINE. LIFE SUPPORT: RESERVE. ESCAPE POD: SEALED." (alt, flag `power_restored`: "MAIN POWER: ONLINE. LIFE SUPPORT: NOMINAL. ESCAPE POD: READY.") |
 | `prybar` | prybar | crowbar, bar, tool | yes | engine_room | "A meter of solid steel with a flattened end. Good for opening things that don't want to open." |
 | `reactor` | reactor | engine, core | no | engine_room | "The main reactor is cold. Its primary cells are slagged — this thing isn't restarting without a full service dock. Auxiliary power routing would be a job for the maintenance droid." |

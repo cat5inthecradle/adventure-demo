@@ -51,7 +51,7 @@ def test_healthz_is_cheap_and_informative(client: TestClient) -> None:
 def test_a_new_game_starts_in_the_crew_quarters(client: TestClient) -> None:
     body = client.post("/api/sessions").json()
     assert body["title"] == "The Wayfarer"
-    assert "SS Wayfarer" in body["intro"]
+    assert "Wayfarer" in body["intro"]
     assert "== Crew Quarters ==" in body["text"]
     assert body["view"]["room"]["id"] == "crew_quarters"
     assert [i["id"] for i in body["view"]["items"]] == ["emergency_manual"]

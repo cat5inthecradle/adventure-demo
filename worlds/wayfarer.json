@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "The Wayfarer",
-  "intro": "You wake on the deck of the SS Wayfarer, a small freighter drifting dead in space. Emergency lighting bathes everything in dim red. Main power is offline, life support is on reserve, and the ship is silent. Restore power and get off this ship.",
+  "intro": "You wake on the deck of the Wayfarer, a small freighter drifting dead in space. Emergency lighting bathes everything in dim red. Main power is offline, life support is on reserve, and the ship is silent. Restore power and get off this ship.",
   "win_epilogue": "You strap in and pull the launch lever. Clamps release with a thud, and the pod kicks free of the Wayfarer. Through the porthole, the dark freighter shrinks against the stars. You made it.",
   "player_location": "crew_quarters",
   "rooms": {
@@ -112,7 +112,7 @@
         "book",
         "procedures"
       ],
-      "description": "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
+      "description": "WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
       "location": "crew_quarters",
       "portable": true
     },

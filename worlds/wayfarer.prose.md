@@ -19,7 +19,7 @@ is the style reference for prose added later.*
 
 ### `intro` — *printed once, before the first room*
 
-You wake on the deck of the SS Wayfarer, a small freighter drifting dead in space. Emergency lighting bathes everything in dim red. Main power is offline, life support is on reserve, and the ship is silent. Restore power and get off this ship.
+You wake on the deck of the Wayfarer, a small freighter drifting dead in space. Emergency lighting bathes everything in dim red. Main power is offline, life support is on reserve, and the ship is silent. Restore power and get off this ship.
 
 ### `win_epilogue` — *fallback last words for a win*
 
@@ -129,7 +129,7 @@ The lock plate goes green and the pod bay door grinds back into its housing, sti
 
 ### `items.emergency_manual.description` — *on examining it*
 
-SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.
+WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.
 
 ## Item — status console
 
