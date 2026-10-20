@@ -1,0 +1,91 @@
+:root {
+  --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  --bg: #f3f1ec;
+  --panel: #ffffff;
+  --fg: #1d2329;
+  --fg-soft: #3a434c;
+  --muted: #6b7680;
+  --line: #e1ddd5;
+  --line-strong: #b9b3a8;
+  --chip: #f5f3ef;
+  --accent: #0e7c86;
+  --accent-soft: #d6eef0;
+  --good: #1f7a4a;
+  --good-soft: #dcf0e4;
+  --bad: #b23b2e;
+  --bad-soft: #f7e0dc;
+  --warn: #b7791f;
+  --warn-soft: #fbefd8;
+
+  /* The terminal is always a dark phosphor screen, whatever the page theme. */
+  --bezel: #2a2f35;
+  --crt-bg: #0c1410;
+  --crt-edge: #1d2a22;
+  --crt-fg: #9fe3b4;
+  --crt-bright: #d4ffe0;
+  --crt-dim: #5f9a72;
+  --crt-glow: rgba(120, 255, 170, 0.35);
+  --crt-select: rgba(120, 255, 170, 0.14);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14181c;
+    --panel: #1c2126;
+    --fg: #e6e9ec;
+    --fg-soft: #c3cad1;
+    --muted: #8a959f;
+    --line: #2d343b;
+    --line-strong: #4a535c;
+    --chip: #242a30;
+    --accent: #3fc1cc;
+    --accent-soft: #163b40;
+    --good: #5fd08f;
+    --good-soft: #17352a;
+    --bad: #f07a6a;
+    --bad-soft: #3d2320;
+    --warn: #e9b35a;
+    --warn-soft: #3a2f1c;
+    --bezel: #0a0c0e;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 14px;
+  overflow: hidden;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.panel-head h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+  white-space: nowrap;
+}
+.muted { color: var(--muted); }
+.small { font-size: 11.5px; }

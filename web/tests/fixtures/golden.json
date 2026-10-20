@@ -1,0 +1,1548 @@
+{
+ "golden_path": {
+  "steps": [
+   {
+    "line": "go east",
+    "action": {
+     "type": "go",
+     "direction": "east"
+    },
+    "text": "You head to the Main Corridor.\n\n== Main Corridor ==\nThe main corridor runs the length of the ship. In the red emergency glow you can make out a status console set into the wall. The crew quarters are west, the cargo bay east, the engine room south. To the north, a heavy door leads to the escape pod bay.\nExits: north (through the pod bay door, closed), south, east, west.\nYou see status console here.",
+    "speech": "You head to the Main Corridor.\n\nMain Corridor. The main corridor runs the length of the ship. In the red emergency glow you can make out a status console set into the wall. The crew quarters are west, the cargo bay east, the engine room south. To the north, a heavy door leads to the escape pod bay. You can go south, east or west. The pod bay door to the north is closed. You can see a status console."
+   },
+   {
+    "line": "go south",
+    "action": {
+     "type": "go",
+     "direction": "south"
+    },
+    "text": "You head to the Engine Room.\n\n== Engine Room ==\nThe engine room is dead quiet. The reactor housing looms cold and dark. A rack of tools hangs by the hatch.\nExits: north.\nYou see prybar and reactor here.",
+    "speech": "You head to the Engine Room.\n\nEngine Room. The engine room is dead quiet. The reactor housing looms cold and dark. A rack of tools hangs by the hatch. You can go north. You can see a prybar and a reactor."
+   },
+   {
+    "line": "take prybar",
+    "action": {
+     "type": "take",
+     "item": "prybar"
+    },
+    "text": "You take the prybar.",
+    "speech": "You take the prybar."
+   },
+   {
+    "line": "go north",
+    "action": {
+     "type": "go",
+     "direction": "north"
+    },
+    "text": "You head to the Main Corridor.\n\n== Main Corridor ==\nThe main corridor runs the length of the ship. In the red emergency glow you can make out a status console set into the wall. The crew quarters are west, the cargo bay east, the engine room south. To the north, a heavy door leads to the escape pod bay.\nExits: north (through the pod bay door, closed), south, east, west.\nYou see status console here.",
+    "speech": "You head to the Main Corridor.\n\nMain Corridor. You can go south, east or west. The pod bay door to the north is closed. You can see a status console."
+   },
+   {
+    "line": "go east",
+    "action": {
+     "type": "go",
+     "direction": "east"
+    },
+    "text": "You head to the Cargo Bay.\n\n== Cargo Bay ==\nCargo netting and strapped-down containers fill the bay. A squat maintenance droid stands motionless near a large supply crate.\nExits: west.\nYou see supply crate here.\nmaintenance droid is here.",
+    "speech": "You head to the Cargo Bay.\n\nCargo Bay. Cargo netting and strapped-down containers fill the bay. A squat maintenance droid stands motionless near a large supply crate. You can go west. You can see a supply crate. A maintenance droid is here."
+   },
+   {
+    "line": "use prybar on crate",
+    "action": {
+     "type": "use",
+     "item": "prybar",
+     "target": "supply_crate"
+    },
+    "text": "You wedge the prybar under the crate lid and heave. The lid pops off, revealing a power cell glowing softly in its packing foam.",
+    "speech": "You wedge the prybar under the crate lid and heave. The lid pops off, revealing a power cell glowing softly in its packing foam."
+   },
+   {
+    "line": "take power cell",
+    "action": {
+     "type": "take",
+     "item": "power_cell"
+    },
+    "text": "You take the power cell.",
+    "speech": "You take the power cell."
+   },
+   {
+    "line": "use power cell on droid",
+    "action": {
+     "type": "use",
+     "item": "power_cell",
+     "target": "maintenance_droid"
+    },
+    "text": "You slot the power cell into the droid's chest port. It clicks home, and lights flicker up across the droid's chassis.",
+    "speech": "You slot the power cell into the droid's chest port. It clicks home, and lights flicker up across the droid's chassis."
+   },
+   {
+    "line": "talk to droid",
+    "action": {
+     "type": "talk",
+     "npc": "maintenance_droid"
+    },
+    "text": "R-6 boots with a rising whir. 'Unit R-6 online. Diagnostic: main reactor offline. Rerouting auxiliary power\u2026 done. Main power restored, Captain. The escape pod bay is now accessible.'",
+    "speech": "R-6 boots with a rising whir. 'Unit R-6 online. Diagnostic: main reactor offline. Rerouting auxiliary power\u2026 done. Main power restored, Captain. The escape pod bay is now accessible.'"
+   },
+   {
+    "line": "go west",
+    "action": {
+     "type": "go",
+     "direction": "west"
+    },
+    "text": "You head to the Main Corridor.\n\n== Main Corridor ==\nWhite light floods the corridor and the air recyclers hum steadily. The crew quarters are west, the cargo bay east, the engine room south, and the escape pod bay door is north.\nExits: north (through the pod bay door, closed), south, east, west.\nYou see status console here.",
+    "speech": "You head to the Main Corridor.\n\nMain Corridor. You can go south, east or west. The pod bay door to the north is closed. You can see a status console."
+   },
+   {
+    "line": "open door",
+    "action": {
+     "type": "open",
+     "target": "pod_door"
+    },
+    "text": "The lock plate goes green and the pod bay door grinds back into its housing, stiff from however long it has been sitting shut in the cold.",
+    "speech": "The lock plate goes green and the pod bay door grinds back into its housing, stiff from however long it has been sitting shut in the cold."
+   },
+   {
+    "line": "go north",
+    "action": {
+     "type": "go",
+     "direction": "north"
+    },
+    "text": "You step over the sill into the pod bay. The air in here is colder, and very still.\n\n== Escape Pod Bay ==\nA single escape pod sits in its launch cradle, hatch open. A launch lever juts from the console beside it.\nExits: south (through the pod bay door, open).\nYou see launch lever and escape pod here.",
+    "speech": "You step over the sill into the pod bay. The air in here is colder, and very still.\n\nEscape Pod Bay. A single escape pod sits in its launch cradle, hatch open. A launch lever juts from the console beside it. You can go south. You can see a launch lever and an escape pod."
+   },
+   {
+    "line": "pull lever",
+    "action": {
+     "type": "use",
+     "item": "launch_lever",
+     "target": null
+    },
+    "text": "You grip the launch lever.\n\nYou strap in and pull the launch lever. Clamps release with a thud, and the pod kicks free of the Wayfarer. Through the porthole, the dark freighter shrinks against the stars. You made it.\n\n*** You have escaped. THE END ***",
+    "speech": "You grip the launch lever.\n\nYou strap in and pull the launch lever. Clamps release with a thud, and the pod kicks free of the Wayfarer. Through the porthole, the dark freighter shrinks against the stars. You made it. You have escaped. THE END."
+   },
+   {
+    "line": "look",
+    "action": {
+     "type": "look"
+    },
+    "text": "The game is over. Start a new one to play again.",
+    "speech": "The game is over. Start a new one to play again."
+   }
+  ],
+  "final": {
+   "schema_version": 1,
+   "title": "The Wayfarer",
+   "intro": "You wake on the deck of the SS Wayfarer, a small freighter drifting dead in space. Emergency lighting bathes everything in dim red. Main power is offline, life support is on reserve, and the ship is silent. Restore power and get off this ship.",
+   "pronouns": "they",
+   "win_epilogue": "You strap in and pull the launch lever. Clamps release with a thud, and the pod kicks free of the Wayfarer. Through the porthole, the dark freighter shrinks against the stars. You made it.",
+   "player_location": "escape_pod_bay",
+   "visited": [
+    "crew_quarters",
+    "corridor",
+    "engine_room",
+    "cargo_bay",
+    "escape_pod_bay"
+   ],
+   "previous_location": "corridor",
+   "rooms": {
+    "crew_quarters": {
+     "id": "crew_quarters",
+     "name": "Crew Quarters",
+     "description": "Narrow bunks line the walls of the cramped crew quarters. Red emergency light pulses from a strip above the hatch. A corridor lies to the east.",
+     "exits": {
+      "east": {
+       "to": "corridor",
+       "door_id": null,
+       "pass_message": null
+      }
+     },
+     "alt_description": "The crew quarters are brightly lit again. Your bunk looks almost inviting. A corridor lies to the east.",
+     "alt_flag": "power_restored",
+     "sounds": "Nothing but your own breathing and the tick of cooling metal somewhere behind the bulkhead.",
+     "alt_sounds": "The air recyclers hum, and somewhere aft a pump cycles on and off."
+    },
+    "corridor": {
+     "id": "corridor",
+     "name": "Main Corridor",
+     "description": "The main corridor runs the length of the ship. In the red emergency glow you can make out a status console set into the wall. The crew quarters are west, the cargo bay east, the engine room south. To the north, a heavy door leads to the escape pod bay.",
+     "exits": {
+      "north": {
+       "to": "escape_pod_bay",
+       "door_id": "pod_door",
+       "pass_message": "You step over the sill into the pod bay. The air in here is colder, and very still."
+      },
+      "south": {
+       "to": "engine_room",
+       "door_id": null,
+       "pass_message": null
+      },
+      "east": {
+       "to": "cargo_bay",
+       "door_id": null,
+       "pass_message": null
+      },
+      "west": {
+       "to": "crew_quarters",
+       "door_id": null,
+       "pass_message": null
+      }
+     },
+     "alt_description": "White light floods the corridor and the air recyclers hum steadily. The crew quarters are west, the cargo bay east, the engine room south, and the escape pod bay door is north.",
+     "alt_flag": "power_restored",
+     "sounds": "The corridor is dead quiet. Every sound you make goes the whole length of it and comes back.",
+     "alt_sounds": "Fans, the steady hum of restored power, and the corridor lights ticking as they warm."
+    },
+    "cargo_bay": {
+     "id": "cargo_bay",
+     "name": "Cargo Bay",
+     "description": "Cargo netting and strapped-down containers fill the bay. A squat maintenance droid stands motionless near a large supply crate.",
+     "exits": {
+      "west": {
+       "to": "corridor",
+       "door_id": null,
+       "pass_message": null
+      }
+     },
+     "alt_description": null,
+     "alt_flag": "power_restored",
+     "sounds": "Cargo netting shifts very slightly against the containers. Nothing else.",
+     "alt_sounds": "Air moving through the bay, and the netting creaking gently against the containers."
+    },
+    "engine_room": {
+     "id": "engine_room",
+     "name": "Engine Room",
+     "description": "The engine room is dead quiet. The reactor housing looms cold and dark. A rack of tools hangs by the hatch.",
+     "exits": {
+      "north": {
+       "to": "corridor",
+       "door_id": null,
+       "pass_message": null
+      }
+     },
+     "alt_description": null,
+     "alt_flag": "power_restored",
+     "sounds": "Silence, which is the wrong sound for an engine room, and the loudest thing in the ship.",
+     "alt_sounds": "The reactor housing stays cold and silent, but the room around it has come back to life: fans, relays, the whole ship's business."
+    },
+    "escape_pod_bay": {
+     "id": "escape_pod_bay",
+     "name": "Escape Pod Bay",
+     "description": "A single escape pod sits in its launch cradle, hatch open. A launch lever juts from the console beside it.",
+     "exits": {
+      "south": {
+       "to": "corridor",
+       "door_id": "pod_door",
+       "pass_message": "You duck back out into the corridor."
+      }
+     },
+     "alt_description": null,
+     "alt_flag": "power_restored",
+     "sounds": "The pod's hull ticks as it sits in the cradle. Beyond it, nothing at all \u2014 that side is hull, and then vacuum.",
+     "alt_sounds": "The pod's systems murmur to themselves in the cradle, waiting."
+    }
+   },
+   "doors": {
+    "pod_door": {
+     "id": "pod_door",
+     "name": "pod bay door",
+     "aliases": [
+      "door",
+      "bay door",
+      "pod door"
+     ],
+     "description": "A heavy pressure door with magnetic seals, marked ESCAPE POD BAY.",
+     "open": true,
+     "locked": false,
+     "unlock_flag": "power_restored",
+     "locked_message": "You haul on the pod bay door, but its magnetic seals hold fast. Without main power, it won't budge.",
+     "open_message": "The lock plate goes green and the pod bay door grinds back into its housing, stiff from however long it has been sitting shut in the cold.",
+     "listening": []
+    }
+   },
+   "items": {
+    "emergency_manual": {
+     "id": "emergency_manual",
+     "name": "emergency manual",
+     "aliases": [
+      "manual",
+      "book",
+      "procedures"
+     ],
+     "description": "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
+     "location": "crew_quarters",
+     "portable": true,
+     "alt_description": null,
+     "alt_flag": null,
+     "open_refusal": null,
+     "open_refusal_with": {}
+    },
+    "status_console": {
+     "id": "status_console",
+     "name": "status console",
+     "aliases": [
+      "console",
+      "screen",
+      "terminal"
+     ],
+     "description": "MAIN POWER: OFFLINE. LIFE SUPPORT: RESERVE. ESCAPE POD: SEALED.",
+     "location": "corridor",
+     "portable": false,
+     "alt_description": "MAIN POWER: ONLINE. LIFE SUPPORT: NOMINAL. ESCAPE POD: READY.",
+     "alt_flag": "power_restored",
+     "open_refusal": null,
+     "open_refusal_with": {}
+    },
+    "prybar": {
+     "id": "prybar",
+     "name": "prybar",
+     "aliases": [
+      "crowbar",
+      "bar",
+      "tool",
+      "steel bar"
+     ],
+     "description": "A meter of solid steel with a flattened end. Good for opening things that don't want to open.",
+     "location": "inventory",
+     "portable": true,
+     "alt_description": null,
+     "alt_flag": null,
+     "open_refusal": null,
+     "open_refusal_with": {}
+    },
+    "reactor": {
+     "id": "reactor",
+     "name": "reactor",
+     "aliases": [
+      "engine",
+      "core"
+     ],
+     "description": "The main reactor is cold. Its primary cells are slagged \u2014 this thing isn't restarting without a full service dock. Auxiliary power routing would be a job for the maintenance droid.",
+     "location": "engine_room",
+     "portable": false,
+     "alt_description": null,
+     "alt_flag": null,
+     "open_refusal": null,
+     "open_refusal_with": {}
+    },
+    "supply_crate": {
+     "id": "supply_crate",
+     "name": "supply crate",
+     "aliases": [
+      "crate",
+      "box",
+      "container"
+     ],
+     "description": "A sealed cargo crate stenciled SPARES \u2014 POWER CELLS. The lid is jammed shut.",
+     "location": "cargo_bay",
+     "portable": false,
+     "alt_description": "The crate stands open, packing foam scattered around it.",
+     "alt_flag": "crate_open",
+     "open_refusal": "You work your fingers under the lid and heave. It does not give \u2014 the crate is banded shut and jammed hard. Bare hands are not going to do it; something with leverage might.",
+     "open_refusal_with": {
+      "prybar": "You get a grip on the lid and pull, with about as much effect as before \u2014 then remember the prybar you are carrying. That flattened end is exactly what this needs."
+     }
+    },
+    "power_cell": {
+     "id": "power_cell",
+     "name": "power cell",
+     "aliases": [
+      "cell",
+      "battery",
+      "glowing battery",
+      "glowing thing"
+     ],
+     "description": "A sealed energy cell, humming faintly and glowing pale blue along its charge strips.",
+     "location": "hidden",
+     "portable": true,
+     "alt_description": null,
+     "alt_flag": null,
+     "open_refusal": null,
+     "open_refusal_with": {}
+    },
+    "launch_lever": {
+     "id": "launch_lever",
+     "name": "launch lever",
+     "aliases": [
+      "lever",
+      "handle",
+      "release handle"
+     ],
+     "description": "A heavy manual release lever. Pull it and the pod launches \u2014 no countdown, no second chances.",
+     "location": "escape_pod_bay",
+     "portable": false,
+     "alt_description": null,
+     "alt_flag": null,
+     "open_refusal": null,
+     "open_refusal_with": {}
+    },
+    "escape_pod": {
+     "id": "escape_pod",
+     "name": "escape pod",
+     "aliases": [
+      "pod",
+      "capsule"
+     ],
+     "description": "A one-person pod, cramped but flight-ready. The launch lever beside it fires the release.",
+     "location": "escape_pod_bay",
+     "portable": false,
+     "alt_description": null,
+     "alt_flag": null,
+     "open_refusal": null,
+     "open_refusal_with": {}
+    }
+   },
+   "npcs": {
+    "maintenance_droid": {
+     "id": "maintenance_droid",
+     "name": "maintenance droid",
+     "aliases": [
+      "droid",
+      "robot",
+      "r-6",
+      "r6"
+     ],
+     "description": "A squat utility droid, model R-6. Its chest port \u2014 sized for a standard power cell \u2014 is empty, and its optics are dark.",
+     "location": "cargo_bay",
+     "follows_player": false,
+     "dialogue": [
+      {
+       "rooms": [],
+       "requires_flags": {
+        "droid_active": false
+       },
+       "requires_counters": {},
+       "requires_doors": {},
+       "text": "The droid is dark and unresponsive. An empty power socket gapes in its chest.",
+       "effects": [],
+       "once": false,
+       "fired": false
+      },
+      {
+       "rooms": [],
+       "requires_flags": {
+        "droid_active": true,
+        "power_restored": false
+       },
+       "requires_counters": {},
+       "requires_doors": {},
+       "text": "R-6 boots with a rising whir. 'Unit R-6 online. Diagnostic: main reactor offline. Rerouting auxiliary power\u2026 done. Main power restored, Captain. The escape pod bay is now accessible.'",
+       "effects": [
+        {
+         "type": "set_flag",
+         "flag": "power_restored",
+         "value": true,
+         "item_id": null,
+         "npc_id": null,
+         "to": null,
+         "counter": null,
+         "delta": null,
+         "door_id": null,
+         "open": null,
+         "locked": null,
+         "outcome": null,
+         "epilogue": null,
+         "banner": null
+        }
+       ],
+       "once": true,
+       "fired": true
+      },
+      {
+       "rooms": [],
+       "requires_flags": {
+        "droid_active": true,
+        "power_restored": true
+       },
+       "requires_counters": {},
+       "requires_doors": {},
+       "text": "R-6 beeps politely. 'Recommend immediate evacuation via escape pod, Captain.'",
+       "effects": [],
+       "once": false,
+       "fired": false
+      }
+     ]
+    }
+   },
+   "interactions": [
+    {
+     "id": "pry_crate",
+     "item_id": "prybar",
+     "target_id": "supply_crate",
+     "requires_flags": {
+      "crate_open": false
+     },
+     "requires_counters": {},
+     "requires_doors": {},
+     "message": "You wedge the prybar under the crate lid and heave. The lid pops off, revealing a power cell glowing softly in its packing foam.",
+     "effects": [
+      {
+       "type": "set_flag",
+       "flag": "crate_open",
+       "value": true,
+       "item_id": null,
+       "npc_id": null,
+       "to": null,
+       "counter": null,
+       "delta": null,
+       "door_id": null,
+       "open": null,
+       "locked": null,
+       "outcome": null,
+       "epilogue": null,
+       "banner": null
+      },
+      {
+       "type": "move_item",
+       "flag": null,
+       "value": null,
+       "item_id": "power_cell",
+       "npc_id": null,
+       "to": "cargo_bay",
+       "counter": null,
+       "delta": null,
+       "door_id": null,
+       "open": null,
+       "locked": null,
+       "outcome": null,
+       "epilogue": null,
+       "banner": null
+      }
+     ],
+     "once": true,
+     "fired": true
+    },
+    {
+     "id": "power_droid",
+     "item_id": "power_cell",
+     "target_id": "maintenance_droid",
+     "requires_flags": {
+      "droid_active": false
+     },
+     "requires_counters": {},
+     "requires_doors": {},
+     "message": "You slot the power cell into the droid's chest port. It clicks home, and lights flicker up across the droid's chassis.",
+     "effects": [
+      {
+       "type": "set_flag",
+       "flag": "droid_active",
+       "value": true,
+       "item_id": null,
+       "npc_id": null,
+       "to": null,
+       "counter": null,
+       "delta": null,
+       "door_id": null,
+       "open": null,
+       "locked": null,
+       "outcome": null,
+       "epilogue": null,
+       "banner": null
+      },
+      {
+       "type": "move_item",
+       "flag": null,
+       "value": null,
+       "item_id": "power_cell",
+       "npc_id": null,
+       "to": "hidden",
+       "counter": null,
+       "delta": null,
+       "door_id": null,
+       "open": null,
+       "locked": null,
+       "outcome": null,
+       "epilogue": null,
+       "banner": null
+      }
+     ],
+     "once": true,
+     "fired": true
+    },
+    {
+     "id": "pull_lever",
+     "item_id": "launch_lever",
+     "target_id": null,
+     "requires_flags": {},
+     "requires_counters": {},
+     "requires_doors": {},
+     "message": "You grip the launch lever.",
+     "effects": [
+      {
+       "type": "win_game",
+       "flag": null,
+       "value": null,
+       "item_id": null,
+       "npc_id": null,
+       "to": null,
+       "counter": null,
+       "delta": null,
+       "door_id": null,
+       "open": null,
+       "locked": null,
+       "outcome": null,
+       "epilogue": null,
+       "banner": null
+      }
+     ],
+     "once": true,
+     "fired": true
+    },
+    {
+     "id": "try_reactor",
+     "item_id": "reactor",
+     "target_id": null,
+     "requires_flags": {},
+     "requires_counters": {},
+     "requires_doors": {},
+     "message": "You work through the cold-start sequence from memory. Nothing answers: no hum, no warmth, not even a fault light on the housing. The primary cells really are slagged. Whatever gets you off this ship, it will not be this.",
+     "effects": [],
+     "once": false,
+     "fired": false
+    },
+    {
+     "id": "use_escape_pod",
+     "item_id": "escape_pod",
+     "target_id": null,
+     "requires_flags": {
+      "power_restored": true
+     },
+     "requires_counters": {},
+     "requires_doors": {},
+     "message": "If you want to use the escape pod, you'll need to go into it.",
+     "effects": [],
+     "once": false,
+     "fired": false
+    }
+   ],
+   "triggers": [],
+   "flags": {
+    "crate_open": true,
+    "droid_active": true,
+    "power_restored": true
+   },
+   "counters": {},
+   "outcome": "win",
+   "turn_count": 13
+  }
+ },
+ "wandering": {
+  "steps": [
+   {
+    "line": "look around",
+    "action": {
+     "type": "look"
+    },
+    "text": "== Crew Quarters ==\nNarrow bunks line the walls of the cramped crew quarters. Red emergency light pulses from a strip above the hatch. A corridor lies to the east.\nExits: east.\nYou see emergency manual here.",
+    "speech": "Crew Quarters. Narrow bunks line the walls of the cramped crew quarters. Red emergency light pulses from a strip above the hatch. A corridor lies to the east. You can go east. You can see an emergency manual."
+   },
+   {
+    "line": "where am i",
+    "action": {
+     "type": "look"
+    },
+    "text": "== Crew Quarters ==\nNarrow bunks line the walls of the cramped crew quarters. Red emergency light pulses from a strip above the hatch. A corridor lies to the east.\nExits: east.\nYou see emergency manual here.",
+    "speech": "Crew Quarters. Narrow bunks line the walls of the cramped crew quarters. Red emergency light pulses from a strip above the hatch. A corridor lies to the east. You can go east. You can see an emergency manual."
+   },
+   {
+    "line": "x manual",
+    "action": {
+     "type": "examine",
+     "target": "emergency_manual"
+    },
+    "text": "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
+    "speech": "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate."
+   },
+   {
+    "line": "read manual",
+    "action": {
+     "type": "examine",
+     "target": "emergency_manual"
+    },
+    "text": "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
+    "speech": "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate."
+   },
+   {
+    "line": "take manual",
+    "action": {
+     "type": "take",
+     "item": "emergency_manual"
+    },
+    "text": "You take the emergency manual.",
+    "speech": "You take the emergency manual."
+   },
+   {
+    "line": "i",
+    "action": {
+     "type": "inventory"
+    },
+    "text": "You are carrying emergency manual.",
+    "speech": "You are carrying emergency manual."
+   },
+   {
+    "line": "listen",
+    "action": {
+     "type": "listen",
+     "target": null
+    },
+    "text": "Nothing but your own breathing and the tick of cooling metal somewhere behind the bulkhead.",
+    "speech": "Nothing but your own breathing and the tick of cooling metal somewhere behind the bulkhead."
+   },
+   {
+    "line": "e",
+    "action": {
+     "type": "go",
+     "direction": "east"
+    },
+    "text": "You head to the Main Corridor.\n\n== Main Corridor ==\nThe main corridor runs the length of the ship. In the red emergency glow you can make out a status console set into the wall. The crew quarters are west, the cargo bay east, the engine room south. To the north, a heavy door leads to the escape pod bay.\nExits: north (through the pod bay door, closed), south, east, west.\nYou see status console here.",
+    "speech": "You head to the Main Corridor.\n\nMain Corridor. The main corridor runs the length of the ship. In the red emergency glow you can make out a status console set into the wall. The crew quarters are west, the cargo bay east, the engine room south. To the north, a heavy door leads to the escape pod bay. You can go south, east or west. The pod bay door to the north is closed. You can see a status console."
+   },
+   {
+    "line": "listen at door",
+    "action": {
+     "type": "listen",
+     "target": "pod_door"
+    },
+    "text": "The corridor is dead quiet. Every sound you make goes the whole length of it and comes back.",
+    "speech": "The corridor is dead quiet. Every sound you make goes the whole length of it and comes back."
+   },
+   {
+    "line": "open door",
+    "action": {
+     "type": "open",
+     "target": "pod_door"
+    },
+    "text": "You haul on the pod bay door, but its magnetic seals hold fast. Without main power, it won't budge.",
+    "speech": "You haul on the pod bay door, but its magnetic seals hold fast. Without main power, it won't budge."
+   },
+   {
+    "line": "go north",
+    "action": {
+     "type": "go",
+     "direction": "north"
+    },
+    "text": "The pod bay door is closed.",
+    "speech": "The pod bay door is closed."
+   },
+   {
+    "line": "enter pod",
+    "action": {
+     "type": "traverse",
+     "target": "pod_door"
+    },
+    "text": "You haul on the pod bay door, but its magnetic seals hold fast. Without main power, it won't budge.",
+    "speech": "You haul on the pod bay door, but its magnetic seals hold fast. Without main power, it won't budge."
+   },
+   {
+    "line": "go to cargo bay",
+    "action": {
+     "type": "go",
+     "direction": "east"
+    },
+    "text": "You head to the Cargo Bay.\n\n== Cargo Bay ==\nCargo netting and strapped-down containers fill the bay. A squat maintenance droid stands motionless near a large supply crate.\nExits: west.\nYou see supply crate here.\nmaintenance droid is here.",
+    "speech": "You head to the Cargo Bay.\n\nCargo Bay. Cargo netting and strapped-down containers fill the bay. A squat maintenance droid stands motionless near a large supply crate. You can go west. You can see a supply crate. A maintenance droid is here."
+   },
+   {
+    "line": "go to engine room",
+    "action": {
+     "type": "go",
+     "direction": "west"
+    },
+    "text": "You head to the Main Corridor.\n\n== Main Corridor ==\nThe main corridor runs the length of the ship. In the red emergency glow you can make out a status console set into the wall. The crew quarters are west, the cargo bay east, the engine room south. To the north, a heavy door leads to the escape pod bay.\nExits: north (through the pod bay door, closed), south, east, west.\nYou see status console here.",
+    "speech": "You head to the Main Corridor.\n\nMain Corridor. You can go south, east or west. The pod bay door to the north is closed. You can see a status console."
+   },
+   {
+    "line": "go back",
+    "action": {
+     "type": "go",
+     "direction": "east"
+    },
+    "text": "You head to the Cargo Bay.\n\n== Cargo Bay ==\nCargo netting and strapped-down containers fill the bay. A squat maintenance droid stands motionless near a large supply crate.\nExits: west.\nYou see supply crate here.\nmaintenance droid is here.",
+    "speech": "You head to the Cargo Bay.\n\nCargo Bay. You can go west. You can see a supply crate. A maintenance droid is here."
+   },
+   {
+    "line": "take reactor",
+    "action": null,
+    "text": "I don't see any 'reactor' here.",
+    "speech": null
+   },
+   {
+    "line": "take prybar",
+    "action": null,
+    "text": "I don't see any 'prybar' here.",
+    "speech": null
+   },
+   {
+    "line": "opne crate",
+    "action": {
+     "type": "open",
+     "target": "supply_crate"
+    },
+    "text": "You work your fingers under the lid and heave. It does not give \u2014 the crate is banded shut and jammed hard. Bare hands are not going to do it; something with leverage might.",
+    "speech": "You work your fingers under the lid and heave. It does not give \u2014 the crate is banded shut and jammed hard. Bare hands are not going to do it; something with leverage might."
+   },
+   {
+    "line": "open teh crate using the prybar",
+    "action": null,
+    "text": "I don't see any 'prybar' here.",
+    "speech": null
+   },
+   {
+    "line": "go to the cargo bay",
+    "action": null,
+    "text": "You don't know a way to the Cargo Bay from here yet.",
+    "speech": null
+   },
+   {
+    "line": "take crate",
+    "action": {
+     "type": "take",
+     "item": "supply_crate"
+    },
+    "text": "You can't take the supply crate.",
+    "speech": "You can't take the supply crate."
+   },
+   {
+    "line": "use prybar on crate",
+    "action": null,
+    "text": "I don't see any 'prybar' here.",
+    "speech": null
+   },
+   {
+    "line": "take cell",
+    "action": null,
+    "text": "I don't see any 'cell' here.",
+    "speech": null
+   },
+   {
+    "line": "take power cell",
+    "action": null,
+    "text": "I don't see any 'power cell' here.",
+    "speech": null
+   },
+   {
+    "line": "take power cell",
+    "action": null,
+    "text": "I don't see any 'power cell' here.",
+    "speech": null
+   },
+   {
+    "line": "drop power cell",
+    "action": null,
+    "text": "I don't see any 'power cell' here.",
+    "speech": null
+   },
+   {
+    "line": "drop sandwich",
+    "action": null,
+    "text": "I don't see any 'sandwich' here.",
+    "speech": null
+   },
+   {
+    "line": "take droid",
+    "action": {
+     "type": "take",
+     "item": "maintenance_droid"
+    },
+    "text": "You can't take the maintenance droid.",
+    "speech": "You can't take the maintenance droid."
+   },
+   {
+    "line": "wake droid",
+    "action": {
+     "type": "talk",
+     "npc": "maintenance_droid"
+    },
+    "text": "The droid is dark and unresponsive. An empty power socket gapes in its chest.",
+    "speech": "The droid is dark and unresponsive. An empty power socket gapes in its chest."
+   },
+   {
+    "line": "talk to droid",
+    "action": {
+     "type": "talk",
+     "npc": "maintenance_droid"
+    },
+    "text": "The droid is dark and unresponsive. An empty power socket gapes in its chest.",
+    "speech": "The droid is dark and unresponsive. An empty power socket gapes in its chest."
+   },
+   {
+    "line": "xyzzy",
+    "action": null,
+    "text": "I don't know the word 'xyzzy'. Type 'help' for commands.",
+    "speech": null
+   },
+   {
+    "line": "take",
+    "action": null,
+    "text": "Take what?",
+    "speech": null
+   },
+   {
+    "line": "",
+    "action": null,
+    "text": "Please type a command, or 'help'.",
+    "speech": null
+   },
+   {
+    "line": "go sideways",
+    "action": null,
+    "text": "I don't see any 'sideways' here.",
+    "speech": null
+   },
+   {
+    "line": "take the thing",
+    "action": null,
+    "text": "I don't see any 'thing' here.",
+    "speech": null
+   },
+   {
+    "line": "go to the crew quarters",
+    "action": {
+     "type": "go",
+     "direction": "west"
+    },
+    "text": "You head to the Main Corridor.\n\n== Main Corridor ==\nThe main corridor runs the length of the ship. In the red emergency glow you can make out a status console set into the wall. The crew quarters are west, the cargo bay east, the engine room south. To the north, a heavy door leads to the escape pod bay.\nExits: north (through the pod bay door, closed), south, east, west.\nYou see status console here.",
+    "speech": "You head to the Main Corridor.\n\nMain Corridor. You can go south, east or west. The pod bay door to the north is closed. You can see a status console."
+   },
+   {
+    "line": "examine console",
+    "action": {
+     "type": "examine",
+     "target": "status_console"
+    },
+    "text": "MAIN POWER: OFFLINE. LIFE SUPPORT: RESERVE. ESCAPE POD: SEALED.",
+    "speech": "MAIN POWER: OFFLINE. LIFE SUPPORT: RESERVE. ESCAPE POD: SEALED."
+   },
+   {
+    "line": "use console",
+    "action": {
+     "type": "use",
+     "item": "status_console",
+     "target": null
+    },
+    "text": "Nothing happens.",
+    "speech": "Nothing happens."
+   },
+   {
+    "line": "take prybar",
+    "action": null,
+    "text": "I don't see any 'prybar' here.",
+    "speech": null
+   },
+   {
+    "line": "get in the pod",
+    "action": {
+     "type": "traverse",
+     "target": "pod_door"
+    },
+    "text": "You haul on the pod bay door, but its magnetic seals hold fast. Without main power, it won't budge.",
+    "speech": "You haul on the pod bay door, but its magnetic seals hold fast. Without main power, it won't budge."
+   },
+   {
+    "line": "inventory",
+    "action": {
+     "type": "inventory"
+    },
+    "text": "You are carrying emergency manual.",
+    "speech": "You are carrying emergency manual."
+   },
+   {
+    "line": "pick up manual",
+    "action": {
+     "type": "take",
+     "item": "emergency_manual"
+    },
+    "text": "You already have the emergency manual.",
+    "speech": "You already have the emergency manual."
+   },
+   {
+    "line": "put down manual",
+    "action": {
+     "type": "drop",
+     "item": "emergency_manual"
+    },
+    "text": "You put down the emergency manual.",
+    "speech": "You put down the emergency manual."
+   },
+   {
+    "line": "jump out the window",
+    "action": null,
+    "text": "I don't see any 'window' here.",
+    "speech": null
+   },
+   {
+    "line": "use power cell on droid",
+    "action": null,
+    "text": "I don't see any 'power cell' here.",
+    "speech": null
+   },
+   {
+    "line": "take power cell",
+    "action": null,
+    "text": "I don't see any 'power cell' here.",
+    "speech": null
+   },
+   {
+    "line": "use power cell on droid",
+    "action": null,
+    "text": "I don't see any 'power cell' here.",
+    "speech": null
+   },
+   {
+    "line": "talk to droid",
+    "action": null,
+    "text": "The maintenance droid isn't here \u2014 you last saw it in the Cargo Bay.",
+    "speech": null
+   },
+   {
+    "line": "talk to droid",
+    "action": null,
+    "text": "The maintenance droid isn't here \u2014 you last saw it in the Cargo Bay.",
+    "speech": null
+   },
+   {
+    "line": "w",
+    "action": {
+     "type": "go",
+     "direction": "west"
+    },
+    "text": "You head to the Crew Quarters.\n\n== Crew Quarters ==\nNarrow bunks line the walls of the cramped crew quarters. Red emergency light pulses from a strip above the hatch. A corridor lies to the east.\nExits: east.",
+    "speech": "You head to the Crew Quarters.\n\nCrew Quarters. You can go east."
+   },
+   {
+    "line": "s",
+    "action": {
+     "type": "go",
+     "direction": "south"
+    },
+    "text": "You can't go that way.",
+    "speech": "You can't go that way."
+   },
+   {
+    "line": "n",
+    "action": {
+     "type": "go",
+     "direction": "north"
+    },
+    "text": "You can't go that way.",
+    "speech": "You can't go that way."
+   },
+   {
+    "line": "n",
+    "action": {
+     "type": "go",
+     "direction": "north"
+    },
+    "text": "You can't go that way.",
+    "speech": "You can't go that way."
+   },
+   {
+    "line": "u",
+    "action": {
+     "type": "go",
+     "direction": "up"
+    },
+    "text": "You can't go that way.",
+    "speech": "You can't go that way."
+   },
+   {
+    "line": "d",
+    "action": {
+     "type": "go",
+     "direction": "down"
+    },
+    "text": "You can't go that way.",
+    "speech": "You can't go that way."
+   }
+  ],
+  "final": {
+   "schema_version": 1,
+   "title": "The Wayfarer",
+   "intro": "You wake on the deck of the SS Wayfarer, a small freighter drifting dead in space. Emergency lighting bathes everything in dim red. Main power is offline, life support is on reserve, and the ship is silent. Restore power and get off this ship.",
+   "pronouns": "they",
+   "win_epilogue": "You strap in and pull the launch lever. Clamps release with a thud, and the pod kicks free of the Wayfarer. Through the porthole, the dark freighter shrinks against the stars. You made it.",
+   "player_location": "crew_quarters",
+   "visited": [
+    "crew_quarters",
+    "corridor",
+    "cargo_bay"
+   ],
+   "previous_location": "corridor",
+   "rooms": {
+    "crew_quarters": {
+     "id": "crew_quarters",
+     "name": "Crew Quarters",
+     "description": "Narrow bunks line the walls of the cramped crew quarters. Red emergency light pulses from a strip above the hatch. A corridor lies to the east.",
+     "exits": {
+      "east": {
+       "to": "corridor",
+       "door_id": null,
+       "pass_message": null
+      }
+     },
+     "alt_description": "The crew quarters are brightly lit again. Your bunk looks almost inviting. A corridor lies to the east.",
+     "alt_flag": "power_restored",
+     "sounds": "Nothing but your own breathing and the tick of cooling metal somewhere behind the bulkhead.",
+     "alt_sounds": "The air recyclers hum, and somewhere aft a pump cycles on and off."
+    },
+    "corridor": {
+     "id": "corridor",
+     "name": "Main Corridor",
+     "description": "The main corridor runs the length of the ship. In the red emergency glow you can make out a status console set into the wall. The crew quarters are west, the cargo bay east, the engine room south. To the north, a heavy door leads to the escape pod bay.",
+     "exits": {
+      "north": {
+       "to": "escape_pod_bay",
+       "door_id": "pod_door",
+       "pass_message": "You step over the sill into the pod bay. The air in here is colder, and very still."
+      },
+      "south": {
+       "to": "engine_room",
+       "door_id": null,
+       "pass_message": null
+      },
+      "east": {
+       "to": "cargo_bay",
+       "door_id": null,
+       "pass_message": null
+      },
+      "west": {
+       "to": "crew_quarters",
+       "door_id": null,
+       "pass_message": null
+      }
+     },
+     "alt_description": "White light floods the corridor and the air recyclers hum steadily. The crew quarters are west, the cargo bay east, the engine room south, and the escape pod bay door is north.",
+     "alt_flag": "power_restored",
+     "sounds": "The corridor is dead quiet. Every sound you make goes the whole length of it and comes back.",
+     "alt_sounds": "Fans, the steady hum of restored power, and the corridor lights ticking as they warm."
+    },
+    "cargo_bay": {
+     "id": "cargo_bay",
+     "name": "Cargo Bay",
+     "description": "Cargo netting and strapped-down containers fill the bay. A squat maintenance droid stands motionless near a large supply crate.",
+     "exits": {
+      "west": {
+       "to": "corridor",
+       "door_id": null,
+       "pass_message": null
+      }
+     },
+     "alt_description": null,
+     "alt_flag": "power_restored",
+     "sounds": "Cargo netting shifts very slightly against the containers. Nothing else.",
+     "alt_sounds": "Air moving through the bay, and the netting creaking gently against the containers."
+    },
+    "engine_room": {
+     "id": "engine_room",
+     "name": "Engine Room",
+     "description": "The engine room is dead quiet. The reactor housing looms cold and dark. A rack of tools hangs by the hatch.",
+     "exits": {
+      "north": {
+       "to": "corridor",
+       "door_id": null,
+       "pass_message": null
+      }
+     },
+     "alt_description": null,
+     "alt_flag": "power_restored",
+     "sounds": "Silence, which is the wrong sound for an engine room, and the loudest thing in the ship.",
+     "alt_sounds": "The reactor housing stays cold and silent, but the room around it has come back to life: fans, relays, the whole ship's business."
+    },
+    "escape_pod_bay": {
+     "id": "escape_pod_bay",
+     "name": "Escape Pod Bay",
+     "description": "A single escape pod sits in its launch cradle, hatch open. A launch lever juts from the console beside it.",
+     "exits": {
+      "south": {
+       "to": "corridor",
+       "door_id": "pod_door",
+       "pass_message": "You duck back out into the corridor."
+      }
+     },
+     "alt_description": null,
+     "alt_flag": "power_restored",
+     "sounds": "The pod's hull ticks as it sits in the cradle. Beyond it, nothing at all \u2014 that side is hull, and then vacuum.",
+     "alt_sounds": "The pod's systems murmur to themselves in the cradle, waiting."
+    }
+   },
+   "doors": {
+    "pod_door": {
+     "id": "pod_door",
+     "name": "pod bay door",
+     "aliases": [
+      "door",
+      "bay door",
+      "pod door"
+     ],
+     "description": "A heavy pressure door with magnetic seals, marked ESCAPE POD BAY.",
+     "open": false,
+     "locked": true,
+     "unlock_flag": "power_restored",
+     "locked_message": "You haul on the pod bay door, but its magnetic seals hold fast. Without main power, it won't budge.",
+     "open_message": "The lock plate goes green and the pod bay door grinds back into its housing, stiff from however long it has been sitting shut in the cold.",
+     "listening": []
+    }
+   },
+   "items": {
+    "emergency_manual": {
+     "id": "emergency_manual",
+     "name": "emergency manual",
+     "aliases": [
+      "manual",
+      "book",
+      "procedures"
+     ],
+     "description": "SS WAYFARER EMERGENCY PROCEDURES. Section 4: In case of main power failure, the maintenance droid R-6 can reroute auxiliary power. R-6 requires a charged power cell. Spare cells are stored in the cargo bay supply crate.",
+     "location": "corridor",
+     "portable": true,
+     "alt_description": null,
+     "alt_flag": null,
+     "open_refusal": null,
+     "open_refusal_with": {}
+    },
+    "status_console": {
+     "id": "status_console",
+     "name": "status console",
+     "aliases": [
+      "console",
+      "screen",
+      "terminal"
+     ],
+     "description": "MAIN POWER: OFFLINE. LIFE SUPPORT: RESERVE. ESCAPE POD: SEALED.",
+     "location": "corridor",
+     "portable": false,
+     "alt_description": "MAIN POWER: ONLINE. LIFE SUPPORT: NOMINAL. ESCAPE POD: READY.",
+     "alt_flag": "power_restored",
+     "open_refusal": null,
+     "open_refusal_with": {}
+    },
+    "prybar": {
+     "id": "prybar",
+     "name": "prybar",
+     "aliases": [
+      "crowbar",
+      "bar",
+      "tool",
+      "steel bar"
+     ],
+     "description": "A meter of solid steel with a flattened end. Good for opening things that don't want to open.",
+     "location": "engine_room",
+     "portable": true,
+     "alt_description": null,
+     "alt_flag": null,
+     "open_refusal": null,
+     "open_refusal_with": {}
+    },
+    "reactor": {
+     "id": "reactor",
+     "name": "reactor",
+     "aliases": [
+      "engine",
+      "core"
+     ],
+     "description": "The main reactor is cold. Its primary cells are slagged \u2014 this thing isn't restarting without a full service dock. Auxiliary power routing would be a job for the maintenance droid.",
+     "location": "engine_room",
+     "portable": false,
+     "alt_description": null,
+     "alt_flag": null,
+     "open_refusal": null,
+     "open_refusal_with": {}
+    },
+    "supply_crate": {
+     "id": "supply_crate",
+     "name": "supply crate",
+     "aliases": [
+      "crate",
+      "box",
+      "container"
+     ],
+     "description": "A sealed cargo crate stenciled SPARES \u2014 POWER CELLS. The lid is jammed shut.",
+     "location": "cargo_bay",
+     "portable": false,
+     "alt_description": "The crate stands open, packing foam scattered around it.",
+     "alt_flag": "crate_open",
+     "open_refusal": "You work your fingers under the lid and heave. It does not give \u2014 the crate is banded shut and jammed hard. Bare hands are not going to do it; something with leverage might.",
+     "open_refusal_with": {
+      "prybar": "You get a grip on the lid and pull, with about as much effect as before \u2014 then remember the prybar you are carrying. That flattened end is exactly what this needs."
+     }
+    },
+    "power_cell": {
+     "id": "power_cell",
+     "name": "power cell",
+     "aliases": [
+      "cell",
+      "battery",
+      "glowing battery",
+      "glowing thing"
+     ],
+     "description": "A sealed energy cell, humming faintly and glowing pale blue along its charge strips.",
+     "location": "hidden",
+     "portable": true,
+     "alt_description": null,
+     "alt_flag": null,
+     "open_refusal": null,
+     "open_refusal_with": {}
+    },
+    "launch_lever": {
+     "id": "launch_lever",
+     "name": "launch lever",
+     "aliases": [
+      "lever",
+      "handle",
+      "release handle"
+     ],
+     "description": "A heavy manual release lever. Pull it and the pod launches \u2014 no countdown, no second chances.",
+     "location": "escape_pod_bay",
+     "portable": false,
+     "alt_description": null,
+     "alt_flag": null,
+     "open_refusal": null,
+     "open_refusal_with": {}
+    },
+    "escape_pod": {
+     "id": "escape_pod",
+     "name": "escape pod",
+     "aliases": [
+      "pod",
+      "capsule"
+     ],
+     "description": "A one-person pod, cramped but flight-ready. The launch lever beside it fires the release.",
+     "location": "escape_pod_bay",
+     "portable": false,
+     "alt_description": null,
+     "alt_flag": null,
+     "open_refusal": null,
+     "open_refusal_with": {}
+    }
+   },
+   "npcs": {
+    "maintenance_droid": {
+     "id": "maintenance_droid",
+     "name": "maintenance droid",
+     "aliases": [
+      "droid",
+      "robot",
+      "r-6",
+      "r6"
+     ],
+     "description": "A squat utility droid, model R-6. Its chest port \u2014 sized for a standard power cell \u2014 is empty, and its optics are dark.",
+     "location": "cargo_bay",
+     "follows_player": false,
+     "dialogue": [
+      {
+       "rooms": [],
+       "requires_flags": {
+        "droid_active": false
+       },
+       "requires_counters": {},
+       "requires_doors": {},
+       "text": "The droid is dark and unresponsive. An empty power socket gapes in its chest.",
+       "effects": [],
+       "once": false,
+       "fired": true
+      },
+      {
+       "rooms": [],
+       "requires_flags": {
+        "droid_active": true,
+        "power_restored": false
+       },
+       "requires_counters": {},
+       "requires_doors": {},
+       "text": "R-6 boots with a rising whir. 'Unit R-6 online. Diagnostic: main reactor offline. Rerouting auxiliary power\u2026 done. Main power restored, Captain. The escape pod bay is now accessible.'",
+       "effects": [
+        {
+         "type": "set_flag",
+         "flag": "power_restored",
+         "value": true,
+         "item_id": null,
+         "npc_id": null,
+         "to": null,
+         "counter": null,
+         "delta": null,
+         "door_id": null,
+         "open": null,
+         "locked": null,
+         "outcome": null,
+         "epilogue": null,
+         "banner": null
+        }
+       ],
+       "once": true,
+       "fired": false
+      },
+      {
+       "rooms": [],
+       "requires_flags": {
+        "droid_active": true,
+        "power_restored": true
+       },
+       "requires_counters": {},
+       "requires_doors": {},
+       "text": "R-6 beeps politely. 'Recommend immediate evacuation via escape pod, Captain.'",
+       "effects": [],
+       "once": false,
+       "fired": false
+      }
+     ]
+    }
+   },
+   "interactions": [
+    {
+     "id": "pry_crate",
+     "item_id": "prybar",
+     "target_id": "supply_crate",
+     "requires_flags": {
+      "crate_open": false
+     },
+     "requires_counters": {},
+     "requires_doors": {},
+     "message": "You wedge the prybar under the crate lid and heave. The lid pops off, revealing a power cell glowing softly in its packing foam.",
+     "effects": [
+      {
+       "type": "set_flag",
+       "flag": "crate_open",
+       "value": true,
+       "item_id": null,
+       "npc_id": null,
+       "to": null,
+       "counter": null,
+       "delta": null,
+       "door_id": null,
+       "open": null,
+       "locked": null,
+       "outcome": null,
+       "epilogue": null,
+       "banner": null
+      },
+      {
+       "type": "move_item",
+       "flag": null,
+       "value": null,
+       "item_id": "power_cell",
+       "npc_id": null,
+       "to": "cargo_bay",
+       "counter": null,
+       "delta": null,
+       "door_id": null,
+       "open": null,
+       "locked": null,
+       "outcome": null,
+       "epilogue": null,
+       "banner": null
+      }
+     ],
+     "once": true,
+     "fired": false
+    },
+    {
+     "id": "power_droid",
+     "item_id": "power_cell",
+     "target_id": "maintenance_droid",
+     "requires_flags": {
+      "droid_active": false
+     },
+     "requires_counters": {},
+     "requires_doors": {},
+     "message": "You slot the power cell into the droid's chest port. It clicks home, and lights flicker up across the droid's chassis.",
+     "effects": [
+      {
+       "type": "set_flag",
+       "flag": "droid_active",
+       "value": true,
+       "item_id": null,
+       "npc_id": null,
+       "to": null,
+       "counter": null,
+       "delta": null,
+       "door_id": null,
+       "open": null,
+       "locked": null,
+       "outcome": null,
+       "epilogue": null,
+       "banner": null
+      },
+      {
+       "type": "move_item",
+       "flag": null,
+       "value": null,
+       "item_id": "power_cell",
+       "npc_id": null,
+       "to": "hidden",
+       "counter": null,
+       "delta": null,
+       "door_id": null,
+       "open": null,
+       "locked": null,
+       "outcome": null,
+       "epilogue": null,
+       "banner": null
+      }
+     ],
+     "once": true,
+     "fired": false
+    },
+    {
+     "id": "pull_lever",
+     "item_id": "launch_lever",
+     "target_id": null,
+     "requires_flags": {},
+     "requires_counters": {},
+     "requires_doors": {},
+     "message": "You grip the launch lever.",
+     "effects": [
+      {
+       "type": "win_game",
+       "flag": null,
+       "value": null,
+       "item_id": null,
+       "npc_id": null,
+       "to": null,
+       "counter": null,
+       "delta": null,
+       "door_id": null,
+       "open": null,
+       "locked": null,
+       "outcome": null,
+       "epilogue": null,
+       "banner": null
+      }
+     ],
+     "once": true,
+     "fired": false
+    },
+    {
+     "id": "try_reactor",
+     "item_id": "reactor",
+     "target_id": null,
+     "requires_flags": {},
+     "requires_counters": {},
+     "requires_doors": {},
+     "message": "You work through the cold-start sequence from memory. Nothing answers: no hum, no warmth, not even a fault light on the housing. The primary cells really are slagged. Whatever gets you off this ship, it will not be this.",
+     "effects": [],
+     "once": false,
+     "fired": false
+    },
+    {
+     "id": "use_escape_pod",
+     "item_id": "escape_pod",
+     "target_id": null,
+     "requires_flags": {
+      "power_restored": true
+     },
+     "requires_counters": {},
+     "requires_doors": {},
+     "message": "If you want to use the escape pod, you'll need to go into it.",
+     "effects": [],
+     "once": false,
+     "fired": false
+    }
+   ],
+   "triggers": [],
+   "flags": {},
+   "counters": {},
+   "outcome": null,
+   "turn_count": 19
+  }
+ }
+}

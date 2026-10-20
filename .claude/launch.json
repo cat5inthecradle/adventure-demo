@@ -4,8 +4,30 @@
     {
       "name": "adventure-web",
       "runtimeExecutable": ".venv/bin/python",
-      "runtimeArgs": ["-m", "uvicorn", "adventure.web:build_default_app", "--factory", "--port", "8123"],
+      "runtimeArgs": [
+        "-m",
+        "uvicorn",
+        "adventure.web:build_default_app",
+        "--factory",
+        "--port",
+        "8123"
+      ],
       "port": 8123
+    },
+    {
+      "name": "adventure-lab",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "web",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5179",
+        "--strictPort"
+      ],
+      "port": 5179
     }
   ]
 }
