@@ -2,19 +2,6 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "adventure-web",
-      "runtimeExecutable": ".venv/bin/python",
-      "runtimeArgs": [
-        "-m",
-        "uvicorn",
-        "adventure.web:build_default_app",
-        "--factory",
-        "--port",
-        "8123"
-      ],
-      "port": 8123
-    },
-    {
       "name": "adventure-lab",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
