@@ -6,3 +6,7 @@ __pycache__/
 .env
 .env.local
 logs/
+
+# Built web app. Ignored here rather than in web/.gitignore so that
+# `codeai-cloud ship web` (which reads only web/'s own .gitignore) uploads it.
+web/dist/
