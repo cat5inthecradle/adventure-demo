@@ -1,16 +1,19 @@
 # Adventure Lab (web)
 
-The engine, parser and renderer, ported to browser JavaScript. The page is a Vue 3
-app: a 4:3 terminal on the left, and on the right a panel that shows step by step how
-each command was understood, plus a world panel (map, room, raw state).
+The game, its engine and its tools, running entirely in the browser. The page is a
+Vue 3 app: a 4:3 terminal on the left, and on the right a panel that shows step by
+step how each command was understood, plus a world panel (map, room, raw state). A
+second view, **Benchmark**, scores the optional language model.
 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm test         # parity, engine and benchmark-fixture tests
+npm test         # golden, engine and benchmark-fixture tests
+npm run golden   # re-record the golden sessions (see Tests)
+npm run check-world -- ../worlds/yours.json   # validate a world file
 ```
 
-It reads the same world file as the Python build: `../worlds/wayfarer.json`.
+The world is `../worlds/wayfarer.json`, imported at the top of `src/game.js`.
 
 ## Layout
 
@@ -21,7 +24,8 @@ It reads the same world file as the Python build: `../worlds/wayfarer.json`.
 | `src/game.js` | The play session: scrollback, turn history, undo, saves, meta commands |
 | `src/components/` | Terminal, parser panel, world panel, interpreter picker, benchmark view |
 | `src/bench/cases.js`, `tests/fixtures/nl_cases.json` | The interpreter benchmark: cases, replay, scoring |
-| `tests/parity.test.js` | Replays scripted sessions and checks that every response matches the Python engine's |
+| `tests/golden.test.js`, `scripts/golden.js` | Replays two scripted sessions and checks every response, written and spoken, against `tests/fixtures/golden.json` |
+| `scripts/check-world.js` | Validates a world file from the command line |
 
 The architecture's rules still hold. Only `engine.apply()` mutates the world.
 The parser and interpreter produce actions that refer to things by id. The
@@ -108,15 +112,35 @@ const myInterpreter = {
 }
 ```
 
+and set it as `game.state.interpreter` (wrap it in `markRaw`).
+
 `rephrased` is optional: the request in plain words. If you include it, the
 parser tries it before your `action` (see above).
 
-and set it as `game.state.interpreter` (wrap it in `markRaw`).
+## Tests
 
-## Regenerating parity fixtures
-
-After changing the Python engine or the world file, run this from the repo root:
+`npm test` needs no network and no GPU. The golden test replays two full sessions —
+the winning path, and a long wander through typos, failures and dead ends — and
+compares every response, written and spoken, word for word with
+`tests/fixtures/golden.json`. So any change to parsing, rules or prose fails it.
+When the change is one you meant, re-record and commit the new fixture with it:
 
 ```bash
-.venv/bin/python web/tests/make_golden.py
+npm run golden
+git diff tests/fixtures/golden.json   # read it: these are the lines players will see differently
 ```
+
+## Deploying
+
+It deploys to CodeAI Cloud as a static site (`codeai-cloud.yaml`, `static.dir: dist`),
+at https://adventure-lab.internal.code.org/. CodeAI Cloud serves files and doesn't
+build them, so build first, then ship this folder:
+
+```bash
+npm run build
+codeai-cloud ship .
+```
+
+`dist/` is ignored by the repository's root `.gitignore` rather than this folder's,
+so git leaves it out while `ship` (which reads only this folder's `.gitignore`)
+uploads it.

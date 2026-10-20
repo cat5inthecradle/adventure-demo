@@ -1,6 +1,6 @@
 // World shape, constants, and default-filling.
 //
-// A world is plain JSON — the same file the Python build reads. `normalizeWorld`
+// A world is a plain JSON file (worlds/*.json at the repo root). `normalizeWorld`
 // fills in every field the file is allowed to omit, so the engine can rely on
 // them being present instead of sprinkling `?? []` everywhere.
 

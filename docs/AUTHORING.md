@@ -1,66 +1,45 @@
 # Writing worlds
 
 Everything a player reads lives in the world file, not in the code. If you want to
-change what the ship says, you edit JSON — you never touch Python. That is the whole
-point of the engine/content split: `worlds/wayfarer.json` is data, and swapping it
-for `worlds/yours.json` gives you a different game with the same engine.
+change what the ship says, you edit JSON — you never touch the engine. That is the
+whole point of the engine/content split: `worlds/wayfarer.json` is data, and swapping
+it for `worlds/yours.json` gives you a different game with the same engine.
+
+To play your world, point the world import at the top of `web/src/game.js` at it,
+then run the app:
+
+```js
+import wayfarer from '../../worlds/yours.json'
+```
 
 ```bash
-adventure --world worlds/yours.json
+cd web && npm run dev
 ```
-
-## Writing the prose, without the JSON
-
-A world file is a runtime format. It is a poor surface for the part of a world that
-is actually *written* — every paragraph is one long quoted line with `\n\n` in it.
-So the prose comes out into Markdown and goes back in:
-
-```bash
-python scripts/prose.py extract worlds/wayfarer.json     # JSON -> .prose.md
-python scripts/prose.py apply worlds/wayfarer.prose.md   # .prose.md -> JSON
-```
-
-Each block is one string the player reads. The heading is its address in the JSON;
-the italics after it say when it fires, which is what you need when you are looking
-at the fourth of six things a companion might say:
-
-```markdown
-### `npcs.maintenance_droid.dialogue[1].text` — *talking: first time only, when droid_active is true, when power_restored is false*
-
-R-6 boots with a rising whir. 'Unit R-6 online...'
-```
-
-Edit the text, including into several paragraphs — blank lines survive the round
-trip. Leave the headings alone. `apply` refuses to write a world that will not load,
-so a broken edit fails at the command line instead of at the player.
-
-The `## Voice` block near the top is never overwritten by `extract`; notes you leave
-there are the style reference for prose written later.
-
-**Structure stays in the JSON.** Adding a room, wiring an exit, changing a guard, and
-above all **names and aliases** — those decide what a player can *type*, not what
-they read, and one of them can collide with another word in the room. `extract` after
-any of that, so the prose file matches.
 
 ## The safety net, first
 
 The loader validates the entire file before the game starts, and it names the thing
-you got wrong:
-
-```
-That world file is not valid: interaction 'try_reactor' names item 'reator',
-which is not an item id
-```
-
-So the loop is: edit the JSON, run the game, read the error, fix it. You cannot
-break the engine from the world file — the worst you can do is fail to load. Three
-commands worth knowing:
+you got wrong. Check a world without opening the game:
 
 ```bash
-python -c "from adventure.loader import load_world; load_world('worlds/wayfarer.json')"
-python scripts/lint_world.py worlds/wayfarer.json    # finds ambiguous names
-pytest -q                                            # the content tests
+cd web
+npm run check-world -- ../worlds/yours.json
 ```
+
+```
+That world file is not valid: interaction 'try_reactor' names 'reator', which is
+not an item, npc, or door id
+```
+
+So the loop is: edit the JSON, check it, read the error, fix it. You cannot break
+the engine from the world file — the worst you can do is fail to load. Once it loads,
+play it with the parser panel open: it shows how each command was matched against
+the names and aliases in the room, which is where most authoring mistakes surface.
+
+If you change the Wayfarer itself, `npm test` will fail on every line of prose you
+changed, because the golden test replays two full sessions word for word. That is the
+point: read the failures, and when they are the changes you meant, re-record with
+`npm run golden` and commit the new `web/tests/fixtures/golden.json` with your edit.
 
 ## The eight things a world is made of
 
@@ -408,8 +387,7 @@ word is not yours to pick. Write a token instead:
 ```
 
 At render time that becomes *He came aboard*, *She came aboard*, or *They came
-aboard*, depending
-on what the player chose in settings (or `pronouns` in the terminal). A world declares
+aboard*, depending on what the player chose with the `pronouns` command. A world declares
 the default its prose was written for:
 
 ```json
@@ -445,9 +423,9 @@ you save it: if it is grammatical there, it is grammatical everywhere.
 - **Avoid gendered nouns.** *girl*, *his own man*, *the kind of woman who* — none of
   those can be substituted, and each one is a rewrite later.
 
-`python scripts/lint_world.py` reports any brace token it does not recognise, because
-a typo like `{thier}` reaches the player as literal punctuation. The renderer leaves
-unknown tokens visible rather than deleting them, for the same reason.
+A typo like `{thier}` reaches the player as literal punctuation: the renderer leaves
+unknown tokens visible rather than deleting them, so the mistake shows up the first
+time anyone reads the line instead of silently disappearing.
 
 *Only the protagonist has tokens.* Other characters' pronouns are written into their
 prose as words, which is correct — a character is who they are, not a setting.
@@ -457,8 +435,8 @@ prose as words, which is correct — a character is who they are, not a setting.
 Players type names, so names are an interface.
 
 - **Give each thing distinct words.** Two things a player can see at once must never
-  answer to the same word — `python scripts/lint_world.py` checks this for you and
-  will name the collision.
+  answer to the same word. If they do, the game asks "Which do you mean?" — and the
+  parser panel's resolve step shows both things lighting up for the one word.
 - **Disambiguate at the noun, not the adjective.** "steel bar" and "iron bar" both
   answer to `bar`; "prybar" and "wrench" never collide.
 - **Portable items need globally distinct names.** A carried item is in scope in
@@ -466,11 +444,11 @@ Players type names, so names are an interface.
 - **Watch the generic words.** Players type `door`, `console`, `panel`, `screen`
   whatever you named the thing. One per room, or accept that word as a permanent
   source of "which do you mean?".
-- **Aliases are cheap; add the words players actually use.** After someone plays,
-  `python scripts/analyze_log.py` reads the journal and tells you which phrases the
-  parser missed and what the language model thought they meant. Those are alias
-  candidates in real players' own words — but read them with judgement, since a
-  misspelling is not a synonym.
+- **Aliases are cheap; add the words players actually use.** Watch someone play with
+  the parser panel open: every "I don't see any '…' here" is a word the parser
+  missed, and with a language model on, the panel shows what the model thought it
+  meant. Those are alias candidates in real players' own words — but read them with
+  judgement, since a misspelling is not a synonym.
 
 ## Design rules we learned the hard way
 
@@ -494,7 +472,7 @@ Players type names, so names are an interface.
    building.
 9. **Give every room a sound.** Listening falls back to the room, so a room without
    one answers with a shrug — and the rooms that do answer become a map of where you
-   hid things. `python scripts/lint_world.py` warns about this.
+   hid things.
 10. **If they can walk through it, it is a door.** Anything you can pass through
    belongs in `exits` and `doors`, where it shows up in the exits line and every
    travel verb finds it. An interaction that moves the player is a second, invisible

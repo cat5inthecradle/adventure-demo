@@ -163,7 +163,7 @@ function withArticle(name) {
   return `${'aeiou'.includes(name[0]?.toLowerCase()) ? 'an' : 'a'} ${name}`
 }
 
-// Python's str.capitalize lowercases the rest; mirror it so output matches.
+// Lowercases the rest, so "A Maintenance Droid" reads "A maintenance droid".
 const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
 const titleCase = s => s.replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase())
 

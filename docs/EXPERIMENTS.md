@@ -1,5 +1,12 @@
 # Experiments on the language layer
 
+> **Historical.** These experiments were run against the project's first, Python
+> version, whose language layer called hosted Claude models over the API. The
+> harness, scripts and modules named below no longer exist. The method — decide
+> what counts as a win first, hold fabrications at zero — still applies; for the
+> current in-browser models, use the **Benchmark** view in the web app and see
+> [web/README.md](../web/README.md#the-language-model-webllm) for its results.
+
 A place to decide what counts as a win *before* running anything, so a result can
 disappoint us. Every change to prompting, schema, or model selection goes through
 here, because the last three things we learned about this layer all contradicted a

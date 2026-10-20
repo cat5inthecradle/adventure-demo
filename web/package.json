@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "golden": "node scripts/golden.js",
+    "check-world": "node scripts/check-world.js"
   },
   "dependencies": {
     "@mlc-ai/web-llm": "0.2.85",
