@@ -1,0 +1,20 @@
+# Required checks on every pull request into the protected `public` branch: secrets, dependency
+# vulnerabilities, static analysis, student data and public readiness. A public release can't merge until
+# they pass and cloud-ops approves. The checks live in codeai-staff-apps/codeai-cloud (docs/PROMOTION.md).
+name: Public checks
+
+on:
+  pull_request:
+    branches: [public]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    uses: codeai-staff-apps/codeai-cloud/.github/workflows/public-checks.yml@main
+    # Only the two secrets the platform's workflow uses (reading the private platform repo) — never
+    # `secrets: inherit`, which would hand it every secret this repo has.
+    secrets:
+      CODEAI_CLOUD_APP_PRIVATE_KEY: ${{ secrets.CODEAI_CLOUD_APP_PRIVATE_KEY }}
+      CODEAI_CLOUD_PLATFORM_TOKEN: ${{ secrets.CODEAI_CLOUD_PLATFORM_TOKEN }}
