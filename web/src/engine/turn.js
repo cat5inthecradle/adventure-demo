@@ -13,6 +13,9 @@ import { isParseError, parse } from './parser.js'
 import { buildContext, validateResolution } from './interpreter.js'
 import { Style, renderEvents, renderParseError, renderSpeech } from './renderer.js'
 
+// Parse failures that mean "the thing you named is not here".
+const ABSENT = new Set(['unknown_noun', 'elsewhere', 'ambiguous'])
+
 const UNAVAILABLE = detail =>
   `The language assistant is unavailable (${detail}). Classic commands still work — type 'help'.`
 
@@ -50,7 +53,7 @@ export async function takeTurn(world, line, { interpreter = null, transcript = [
     return say(result, renderParseError(parsed))
   }
 
-  const context = buildContext(world)
+  const context = { ...buildContext(world), parserSaid: renderParseError(parsed) }
   const started = performance.now()
   let answer
   try {
@@ -69,6 +72,27 @@ export async function takeTurn(world, line, { interpreter = null, transcript = [
 
   switch (answer.kind) {
     case 'action': {
+      // A plain-English rephrasing goes back through the parser before the model's
+      // own action is trusted. Small models often say the right thing in words
+      // ("look at the status console") and then pick the wrong verb; the parser
+      // grounds the words deterministically. Measured on the bench: 59% → 80%.
+      if (answer.rephrased) {
+        const trace = []
+        const reread = parse(world, answer.rephrased, trace)
+        result.interpreter.reread = { text: answer.rephrased, trace, result: reread }
+        if (!isParseError(reread)) {
+          result.interpreter.via = 'reread'
+          return finish(world, result, reread)
+        }
+        // The paraphrase names something that is not here: say so, rather than
+        // let the model's forced choice of a visible id stand in for it.
+        if (ABSENT.has(reread.kind)) {
+          result.interpreter.status = 'clarify'
+          result.interpreter.via = 'reread'
+          result.clarifying = true
+          return say(result, renderParseError(reread))
+        }
+      }
       const action = validateResolution(context, answer.action)
       if (!action) {
         result.interpreter.status = 'rejected'

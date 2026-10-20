@@ -6,7 +6,7 @@ const props = defineProps({
   selectedTurnId: { type: Number, default: null },
   busy: Boolean,
 })
-const emit = defineEmits(['submit', 'select'])
+const emit = defineEmits(['submit', 'select', 'skip'])
 
 const input = ref('')
 const field = ref(null)
@@ -63,7 +63,9 @@ defineExpose({ focus: () => field.value?.focus() })
         aria-label="Command"
         @keydown.up.prevent="recall(-1)"
         @keydown.down.prevent="recall(1)"
+        @keydown.esc.prevent="emit('skip')"
       />
+      <span v-if="busy" class="working" aria-live="polite">processing… <kbd>Esc</kbd> to skip</span>
     </form>
   </section>
 </template>
@@ -137,6 +139,20 @@ button.clickable:focus-visible { outline: 2px solid var(--crt-bright); }
   border-top: 1px solid var(--crt-edge);
 }
 .prompt-mark { color: var(--crt-bright); }
+.working {
+  color: var(--crt-dim);
+  font-size: 0.85em;
+  white-space: nowrap;
+  animation: blink 1.2s steps(2, start) infinite;
+}
+.working kbd {
+  font: inherit;
+  border: 1px solid var(--crt-dim);
+  border-radius: 3px;
+  padding: 0 0.3em;
+}
+@keyframes blink { to { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .working { animation: none; } }
 .prompt input {
   flex: 1;
   background: transparent;

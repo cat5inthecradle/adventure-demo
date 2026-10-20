@@ -135,7 +135,14 @@ class Parser {
         const nouns = this.strip(rest)
         return nouns.length ? this.wrap(nouns, Listen) : Listen()
       }
-      case 'inventory': return ShowInventory()
+      case 'inventory':
+        // "i" is also how a sentence starts: "I want to check the console" is not
+        // a request for the inventory. Words left over mean it was a sentence.
+        if (this.strip(rest).length) {
+          this.trace({ stage: 'note', text: `“${verb}” followed by more words reads as a sentence, not the inventory command.` })
+          return ParseError('unknown_verb', { verb: tokens.slice(0, 2).join(' ') })
+        }
+        return ShowInventory()
     }
   }
 

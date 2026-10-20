@@ -13,6 +13,7 @@ import { renderEvent } from './engine/renderer.js'
 import { takeTurn } from './engine/turn.js'
 import * as pronounSets from './engine/pronouns.js'
 import { diffWorld } from './diff.js'
+import { buildStages } from './stages.js'
 
 const SAVE_PREFIX = 'adventure-lab:save:'
 const TRANSCRIPT_PAIRS = 6
@@ -49,6 +50,7 @@ export function createGame({ worldData = wayfarer, interpreter = null } = {}) {
     selectedTurnId: null,
     interpreter,        // see engine/interpreter.js — null means parser only
     busy: false,
+    pace: 500,          // ms between revealed phases; 0 = instant
   })
   const undoStack = []
   const transcript = []
@@ -70,33 +72,75 @@ export function createGame({ worldData = wayfarer, interpreter = null } = {}) {
     print("Type 'help' for commands. Click any command you typed to inspect how it was understood.", 'system')
   }
 
+  // Slow motion. Each turn is computed at once (the engine is deterministic and
+  // instant), then its phases are revealed in the parser panel one at a time,
+  // `state.pace` ms apart; the main screen and world panel update last.
+  let inFlight = null
+  let fast = false
+  let wake = null
+  let timer = null
+
+  function pause() {
+    if (fast || state.pace <= 0) return null
+    return new Promise(resolve => {
+      wake = resolve
+      timer = setTimeout(resolve, state.pace)
+    })
+  }
+
+  /** Finish revealing the current turn immediately. */
+  function skip() {
+    fast = true
+    clearTimeout(timer)
+    wake?.()
+  }
+
   async function submit(line) {
-    if (state.busy) return
+    // A new command while one is still being revealed fast-forwards the old one.
+    while (inFlight) {
+      skip()
+      await inFlight
+    }
+    inFlight = run(line)
+    try {
+      return await inFlight
+    } finally {
+      inFlight = null
+    }
+  }
+
+  async function run(line) {
     const trimmed = line.trim()
     print(`> ${line}`, 'input')
     if (handleMeta(trimmed)) return
 
     state.busy = true
+    fast = false
     const before = structuredClone(world.value)
     try {
       const result = await takeTurn(world.value, line, {
         interpreter: state.interpreter,
         transcript: transcript.slice(-TRANSCRIPT_PAIRS),
       })
-      const turn = {
-        id: nextId++,
-        ...result,
-        changes: diffWorld(before, world.value),
-        turnNumber: world.value.turn_count,
-      }
-      if (turn.changes.length) {
+      const changes = diffWorld(before, world.value)
+      if (changes.length) {
         undoStack.push(before)
         if (undoStack.length > UNDO_DEPTH) undoStack.shift()
       }
-      state.turns.push(turn)
-      state.selectedTurnId = turn.id
-      state.log.at(-1).turnId = turn.id
-      print(result.text, 'output', turn.id)
+      const id = nextId++
+      state.turns.push({ id, ...result, changes, turnNumber: world.value.turn_count, revealed: 0 })
+      const turn = state.turns.at(-1)      // the reactive copy, so reveals redraw
+      state.selectedTurnId = id
+      state.log.at(-1).turnId = id
+
+      const phases = buildStages(turn).length
+      for (let shown = 1; shown <= phases; shown++) {
+        turn.revealed = shown
+        await pause()
+      }
+      turn.revealed = null
+
+      print(result.text, 'output', id)
       transcript.push([line, result.text])
       if (result.outcome) {
         print(END_LINE[result.outcome].replace('{turns}', world.value.turn_count), 'system')
@@ -198,5 +242,5 @@ export function createGame({ worldData = wayfarer, interpreter = null } = {}) {
     state.turns.find(t => t.id === state.selectedTurnId) ?? state.turns.at(-1) ?? null)
 
   intro()
-  return { world: view, state, submit, selectedTurn, select: id => { state.selectedTurnId = id } }
+  return { world: view, state, submit, skip, selectedTurn, select: id => { state.selectedTurnId = id } }
 }

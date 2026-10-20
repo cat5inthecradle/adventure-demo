@@ -1,14 +1,19 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 'vue'
 import { createGame } from './game.js'
 import TerminalPane from './components/TerminalPane.vue'
 import ParserPanel from './components/ParserPanel.vue'
 import WorldPanel from './components/WorldPanel.vue'
+import InterpreterPicker from './components/InterpreterPicker.vue'
+// Loaded on first visit: players who never open it never download it.
+const BenchView = defineAsyncComponent(() => import('./components/BenchView.vue'))
 
-// An interpreter (e.g. a WebLLM-backed one) is passed here when it exists.
-// See src/engine/interpreter.js for the contract.
+// Starts parser-only; InterpreterPicker swaps a WebLLM interpreter in on request.
+// See src/engine/interpreter.js for the contract any interpreter follows.
 const game = createGame({ interpreter: null })
 const { world, state, selectedTurn } = game
+
+const PACES = [[0, 'instant'], [250, '0.25 s / phase'], [500, '0.5 s / phase'], [1000, '1 s / phase'], [2000, '2 s / phase']]
 
 const terminal = ref(null)
 const changedPaths = computed(() => (selectedTurn.value?.changes ?? []).map(c => c.path))
@@ -18,7 +23,22 @@ async function submit(line) {
   terminal.value?.focus()
 }
 
-onMounted(() => terminal.value?.focus())
+// Two views over one app: playing the game, and benchmarking its interpreter.
+// The hash keeps the view across reloads (#bench), and the game stays mounted
+// underneath so switching back loses nothing.
+const viewFromHash = () => (location.hash.startsWith('#bench') ? 'bench' : 'play')
+const view = ref(viewFromHash())
+const onHash = () => { view.value = viewFromHash() }
+function show(next) {
+  location.hash = next === 'bench' ? '#bench' : ''
+  view.value = next
+}
+
+onMounted(() => {
+  window.addEventListener('hashchange', onHash)
+  terminal.value?.focus()
+})
+onBeforeUnmount(() => window.removeEventListener('hashchange', onHash))
 </script>
 
 <template>
@@ -26,12 +46,20 @@ onMounted(() => terminal.value?.focus())
     <header class="topbar">
       <h1>Adventure Lab</h1>
       <span class="subtitle">{{ world.title }}</span>
+      <nav class="views" aria-label="Views">
+        <button type="button" :aria-current="view === 'play' && 'page'" @click="show('play')">Play</button>
+        <button type="button" :aria-current="view === 'bench' && 'page'" @click="show('bench')">Benchmark</button>
+      </nav>
       <span class="spacer"></span>
-      <span class="mode" :title="state.interpreter ? 'Natural language goes to ' + state.interpreter.name : 'Only the built-in parser is running'">
-        interpreter: {{ state.interpreter ? state.interpreter.name : 'off' }}
-      </span>
+      <label class="pace">
+        Pace
+        <select v-model.number="state.pace" aria-label="Pause between phases">
+          <option v-for="[ms, label] in PACES" :key="ms" :value="ms">{{ label }}</option>
+        </select>
+      </label>
+      <InterpreterPicker :game="game" />
     </header>
-    <main class="stage">
+    <main v-show="view === 'play'" class="stage">
       <div class="terminal-frame">
         <TerminalPane
           ref="terminal"
@@ -40,12 +68,16 @@ onMounted(() => terminal.value?.focus())
           :busy="state.busy"
           @submit="submit"
           @select="game.select"
+          @skip="game.skip"
         />
       </div>
       <aside class="side">
         <ParserPanel :turn="selectedTurn" />
         <WorldPanel :world="world" :changed-paths="changedPaths" />
       </aside>
+    </main>
+    <main v-if="view === 'bench'" class="stage">
+      <BenchView />
     </main>
   </div>
 </template>
@@ -60,6 +92,7 @@ onMounted(() => terminal.value?.focus())
 }
 .topbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 12px;
   padding-top: 12px;
@@ -67,13 +100,32 @@ onMounted(() => terminal.value?.focus())
 h1 { font-size: 17px; margin: 0; letter-spacing: 0.02em; }
 .subtitle { color: var(--muted); font-size: 13px; }
 .spacer { flex: 1; }
-.mode {
-  font-family: var(--mono);
+.views { display: flex; gap: 2px; margin-left: 8px; }
+.views button {
+  font: inherit;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.views button[aria-current='page'] { background: var(--chip); border-color: var(--line); color: var(--fg); }
+.pace {
   font-size: 12px;
   color: var(--muted);
-  border: 1px dashed var(--line-strong);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pace select {
+  font: inherit;
+  color: var(--fg);
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
   border-radius: 6px;
-  padding: 2px 8px;
+  padding: 2px 4px;
 }
 .stage {
   flex: 1;
@@ -86,7 +138,8 @@ h1 { font-size: 17px; margin: 0; letter-spacing: 0.02em; }
 .terminal-frame {
   height: 100%;
   aspect-ratio: 4 / 3;
-  max-width: 68%;
+  /* Never squeeze the side panels below their minimum. */
+  max-width: calc(100% - 340px);
   flex: none;
 }
 .side {

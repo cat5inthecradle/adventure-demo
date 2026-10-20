@@ -13,8 +13,14 @@
 //     interpret(utterance, context, transcript) // -> Promise<InterpreterResult>
 //   }
 //
+//   context.parserSaid is what the parser told the player, e.g. "I don't see any
+//   'metal bar' here." — the strongest hint that the player meant something absent.
+//
 //   InterpreterResult =
-//     | { kind: 'action', action, meta? }        // a structured Action (see actions.js)
+//     | { kind: 'action', action, rephrased?, meta? }
+//                                                // a structured Action (see actions.js);
+//                                                // `rephrased` is the request in plain
+//                                                // words, which the parser tries first
 //     | { kind: 'clarify', question, meta? }     // ask the player something
 //     | { kind: 'unavailable', detail, meta? }   // network down, no key, etc.
 //
@@ -34,6 +40,11 @@ export function buildContext(world) {
     roomName: room.name,
     roomDescription: q.resolvedDescription(world, room),
     exits: DIRECTION_ORDER.filter(d => d in room.exits),
+    // Where each exit leads, for rooms the player has already been — the same
+    // knowledge the parser's "go to <room>" routing is allowed to use.
+    exitNames: Object.fromEntries(DIRECTION_ORDER
+      .filter(d => d in room.exits && q.visitedRooms(world).has(room.exits[d].to))
+      .map(d => [d, world.rooms[room.exits[d].to].name])),
     visible: [
       ...q.itemsInRoom(world, room.id).map(e => entity(e, 'item')),
       ...q.npcsInRoom(world, room.id).map(e => entity(e, 'npc')),
@@ -72,34 +83,63 @@ export function validateResolution(context, action) {
  * to a constrained decoder (WebLLM's `response_format: {type: 'json_object',
  * schema}`) and a small model physically cannot invent an id. A `clarify` branch
  * lets it ask instead of guessing.
+ *
+ * Kept to the plain subset grammar compilers handle well: `anyOf`, single-value
+ * `enum` for the discriminator, and no empty enums — a verb with nothing to aim at
+ * (no doors here, nothing carried) is left out rather than made unsatisfiable.
  */
-export function actionSchema(context) {
+export function actionSchema(context, { explain = false } = {}) {
   const ids = [...context.visible, ...context.inventory].map(e => e.id)
   const doors = context.visible.filter(e => e.kind === 'door').map(e => e.id)
   const npcs = context.visible.filter(e => e.kind === 'npc').map(e => e.id)
-  const idOf = list => (list.length ? { type: 'string', enum: list } : { not: {} })
-  const variant = (type, props = {}, required = []) => ({
+  const carried = context.inventory.map(e => e.id)
+  const oneOfIds = list => ({ type: 'string', enum: list })
+
+  const variants = []
+  const variant = (type, fields = {}, optional = {}) => {
+    // With `explain`, every answer opens with a short paraphrase ("means"), so a
+    // model thinks about what the player wants before it commits to a verb.
+    const props = { ...(explain ? { means: { type: 'string' } } : {}), type: { type: 'string', enum: [type] } }
+    for (const [name, list] of Object.entries(fields)) {
+      if (!list.length) return              // nothing it could name: drop the verb
+      props[name] = oneOfIds(list)
+    }
+    for (const [name, list] of Object.entries(optional)) {
+      if (list.length) props[name] = oneOfIds(list)
+    }
+    variants.push({
+      type: 'object',
+      properties: props,
+      required: [...(explain ? ['means'] : []), 'type', ...Object.keys(fields)],
+      additionalProperties: false,
+    })
+  }
+
+  // Asking comes first: when nothing in view fits, it is the right answer.
+  variants.push({
     type: 'object',
-    properties: { type: { const: type }, ...props },
-    required: ['type', ...required],
+    properties: {
+      ...(explain ? { means: { type: 'string' } } : {}),
+      type: { type: 'string', enum: ['clarify'] },
+      // No maxLength: a length bound compiles to a huge grammar (seconds, per
+      // schema). The caller's max_tokens caps the reply instead.
+      question: { type: 'string' },
+    },
+    required: [...(explain ? ['means'] : []), 'type', 'question'],
     additionalProperties: false,
   })
-  return {
-    oneOf: [
-      variant('look'),
-      variant('inventory'),
-      variant('go', { direction: idOf(context.exits) }, ['direction']),
-      variant('examine', { target: idOf(ids) }, ['target']),
-      variant('take', { item: idOf(ids) }, ['item']),
-      variant('drop', { item: idOf(context.inventory.map(e => e.id)) }, ['item']),
-      variant('open', { target: idOf(ids) }, ['target']),
-      variant('traverse', { target: idOf(doors) }, ['target']),
-      variant('listen', { target: idOf(ids) }),
-      variant('use', { item: idOf(ids), target: idOf(ids) }, ['item']),
-      variant('talk', { npc: idOf(npcs) }, ['npc']),
-      variant('clarify', { question: { type: 'string', maxLength: 160 } }, ['question']),
-    ],
-  }
+  variant('look')
+  variant('inventory')
+  variant('go', { direction: context.exits })
+  variant('examine', { target: ids })
+  variant('take', { item: ids })
+  variant('drop', { item: carried })
+  variant('open', { target: ids })
+  variant('traverse', { target: doors })
+  variant('listen', {}, { target: ids })
+  variant('use', { item: ids }, { target: ids })
+  variant('talk', { npc: npcs })
+  return { anyOf: variants }
 }
 
 /**

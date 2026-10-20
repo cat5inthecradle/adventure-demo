@@ -1,64 +1,31 @@
 <script setup>
 // The pipeline, drawn: what the player typed → tokens → typo fixes → verb →
 // noun resolution → (interpreter) → Action → engine events → world changes → prose.
-import { computed } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { describeAction } from '../engine/actions.js'
-import { isParseError } from '../engine/parser.js'
+import { buildStages } from '../stages.js'
 
 const props = defineProps({ turn: { type: Object, default: null } })
 
 const stages = computed(() => {
-  const turn = props.turn
-  if (!turn) return []
-  const trace = turn.parseTrace
-  const find = stage => trace.filter(s => s.stage === stage)
-  const out = []
-
-  const norm = find('normalize')[0]
-  out.push({ key: 'tokens', title: 'Tokenize', hint: 'Lowercase, strip punctuation, split on spaces.', tokens: norm.tokens })
-
-  const typos = find('typos')[0]
-  if (typos) {
-    out.push({
-      key: 'typos', title: 'Fix typos',
-      hint: `Unknown words are nudged toward the ${typos.vocabularySize} words this room knows — only when exactly one is close.`,
-      fixes: typos.fixes,
-    })
-  }
-
-  const verb = find('verb')[0]
-  if (verb) {
-    out.push({
-      key: 'verb', title: 'Match verb',
-      hint: verb.phrase ? 'The longest known verb phrase at the start wins.' : 'No known verb phrase starts this sentence.',
-      verb,
-    })
-  }
-
-  for (const s of trace) {
-    if (s.stage === 'fillers') out.push({ key: 'fillers' + out.length, title: 'Drop filler words', hint: 'Words like “the” and “at” carry no meaning for the game.', fillers: s })
-    if (s.stage === 'split') out.push({ key: 'split' + out.length, title: 'Split on preposition', hint: s.note ?? 'Instrument first, then what it is used on.', split: s })
-    if (s.stage === 'resolve') out.push({ key: 'resolve' + out.length, title: `Resolve “${s.phrase}”`, hint: 'Match the words against everything you can see or carry.', resolve: s })
-    if (s.stage === 'route') out.push({ key: 'route' + out.length, title: 'Plan a route', hint: 'Only through rooms you have walked. One step at a time.', route: s })
-    if (s.stage === 'note') out.push({ key: 'note' + out.length, title: 'Rule applied', hint: s.text })
-  }
-
-  const parsed = find('result')[0]?.result
-  out.push({
-    key: 'parsed', title: 'Parser result',
-    status: isParseError(parsed) ? 'fail' : 'ok',
-    parsed,
-  })
-
-  out.push({ key: 'interp', title: 'Interpreter', interp: turn.interpreter })
-
-  if (turn.action) {
-    out.push({ key: 'action', title: 'Action', hint: 'The only thing the engine ever receives.', action: turn.action })
-    out.push({ key: 'events', title: 'Engine events', hint: 'Structured facts. The engine decides; nothing else does.', events: turn.events })
-    out.push({ key: 'changes', title: 'World changes', hint: 'Every value this turn changed in the world state.', changes: turn.changes })
-  }
-  return out
+  const all = buildStages(props.turn)
+  const shown = props.turn?.revealed ?? all.length
+  return all.slice(0, shown)
 })
+
+// Keep the newest stage in view while a turn is being revealed.
+const list = ref(null)
+watch(() => props.turn?.revealed, async () => {
+  await nextTick()
+  list.value?.lastElementChild?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+})
+
+const INTERP_STATUS = {
+  action: 'understood',
+  clarify: 'asked a question',
+  rejected: 'answer rejected',
+  unavailable: 'unavailable',
+}
 
 const show = v => (v === undefined ? '—' : JSON.stringify(v))
 const errorLabel = e => ({
@@ -78,8 +45,8 @@ const errorLabel = e => ({
 
     <p v-if="!turn" class="empty">Type a command. Each step the game takes to understand it will appear here.</p>
 
-    <ol v-else class="pipeline">
-      <li v-for="s in stages" :key="s.key" class="stage" :class="[s.key.replace(/\d+$/, ''), s.status]">
+    <ol v-else ref="list" class="pipeline">
+      <li v-for="s in stages" :key="s.key" class="stage" :class="['stage-' + s.kind, s.status]">
         <div class="stage-title">{{ s.title }}</div>
         <div v-if="s.hint" class="hint">{{ s.hint }}</div>
 
@@ -139,12 +106,14 @@ const errorLabel = e => ({
           <span class="chip kind">{{ s.route.direction ?? 'no route known' }}</span>
         </div>
 
-        <div v-if="s.key === 'parsed'">
+        <div v-if="s.kind === 'prose'" class="prose">{{ s.text }}</div>
+
+        <div v-if="s.kind === 'parsed'">
           <code v-if="s.status === 'ok'" class="result ok">{{ describeAction(s.parsed) }}</code>
           <code v-else class="result fail">ParseError: {{ errorLabel(s.parsed) }}</code>
         </div>
 
-        <div v-if="s.key === 'interp'" class="interp">
+        <div v-if="s.kind === 'interp'" class="interp">
           <template v-if="!s.interp">
             <span class="muted">Not needed — the parser understood.</span>
           </template>
@@ -153,14 +122,43 @@ const errorLabel = e => ({
             <span class="muted small">This is where a language model would try to understand what the parser could not.</span>
           </template>
           <template v-else>
-            <div><strong>{{ s.interp.name }}</strong> → {{ s.interp.status }} <span class="muted">({{ s.interp.ms }} ms)</span></div>
-            <code v-if="s.interp.answer" class="small block">{{ JSON.stringify(s.interp.answer.action ?? s.interp.answer) }}</code>
+            <div class="interp-head">
+              <strong>{{ s.interp.name }}</strong>
+              <span class="verdict" :class="s.interp.status">{{ INTERP_STATUS[s.interp.status] ?? s.interp.status }}</span>
+              <span class="muted small">
+                {{ s.interp.ms }} ms<template v-if="s.interp.answer?.meta?.tokens">
+                  · {{ s.interp.answer.meta.tokens.prompt }} in / {{ s.interp.answer.meta.tokens.completion }} out tokens</template>
+              </span>
+            </div>
+            <div class="muted small">The parser gave up, so the line went to the model, with only what you can see:</div>
+            <div class="scope">
+              <span v-for="e in [...s.interp.context.visible, ...s.interp.context.inventory]" :key="e.id" class="entity hit" :class="e.kind" :title="e.id">{{ e.name }}</span>
+            </div>
+            <div class="muted small">It replied:</div>
+            <code class="small block">{{ s.interp.answer?.meta?.raw ?? JSON.stringify(s.interp.answer) }}</code>
+            <template v-if="s.interp.reread">
+              <div class="muted small">The parser re-read its paraphrase, “{{ s.interp.reread.text }}”:</div>
+              <code v-if="!s.interp.reread.result.parseError" class="result ok">{{ describeAction(s.interp.reread.result) }}</code>
+              <code v-else class="result fail">{{ errorLabel(s.interp.reread.result) }}</code>
+              <div class="muted small">
+                <template v-if="s.interp.via === 'reread' && !s.interp.reread.result.parseError">Its own reading wins over the model’s choice of command.</template>
+                <template v-else-if="s.interp.via === 'reread'">So the player is told, instead of the model guessing.</template>
+                <template v-else>Words the parser doesn’t know, so the model’s own command is used.</template>
+              </div>
+            </template>
+            <div v-if="s.interp.status === 'rejected'" class="small bad-text">
+              That names something out of sight or isn’t a legal command, so the game threw it away.
+            </div>
+            <details v-if="s.interp.answer?.meta?.prompt" class="small">
+              <summary>Full prompt</summary>
+              <pre>{{ s.interp.answer.meta.prompt }}</pre>
+            </details>
           </template>
         </div>
 
         <code v-if="s.action" class="block">{{ JSON.stringify(s.action) }}</code>
 
-        <ul v-if="s.events" class="events">
+        <ul v-if="s.events" class="event-list">
           <li v-for="(e, i) in s.events" :key="i" :class="{ bad: e.type === 'action_failed', good: e.type === 'game_ended' }">
             <span class="etype">{{ e.type }}</span>
             <span v-if="e.reason" class="muted"> · {{ e.reason }}</span>
@@ -168,7 +166,7 @@ const errorLabel = e => ({
           </li>
         </ul>
 
-        <ul v-if="s.changes" class="changes">
+        <ul v-if="s.changes" class="change-list">
           <li v-for="c in s.changes" :key="c.path">
             <code>{{ c.path }}</code>: <span class="from">{{ show(c.from) }}</span> → <span class="to">{{ show(c.to) }}</span>
           </li>
@@ -189,6 +187,7 @@ const errorLabel = e => ({
 }
 .stage {
   position: relative;
+  animation: arrive 0.35s ease-out;
   padding: 8px 10px 9px 22px;
   margin-left: 6px;
   border-left: 2px solid var(--line);
@@ -205,7 +204,24 @@ const errorLabel = e => ({
   border: 2px solid var(--accent);
 }
 .stage.fail::before { border-color: var(--bad); }
-.stage.interp::before { border-style: dashed; border-color: var(--muted); }
+.stage-interp::before { border-style: dashed; border-color: var(--muted); }
+@keyframes arrive {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage { animation: none; }
+}
+.stage-prose::before { border-color: var(--good); background: var(--good); }
+.prose {
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+  max-height: 7.5em;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  color: var(--fg-soft);
+}
 .stage-title { font-weight: 600; font-size: 13px; }
 .hint { color: var(--muted); font-size: 12px; margin: 1px 0 5px; }
 .chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
@@ -257,12 +273,21 @@ code.block {
   margin-bottom: 3px;
 }
 .interp .small { display: block; }
-.events, .changes { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
-.events li, .changes li { padding: 1px 0; }
+.interp-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.interp-head .small { display: inline; }
+.interp .scope { margin: 3px 0 4px; }
+.verdict { font-size: 11.5px; padding: 0 6px; border-radius: 4px; background: var(--chip); }
+.verdict.action { background: var(--good-soft); color: var(--good); }
+.verdict.rejected, .verdict.unavailable { background: var(--bad-soft); color: var(--bad); }
+.verdict.clarify { background: var(--warn-soft); color: var(--warn); }
+.bad-text { color: var(--bad); }
+.interp pre { font-family: var(--mono); font-size: 11px; white-space: pre-wrap; background: var(--chip); padding: 6px; border-radius: 5px; }
+.event-list, .change-list { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
+.event-list li, .change-list li { padding: 1px 0; }
 .etype { font-family: var(--mono); }
-.events .bad .etype { color: var(--bad); }
-.events .good .etype { color: var(--good); font-weight: 600; }
-.changes code { font-family: var(--mono); font-size: 12px; }
+.event-list .bad .etype { color: var(--bad); }
+.event-list .good .etype { color: var(--good); font-weight: 600; }
+.change-list code { font-family: var(--mono); font-size: 12px; }
 .from { color: var(--bad); font-family: var(--mono); font-size: 12px; }
 .to { color: var(--good); font-family: var(--mono); font-size: 12px; }
 .quote { color: var(--muted); font-family: var(--mono); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
