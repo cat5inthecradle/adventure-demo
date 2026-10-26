@@ -24,12 +24,30 @@ The world is `../worlds/wayfarer.json`, imported at the top of `src/game.js`.
 | `src/game.js` | The play session: scrollback, turn history, undo, saves, meta commands |
 | `src/components/` | Terminal, parser panel, world panel, interpreter picker, benchmark view |
 | `src/bench/cases.js`, `tests/fixtures/nl_cases.json` | The interpreter benchmark: cases, replay, scoring |
+| `src/builder/` | The World Builder: block definitions (`schema.js`), world ↔ blocks conversion (`convert.js`), Blockly wiring (`blocks.js`), the library of saved worlds (`library.js`) |
+| `src/engine/merge.js` | Applies an edited world to a game in progress |
 | `tests/golden.test.js`, `scripts/golden.js` | Replays two scripted sessions and checks every response, written and spoken, against `tests/fixtures/golden.json` |
 | `scripts/check-world.js` | Validates a world file from the command line |
 
 The architecture's rules still hold. Only `engine.apply()` mutates the world.
 The parser and interpreter produce actions that refer to things by id. The
 renderer never makes up facts.
+
+## On phones
+
+The layout is built for landscape screens, with the terminal and the panels side
+by side. Narrower than 700px, or shorter than 500px (a phone on its side), it
+switches to one thing at a time:
+
+- Play stacks into a single column, with **Game / Understood / World** tabs.
+  Tapping a command you typed opens Understood for it.
+- The app is sized to the part of the screen the keyboard leaves visible, so
+  the prompt and the latest lines stay in view. "Esc to skip" becomes "tap to
+  skip".
+- Phones play with the parser alone. The model picker and the Benchmark tab are
+  hidden, because most phones can't run the 1–2 GB models.
+- Build shows a note that it needs a tablet, Chromebook or laptop, and doesn't
+  load Blockly.
 
 ## Tracing
 
@@ -116,6 +134,42 @@ and set it as `game.state.interpreter` (wrap it in `markRaw`).
 
 `rephrased` is optional: the request in plain words. If you include it, the
 parser tries it before your `action` (see above).
+
+## The World Builder
+
+The **Build** tab is the world as Blockly blocks. Every part of the world format has a
+block, so the Wayfarer loads in full, and a test converts it to blocks and back and
+then replays both golden sessions to check it plays exactly the same.
+
+- **Blocks are data.** `schema.js` declares the blocks with no Blockly import, and
+  `convert.js` turns a world into Blockly's serialized workspace format and back as
+  plain JSON. That is what makes the round trip testable without a browser.
+- **Students never type ids.** Blocks that define something (rooms, doors, things,
+  characters, rules) keep their world id in `block.data`, assigned from the name
+  when the block is made. Everything else picks from dropdowns by name, so renaming
+  a room never breaks an exit.
+- **Flags and counters are Blockly variables**, created from buttons in the
+  Conditions category.
+- **Mistakes are pointed out as you go.** The built world goes through the same
+  loader as any world file, and its complaint shows in the side panel and as a
+  warning on the block it names.
+- **Live edits.** *Play with my changes* merges three versions (`engine/merge.js`):
+  the world the game started from, the game as it stands, and the edited world.
+  What the author changed comes from the edit, and what the game changed (item
+  locations, open doors, flags, fired rules) carries over. If the player's room
+  was deleted, they go back to the start and are told why. *Play from the start*
+  restarts with the edited world.
+- **A library of worlds** (`builder/library.js`). Each world is a workspace
+  state saved in the browser and autosaved as you build. A world's name is its
+  Story block's title, so it's the same in the library, Play's top bar and a
+  downloaded file's name; the World name field edits that title. New,
+  Duplicate, "A copy of the Wayfarer" and "Open a file…" all add a world rather
+  than replace one, and names never collide ("My adventure 2"). Switching worlds
+  doesn't change what Play is running until one of the Play buttons is pressed;
+  the panel says when the game is playing a different world. The world being
+  played is remembered separately, so a reload keeps it.
+- Blockly's sprites and sounds are served from `public/blockly-media` (copied from
+  the `blockly` package), not from `static.blockly.com`.
 
 ## Tests
 

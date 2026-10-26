@@ -48,6 +48,13 @@ accounts only).
   can watch it move through the system; Esc skips ahead.
 - **World** — a map of the rooms you know, what is here and what you carry, and the
   raw flags, doors and item locations, with the last turn's changes highlighted.
+- **Build** — the world itself, as Blockly blocks: rooms and exits, doors and locks,
+  things, characters and what they say, and rules ("when the player uses ☐ on ☐ …
+  only if … then …"), with flags and counters as variables. Edit it, then **play
+  with your changes** — the game in progress carries on, keeping what the player
+  already did — or play your world from the start. Keep several named worlds in
+  the browser (new, duplicate, delete, or start from a copy of the Wayfarer), and
+  download or open them as files.
 - **Benchmark** — 59 sentences the parser can't understand, run through the language
   model and scored, with every prompt open for inspection.
 
@@ -55,7 +62,8 @@ accounts only).
 declare the default their prose was written for, and prose that has to name you in
 the third person writes a token rather than a word — see
 [docs/AUTHORING.md](docs/AUTHORING.md). `undo`, `restart`, `save` and `load` work as
-you'd expect; saves live in the browser.
+you'd expect, and **↺ Restart** in the top bar (or **Play again** when a story ends)
+starts over; saves live in the browser.
 
 The Wayfarer is the world in this repository. The engine also supports counters,
 timed deaths, triggers that fire on where the player is standing, and endings other

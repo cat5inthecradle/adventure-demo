@@ -4,6 +4,10 @@
 // (its parse trace, action, events, and the world diff it caused) so the side
 // panels can show any turn, not just the latest. Meta commands — help, save,
 // undo, pronouns — are handled here because they are not world mutations.
+//
+// It also owns the world *definition* — the Wayfarer, or whatever a student
+// built — so the World Builder can swap in an edited world, either restarting or
+// carrying the game in progress across (engine/merge.js).
 
 import { computed, reactive, shallowRef } from 'vue'
 import wayfarer from '../../worlds/wayfarer.json'
@@ -13,9 +17,12 @@ import { renderEvent } from './engine/renderer.js'
 import { takeTurn } from './engine/turn.js'
 import * as pronounSets from './engine/pronouns.js'
 import { diffWorld } from './diff.js'
+import { mergeWorld } from './engine/merge.js'
 import { buildStages } from './stages.js'
+import { storage } from './storage.js'
 
 const SAVE_PREFIX = 'adventure-lab:save:'
+const WORLD_KEY = 'adventure-lab:world'     // the world being played, if not the Wayfarer
 const TRANSCRIPT_PAIRS = 6
 const UNDO_DEPTH = 50
 
@@ -42,7 +49,21 @@ const END_LINE = { win: 'Escaped in {turns} turns.', loss: 'You lasted {turns} t
 
 let nextId = 1
 
-export function createGame({ worldData = wayfarer, interpreter = null } = {}) {
+/** The last world a student applied, if this browser has one that still loads. */
+function savedWorld() {
+  try {
+    const raw = JSON.parse(storage()?.getItem(WORLD_KEY) ?? 'null')
+    if (raw) loadWorld(raw)
+    return raw
+  } catch {
+    return null
+  }
+}
+
+export function createGame({ worldData = savedWorld() ?? wayfarer, interpreter = null } = {}) {
+  // What is being played, as authored — also the common ancestor a live edit is
+  // merged against, since it is the world the current game started from.
+  const definition = shallowRef(structuredClone(worldData))
   const world = shallowRef(loadWorld(worldData))
   const state = reactive({
     log: [],            // { id, kind: 'input'|'output'|'system', text, turnId? }
@@ -95,12 +116,17 @@ export function createGame({ worldData = wayfarer, interpreter = null } = {}) {
     wake?.()
   }
 
-  async function submit(line) {
-    // A new command while one is still being revealed fast-forwards the old one.
+  /** Finish any turn still being revealed, fast-forwarding it. */
+  async function settle() {
     while (inFlight) {
       skip()
       await inFlight
     }
+  }
+
+  async function submit(line) {
+    // A new command while one is still being revealed fast-forwards the old one.
+    await settle()
     inFlight = run(line)
     try {
       return await inFlight
@@ -140,11 +166,13 @@ export function createGame({ worldData = wayfarer, interpreter = null } = {}) {
       }
       turn.revealed = null
 
+      if (result.understood) print(`(${result.understood})`, 'echo', id)
       print(result.text, 'output', id)
       transcript.push([line, result.text])
       if (result.outcome) {
         print(END_LINE[result.outcome].replace('{turns}', world.value.turn_count), 'system')
-        print("Type 'restart' to play again, or 'undo' to step back.", 'system')
+        print('Play again', 'restart')
+        print("Or type 'undo' to step back.", 'system')
       }
       touch()
       return turn
@@ -178,7 +206,7 @@ export function createGame({ worldData = wayfarer, interpreter = null } = {}) {
   }
 
   function restart() {
-    world.value = loadWorld(worldData)
+    world.value = loadWorld(definition.value)
     touch()
     undoStack.length = 0
     transcript.length = 0
@@ -186,10 +214,6 @@ export function createGame({ worldData = wayfarer, interpreter = null } = {}) {
     state.turns.splice(0)
     state.selectedTurnId = null
     intro()
-  }
-
-  function storage() {
-    try { return window.localStorage } catch { return null }
   }
 
   function save(name) {
@@ -238,9 +262,37 @@ export function createGame({ worldData = wayfarer, interpreter = null } = {}) {
     print(`Your character uses ${set.label}. ${pronounSets.apply(pronounSets.EXAMPLE, set)}`, 'system')
   }
 
+  /**
+   * Play an edited world. With `restart`, from its beginning; otherwise the game in
+   * progress carries across: the author's edits apply, the player's progress stays.
+   * Throws WorldValidationError, unchanged, if the world does not load.
+   */
+  async function applyWorld(raw, { restart: fromStart = false } = {}) {
+    const next = loadWorld(raw)
+    await settle()
+    const started = loadWorld(definition.value)
+    definition.value = structuredClone(raw)
+    try {
+      storage()?.setItem(WORLD_KEY, JSON.stringify(raw))
+    } catch { /* storage full: the world still plays, it just won't survive a reload */ }
+
+    if (fromStart) return restart()
+
+    const merged = mergeWorld(started, world.value, next)
+    world.value = merged.world
+    undoStack.length = 0          // undo would step back into the old world
+    touch()
+    print('— The world has changed. Your game carries on from where you were. —', 'system')
+    for (const note of merged.notes) print(note, 'system')
+    print(renderEvent(describeRoom(world.value), undefined, pronouns()))
+  }
+
   const selectedTurn = computed(() =>
     state.turns.find(t => t.id === state.selectedTurnId) ?? state.turns.at(-1) ?? null)
 
   intro()
-  return { world: view, state, submit, skip, selectedTurn, select: id => { state.selectedTurnId = id } }
+  return {
+    world: view, definition, state, submit, skip, selectedTurn, restart, applyWorld,
+    select: id => { state.selectedTurnId = id },
+  }
 }

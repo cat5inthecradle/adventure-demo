@@ -6,7 +6,7 @@ const props = defineProps({
   selectedTurnId: { type: Number, default: null },
   busy: Boolean,
 })
-const emit = defineEmits(['submit', 'select', 'skip'])
+const emit = defineEmits(['submit', 'select', 'skip', 'restart'])
 
 const input = ref('')
 const field = ref(null)
@@ -28,12 +28,16 @@ function recall(step) {
   input.value = history[historyIndex] ?? ''
 }
 
+function scrollToEnd() {
+  scroller.value?.scrollTo({ top: scroller.value.scrollHeight })
+}
+
 watch(() => props.log.length, async () => {
   await nextTick()
-  scroller.value?.scrollTo({ top: scroller.value.scrollHeight })
+  scrollToEnd()
 })
 
-defineExpose({ focus: () => field.value?.focus() })
+defineExpose({ focus: () => field.value?.focus(), scrollToEnd })
 </script>
 
 <template>
@@ -48,6 +52,12 @@ defineExpose({ focus: () => field.value?.focus() })
           :title="'Inspect how this was understood'"
           @click="emit('select', entry.turnId)"
         >{{ entry.text }}</button>
+        <button
+          v-else-if="entry.kind === 'restart'"
+          type="button"
+          class="line play-again"
+          @click="emit('restart')"
+        >▶ {{ entry.text }}</button>
         <p v-else class="line" :class="entry.kind">{{ entry.text }}</p>
       </template>
     </div>
@@ -60,12 +70,15 @@ defineExpose({ focus: () => field.value?.focus() })
         autocomplete="off"
         autocapitalize="off"
         spellcheck="false"
+        enterkeyhint="send"
         aria-label="Command"
         @keydown.up.prevent="recall(-1)"
         @keydown.down.prevent="recall(1)"
         @keydown.esc.prevent="emit('skip')"
       />
-      <span v-if="busy" class="working" aria-live="polite">processing… <kbd>Esc</kbd> to skip</span>
+      <button v-if="busy" type="button" class="working" aria-live="polite" @click="emit('skip')">
+        processing… <span class="keys"><kbd>Esc</kbd> to skip</span><span class="touch">tap to skip</span>
+      </button>
     </form>
   </section>
 </template>
@@ -117,6 +130,19 @@ defineExpose({ focus: () => field.value?.focus() })
   margin-bottom: 0.3em;
 }
 .system { color: var(--crt-dim); }
+.echo { color: var(--crt-dim); margin-bottom: 0.3em; }
+button.play-again {
+  font: inherit;
+  color: var(--crt-bg);
+  background: var(--crt-bright);
+  border: 0;
+  border-radius: 4px;
+  padding: 0.2em 0.9em;
+  cursor: pointer;
+  text-shadow: none;
+}
+button.play-again:hover { background: var(--crt-fg); }
+button.play-again:focus-visible { outline: 2px solid var(--crt-bright); outline-offset: 3px; }
 button.clickable {
   font: inherit;
   text-shadow: inherit;
@@ -140,6 +166,11 @@ button.clickable:focus-visible { outline: 2px solid var(--crt-bright); }
 }
 .prompt-mark { color: var(--crt-bright); }
 .working {
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
   color: var(--crt-dim);
   font-size: 0.85em;
   white-space: nowrap;
@@ -155,6 +186,7 @@ button.clickable:focus-visible { outline: 2px solid var(--crt-bright); }
 @media (prefers-reduced-motion: reduce) { .working { animation: none; } }
 .prompt input {
   flex: 1;
+  min-width: 0;
   background: transparent;
   border: 0;
   color: var(--crt-bright);
@@ -162,5 +194,19 @@ button.clickable:focus-visible { outline: 2px solid var(--crt-bright); }
   caret-color: var(--crt-bright);
   text-shadow: 0 0 6px var(--crt-glow);
   outline: none;
+}
+.touch { display: none; }
+/* Touch screens have no Esc key, so the hint says to tap instead. */
+@media (hover: none) {
+  .keys { display: none; }
+  .touch { display: inline; }
+  .working { padding: 0.5em 0; }
+}
+@media (max-width: 700px), (max-height: 500px) {
+  .terminal { font-size: 15px; border-radius: 10px; }
+  .screen { padding: 0.9em 0.9em 0.3em; }
+  .prompt { padding: 0.5em 0.9em 0.7em; }
+  /* Under 16px, phones zoom the page in when the field is tapped. */
+  .prompt input { font-size: 16px; min-height: 32px; }
 }
 </style>
