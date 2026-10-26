@@ -113,3 +113,32 @@ describe('re-reading the interpreter\'s paraphrase', () => {
     expect(result.action).toEqual({ type: 'examine', target: 'emergency_manual' })
   })
 })
+
+describe('saying back what the game understood', () => {
+  const play = async (lines, last, options) => {
+    const world = loadWorld(wayfarer)
+    for (const line of lines) await takeTurn(world, line)
+    return takeTurn(world, last, options)
+  }
+
+  it('stays quiet when the words were taken literally', async () => {
+    expect((await play(['e', 's'], 'take prybar')).understood).toBeNull()
+    expect((await play([], 'go east')).understood).toBeNull()
+  })
+
+  it('names the reading when a typo was corrected', async () => {
+    expect((await play(['e', 's'], 'grab teh prybr')).understood).toBe('take the prybar')
+  })
+
+  it('names the step when "go to" planned a route', async () => {
+    expect((await play(['e', 's', 'n'], 'go to the engine room')).understood).toBe('go south')
+  })
+
+  it('always names what a language model made of the line', async () => {
+    const interpreter = new ScriptedInterpreter('model', {
+      'back the way i came': { kind: 'action', action: { type: 'go', direction: 'west' } },
+    })
+    const result = await play(['e'], 'back the way i came', { interpreter })
+    expect(result.understood).toBe('go west')
+  })
+})

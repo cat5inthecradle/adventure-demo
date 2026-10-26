@@ -11,7 +11,8 @@
 import { apply } from './engine.js'
 import { isParseError, parse } from './parser.js'
 import { buildContext, validateResolution } from './interpreter.js'
-import { Style, renderEvents, renderParseError, renderSpeech } from './renderer.js'
+import { Style, renderAction, renderEvents, renderParseError, renderSpeech } from './renderer.js'
+import { findEntity } from './queries.js'
 
 // Parse failures that mean "the thing you named is not here".
 const ABSENT = new Set(['unknown_noun', 'elsewhere', 'ambiguous'])
@@ -37,6 +38,7 @@ export async function takeTurn(world, line, { interpreter = null, transcript = [
     action: null,
     parseError: null,
     interpreter: null,
+    understood: null,     // "go down" — what the game took the player to mean, when not literal
     events: [],
     text: '',
     speechParts: [],
@@ -117,7 +119,24 @@ function say(result, text) {
   return result
 }
 
+/**
+ * Whether the player should be told what the game took them to mean. Yes when
+ * the words were not taken literally — a language model interpreted them, a
+ * typo was corrected, or "go to <room>" became one step of a route — because
+ * otherwise a reply like "You can't go that way." leaves them guessing which
+ * way. A plain "take prybar" needs no echo.
+ */
+function needsEcho(result) {
+  if (result.route === 'interpreter') return true
+  return result.parseTrace.some(s => (s.stage === 'typos' && s.fixes.some(f => f.to))
+    || s.stage === 'route')
+}
+
 function finish(world, result, action) {
+  // Named before the engine runs, while every entity is still where the player saw it.
+  if (needsEcho(result)) {
+    result.understood = renderAction(action, id => findEntity(world, id)?.name)
+  }
   const events = apply(world, action)
   const endings = events.filter(e => e.type === 'game_ended')
   result.action = action

@@ -111,6 +111,33 @@ export function renderSpeech(events, pronouns = null) {
   return parts
 }
 
+/**
+ * An action, said back as the plain command it amounts to: "take the prybar",
+ * "use the power cell on the maintenance droid". `nameOf` maps an id to the
+ * name the player sees. Used to tell the player what the game took them to mean
+ * when that wasn't literally what they typed.
+ */
+export function renderAction(action, nameOf) {
+  const the = id => {
+    const name = nameOf(id) ?? id
+    return /^[A-Z]/.test(name) ? name : `the ${name}`
+  }
+  switch (action.type) {
+    case 'look': return 'look around'
+    case 'inventory': return 'check your inventory'
+    case 'go': return `go ${action.direction}`
+    case 'examine': return `examine ${the(action.target)}`
+    case 'take': return `take ${the(action.item)}`
+    case 'drop': return `drop ${the(action.item)}`
+    case 'open': return `open ${the(action.target)}`
+    case 'traverse': return `go through ${the(action.target)}`
+    case 'listen': return action.target ? `listen at ${the(action.target)}` : 'listen'
+    case 'talk': return `talk to ${the(action.npc)}`
+    case 'use': return action.target ? `use ${the(action.item)} on ${the(action.target)}` : `use ${the(action.item)}`
+  }
+  return action.type
+}
+
 /** Friendly, actionable text for input the dumb parser could not use. */
 export function renderParseError(err) {
   switch (err.kind) {
