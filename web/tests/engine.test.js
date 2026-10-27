@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import wayfarer from '../../worlds/wayfarer.json'
 import { loadWorld, WorldValidationError } from '../src/engine/loader.js'
-import { parse } from '../src/engine/parser.js'
+import { fixTypos, parse } from '../src/engine/parser.js'
 import { takeTurn } from '../src/engine/turn.js'
 import { ScriptedInterpreter, actionSchema, buildContext } from '../src/engine/interpreter.js'
 import { apply as applyPronouns } from '../src/engine/pronouns.js'
@@ -23,6 +23,12 @@ describe('parser trace', () => {
     expect(traced).toEqual(parse(world, 'opne the manual'))
     expect(trace.map(s => s.stage)).toEqual(['normalize', 'typos', 'verb', 'fillers', 'resolve', 'result'])
     expect(trace[1].fixes).toEqual([{ from: 'opne', to: 'open', distance: 1 }])
+  })
+
+  it('does not correct into short words', () => {
+    const vocabulary = new Set(['examine', 'up', 'open'])
+    expect(fixTypos(['examine', 'cup'], vocabulary)).toEqual(['examine', 'cup'])
+    expect(fixTypos(['opne'], vocabulary)).toEqual(['open'])
   })
 })
 

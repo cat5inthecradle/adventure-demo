@@ -347,6 +347,7 @@ export function entityTokens(entity) {
 //
 // A word already in the world's vocabulary is NEVER altered, and a correction must
 // be unambiguous — if a token sits equally close to two known words we leave it.
+// Short words get no slack, and correction targets must be at least three letters.
 
 /** Every word this world expects a player to type, right here, right now. */
 export function buildVocabulary(world) {
@@ -406,6 +407,7 @@ export function fixTypos(tokens, vocabulary, fixes = []) {
     let best = []
     let bestDistance = budget + 1
     for (const word of vocabulary) {
+      if (word.length <= 2) continue
       const d = editDistance(token, word, budget)
       if (d < bestDistance) { best = [word]; bestDistance = d }
       else if (d === bestDistance) best.push(word)
