@@ -67,6 +67,14 @@ export default class AdventureValidator extends Validator {
       })
     }
 
+    if (turn?.route === 'improvised') {
+      this.addPlayOrUiCondition({ name: AdventureConditions.AI_IMPROVISED.name })
+      this.addPlayOrUiCondition({
+        name: AdventureConditions.AI_IMPROVISED.name,
+        value: turn.improvised?.npc,
+      })
+    }
+
     if (failures.length > 0) {
       this.addPlayOrUiCondition({ name: AdventureConditions.TURN_FAILED.name })
       for (const failure of failures) {
@@ -75,7 +83,7 @@ export default class AdventureValidator extends Validator {
           value: failure.reason,
         })
       }
-    } else if (turn?.route !== 'filled' && turn?.parseError && !turn.action) {
+    } else if (!['filled', 'improvised'].includes(turn?.route) && turn?.parseError && !turn.action) {
       this.addPlayOrUiCondition({ name: AdventureConditions.TURN_FAILED.name })
       this.addPlayOrUiCondition({
         name: AdventureConditions.TURN_FAILED.name,

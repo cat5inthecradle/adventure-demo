@@ -60,7 +60,7 @@ const VERB_LIST = [
   ['crawl', 'traverse'], ['crawl through', 'traverse'], ['squeeze through', 'traverse'],
   ['go through', 'traverse'], ['go out', 'traverse'], ['go out of', 'traverse'],
   ['talk to', 'talk'], ['talk', 'talk'], ['speak to', 'talk'], ['speak', 'talk'],
-  ['ask', 'talk'], ['wake', 'talk'], ['wake up', 'talk'],
+  ['ask', 'talk'], ['tell', 'talk'], ['wake', 'talk'], ['wake up', 'talk'],
   ['inventory', 'inventory'], ['i', 'inventory'], ['inv', 'inventory'],
 ]
 export const VERB_PHRASES = new Map(VERB_LIST)
@@ -352,7 +352,13 @@ export function entityTokens(entity) {
 /** Every word this world expects a player to type, right here, right now. */
 export function buildVocabulary(world) {
   const words = new Set([...FILLERS, ...Object.keys(DIRECTIONS), ...SELF_TOKENS, ...QUESTION_TOKENS])
-  for (const phrase of VERB_PHRASES.keys()) for (const w of phrase.split(' ')) words.add(w)
+  for (const phrase of VERB_PHRASES.keys()) {
+    for (const w of phrase.split(' ')) {
+      // Exact “tell” is a verb, but as a typo target it turns an absent “cell”
+      // into “tell” and changes the noun the player is told is missing.
+      if (w !== 'tell') words.add(w)
+    }
+  }
   for (const e of q.visibleEntities(world)) for (const w of entityTokens(e)) words.add(w)
   for (const room of Object.values(world.rooms)) for (const w of room.name.toLowerCase().split(/\s+/)) words.add(w)
   return words

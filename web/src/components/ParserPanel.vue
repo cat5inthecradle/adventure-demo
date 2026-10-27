@@ -113,6 +113,12 @@ const errorLabel = e => ({
           <div class="filled-text">{{ s.filled.text }}</div>
         </div>
 
+        <div v-if="s.kind === 'improvised'" class="filled">
+          <div class="muted small">Character: <strong>{{ s.improvised.character }}</strong></div>
+          <div class="muted small">Topic: <strong>{{ s.improvised.topic }}</strong></div>
+          <div class="filled-text">{{ s.improvised.text }}</div>
+        </div>
+
         <div v-if="s.kind === 'parsed'">
           <code v-if="s.status === 'ok'" class="result ok">{{ describeAction(s.parsed) }}</code>
           <code v-else class="result fail">ParseError: {{ errorLabel(s.parsed) }}</code>
@@ -218,7 +224,7 @@ const errorLabel = e => ({
   .stage { animation: none; }
 }
 .stage-prose::before { border-color: var(--good); background: var(--good); }
-.stage-filled::before { border-style: dashed; border-color: var(--accent); }
+.stage-filled::before, .stage-improvised::before { border-style: dashed; border-color: var(--accent); }
 .prose {
   font-family: var(--mono);
   font-size: 12px;

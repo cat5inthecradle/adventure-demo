@@ -125,6 +125,28 @@ function setReducedMotion(event) {
   if (reducedMotion) finishTyping()
 }
 
+function copyScreen(event) {
+  const screen = scroller.value
+  const selection = window.getSelection()
+  if (!screen || !selection || selection.isCollapsed || !selection.rangeCount) return
+  if (!screen.contains(selection.anchorNode) || !screen.contains(selection.focusNode)) return
+  if (!event.clipboardData) return
+
+  const ranges = Array.from({ length: selection.rangeCount }, (_, index) => selection.getRangeAt(index).cloneRange())
+  const copied = document.createElement('div')
+  for (const range of ranges) copied.append(range.cloneContents())
+  copied.querySelectorAll('.visually-hidden').forEach(element => element.remove())
+  copied.querySelectorAll('.ai-label').forEach(label => label.after(document.createTextNode('\n')))
+
+  const lines = [...copied.querySelectorAll('.line')]
+    .filter(line => !line.parentElement?.closest('.line'))
+  const text = lines.length
+    ? lines.map(line => line.textContent).join('\n')
+    : copied.textContent
+  event.clipboardData.setData('text/plain', text)
+  event.preventDefault()
+}
+
 watch(() => props.log.map(entry => [entry.id, entry.kind, entry.text]), () => {
   if (!mounted) return
 
@@ -190,7 +212,7 @@ defineExpose({ focus: () => field.value?.focus(), scrollToEnd })
 
 <template>
   <section class="terminal" aria-label="Game terminal" @click.self="field?.focus()">
-    <div ref="scroller" class="screen" role="log" aria-live="polite" @click.self="field?.focus()">
+    <div ref="scroller" class="screen" role="log" aria-live="polite" @click.self="field?.focus()" @copy="copyScreen">
       <template v-for="entry in log" :key="entry.id">
         <button
           v-if="entry.kind === 'input' && entry.turnId"
@@ -375,6 +397,7 @@ button.clickable.nudge {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+  user-select: none;
 }
 .prompt {
   display: flex;

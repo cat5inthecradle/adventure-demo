@@ -6,6 +6,11 @@
 const DESCRIPTION_SYSTEM = `Write one or two present-tense, second-person sentences describing the named detail as part of the room shown.
 Do not add exits, characters, or things the player can take or use. Do not say the detail can be taken, opened, or used. Do not reveal puzzle solutions. Return only the description.`
 
+const SPEAK_SYSTEM = `You are the named character in a text adventure. Answer the player with one or two short sentences, in the first person, in your own voice.
+Stay consistent with the character's description and the lines the author already gave them. Return only the words the character says out loud: no narration, no actions, no quotation marks.
+The character must not hand over, unlock, open, or move anything, promise to act, or invent exits, items, or characters.
+Do not reveal puzzle solutions beyond what the character's authored lines already say.`
+
 /** A small prose-only prompt for a detail the author mentioned but did not build. */
 export function describePrompt({ noun, context, style = {} }) {
   const guidance = [
@@ -32,6 +37,46 @@ export function cleanDescription(raw) {
   if (wrapping) text = wrapping[1].trim()
   const sentences = text.match(/[^.!?]+(?:[.!?]+|$)/g) ?? []
   return sentences.slice(0, 2).map(sentence => sentence.trim()).join(' ').slice(0, 280).trim()
+}
+
+/** A prose-only prompt for words the author never gave a character. */
+export function speakPrompt({ npc, topic, line, context, style = {} }) {
+  const guidance = [
+    style.tone ? `Tone: ${style.tone}` : null,
+    style.theme ? `Theme: ${style.theme}` : null,
+  ].filter(Boolean)
+  const scene = [
+    `Character: ${npc.name}`,
+    `Character description: ${npc.description}`,
+    'Authored lines:',
+    ...(npc.lines?.length ? npc.lines.map(authored => `- ${authored}`) : ['- none']),
+    `Room: ${context.roomName}`,
+    `Room description: ${context.roomDescription}`,
+    `Topic: ${topic}`,
+    `Player says: ${line}`,
+    ...guidance,
+  ].join('\n')
+  return [
+    { role: 'system', content: SPEAK_SYSTEM },
+    { role: 'user', content: scene },
+  ]
+}
+
+/** Keep a model reply to the words spoken, with no label or wrapping quotes. */
+export function cleanReply(raw) {
+  let text = String(raw ?? '').trim()
+  if (!text) return ''
+  // Small models often narrate around the speech (The droid nods, "Hello," it
+  // says.) even when told not to. Whatever sits in double quotes is the speech.
+  const spoken = [...text.matchAll(/["“]([^"”]+)(?:["”]|$)/g)]
+    .map(match => match[1].trim().replace(/,$/, '.'))
+    .filter(Boolean)
+  if (spoken.length) text = spoken.join(' ')
+  const wrapping = text.match(/^['‘]([\s\S]*)['’]$/)
+  if (wrapping) text = wrapping[1].trim()
+  text = text.replace(/^[\p{L}\p{N}_'’-]+(?: [\p{L}\p{N}_'’-]+){0,2}:\s*/u, '').trim()
+  const sentences = text.match(/[^.!?]+(?:[.!?]+|$)/g) ?? []
+  return sentences.slice(0, 2).map(sentence => sentence.trim()).join(' ').slice(0, 240).trim()
 }
 
 // --- prompt v1 ----------------------------------------------------------------

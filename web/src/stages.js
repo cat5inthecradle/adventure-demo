@@ -58,6 +58,14 @@ export function buildStages(turn) {
     })
   }
 
+  if (turn.improvised) {
+    add('improvised', {
+      title: 'AI improvised a reply',
+      hint: 'The author never wrote this line. The AI wrote it in the character’s voice, and the world did not change.',
+      improvised: turn.improvised,
+    })
+  }
+
   add('prose', { title: 'Render', hint: 'The renderer turns events into sentences on the main screen.', text: turn.text })
   return out
 }

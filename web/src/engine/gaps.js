@@ -21,3 +21,29 @@ export function findGap(world, parseError, parseTrace) {
     ? { noun: parseError.noun }
     : null
 }
+
+/** Return the character addressed by a failed talk command and its topic, or null. */
+export function findTopic(world, parseError, parseTrace) {
+  if (parseError?.kind !== 'unknown_noun') return null
+  if (!parseTrace?.some(step => step.stage === 'verb' && step.kind === 'talk')) return null
+
+  const nounWords = words(parseError.noun ?? '')
+  if (!nounWords.length) return null
+  const npcs = q.npcsInRoom(world, world.player_location)
+
+  if (nounWords[0] === 'about' && npcs.length === 1 && nounWords.length > 1) {
+    return { npc: npcs[0].id, name: npcs[0].name, topic: nounWords.slice(1).join(' ') }
+  }
+
+  const names = npcs.flatMap(npc => [npc.name, ...(npc.aliases ?? [])]
+    .map(name => ({ npc, nameWords: words(name) })))
+    .sort((a, b) => b.nameWords.length - a.nameWords.length)
+  const addressed = names.find(candidate => candidate.nameWords.length < nounWords.length
+    && candidate.nameWords.every((word, index) => nounWords[index] === word))
+  if (!addressed) return null
+
+  const topicWords = nounWords.slice(addressed.nameWords.length)
+  if (['about', 'for', 'if', 'to'].includes(topicWords[0])) topicWords.shift()
+  if (!topicWords.length) return null
+  return { npc: addressed.npc.id, name: addressed.npc.name, topic: topicWords.join(' ') }
+}

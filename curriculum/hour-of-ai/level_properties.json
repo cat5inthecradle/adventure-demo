@@ -345,7 +345,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "The AI dial",
-    "longInstructions": "The cockpit mentions a coffee mug the author never built. In the **Play tab**, try the same command with the AI dial at different settings and watch what changes.\n\nThe mug never becomes a real object: the AI can write words, not rules.\n\n**Invent events** is locked—use what happened in Play to debate why.",
+    "longInstructions": "The cockpit mentions a coffee mug the author never built. In the **Play tab**, try the same command with the AI dial at different settings and watch what changes.\n\nThe mug never becomes a real object: the AI can write words, not rules. Improvise lets characters say things the author never wrote.\n\n**Invent events** is locked—use what happened in Play to debate why.",
     "teacherMarkdown": "- At which dial setting does the AI begin to share authorship, if any? Why?\n- Why might inventing events be locked even when improvising is available?\n- Who is responsible when AI-written story text conflicts with a world rule?",
     "freePlay": false,
     "projectTemplateLevelName": "hoai_adventure_world",
@@ -384,6 +384,14 @@
           "conditions": [
             {
               "name": "ai_filled_gap"
+            }
+          ]
+        },
+        {
+          "text": "Set the dial to **Improvise**, go `south` to the cargo bay, and type `ask the droid about the ship`. Notice the droid answers with a line marked **AI wrote this**—a line the author never wrote.",
+          "conditions": [
+            {
+              "name": "ai_improvised"
             }
           ]
         },

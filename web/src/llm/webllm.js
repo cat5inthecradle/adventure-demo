@@ -9,7 +9,7 @@
 import { CreateWebWorkerMLCEngine, hasModelInCache } from '@mlc-ai/web-llm'
 import { actionSchema } from '../engine/interpreter.js'
 import { supportsF16 } from './models.js'
-import { cleanDescription, DEFAULT_PROMPT, describePrompt, EXPLAINS, PROMPTS } from './prompts.js'
+import { cleanDescription, cleanReply, DEFAULT_PROMPT, describePrompt, EXPLAINS, PROMPTS, speakPrompt } from './prompts.js'
 
 export { MODELS, webgpuProblem } from './models.js'
 
@@ -98,5 +98,24 @@ export class WebLLMInterpreter {
       tokens: reply.usage && { prompt: reply.usage.prompt_tokens, completion: reply.usage.completion_tokens },
     }
     return { kind: 'text', text: cleanDescription(raw), meta }
+  }
+
+  async speak({ npc, topic, line, context, style }) {
+    if (!this.engine) return { kind: 'unavailable', detail: 'the model is not loaded' }
+    const messages = speakPrompt({ npc, topic, line, context, style })
+    const reply = await this.engine.chat.completions.create({
+      messages,
+      temperature: 0.8,
+      max_tokens: 80,
+    })
+    const raw = reply.choices[0]?.message?.content ?? ''
+    const meta = {
+      model: this.buildId,
+      raw,
+      prompt: messages.at(-1).content,
+      messages,
+      tokens: reply.usage && { prompt: reply.usage.prompt_tokens, completion: reply.usage.completion_tokens },
+    }
+    return { kind: 'text', text: cleanReply(raw), meta }
   }
 }

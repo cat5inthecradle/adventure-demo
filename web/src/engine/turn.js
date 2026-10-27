@@ -1,8 +1,9 @@
 // One player turn, independent of how the player reached us.
 //
-// The routing is: dumb parser first, optional gap prose for an examined detail the
-// author mentioned but did not build, then an optional interpreter only for lines
-// the parser could not use, the engine always deciding what actually happens.
+// The routing is: dumb parser first, optional improvised words for a character or
+// gap prose for an examined detail the author did not write, then an optional
+// interpreter only for lines the parser could not use, the engine always deciding
+// what actually happens.
 // Every stage is recorded into `trace`, which the parser panel draws, so a learner
 // can watch a sentence become tokens, an action, events, and finally prose.
 //
@@ -10,8 +11,8 @@
 // concerns, and the engine only ever sees world mutations.
 
 import { apply } from './engine.js'
-import { findGap } from './gaps.js'
-import { isParseError, parse } from './parser.js'
+import { findGap, findTopic } from './gaps.js'
+import { FILLERS, isParseError, parse } from './parser.js'
 import { buildContext, validateResolution } from './interpreter.js'
 import { Style, renderAction, renderEvents, renderParseError, renderSpeech } from './renderer.js'
 import { findEntity } from './queries.js'
@@ -61,6 +62,12 @@ export async function takeTurn(world, line, {
 
   result.parseError = parsed
   if (aiMode === 'off') interpreter = null
+
+  const topic = aiMode === 'improvise' ? findTopic(world, parsed, parseTrace) : null
+  if (topic) {
+    const improvised = await improvise(world, result, topic, parsed, line, interpreter, style, gapCache)
+    if (improvised) return improvised
+  }
 
   const canFill = aiMode === 'fill_gaps' || aiMode === 'improvise'
   const proseGap = findGap(world, parsed, parseTrace)
@@ -150,6 +157,56 @@ export async function takeTurn(world, line, {
       return say(result, `${UNAVAILABLE(detail)}\n${renderParseError(parsed)}`)
     }
   }
+}
+
+async function improvise(world, result, topic, parseError, line, interpreter, style, gapCache) {
+  const topicWords = topic.topic.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []
+  const normalized = topicWords.filter(word => !FILLERS.has(word)).join(' ')
+  const cacheKey = `npc:${topic.npc}:${normalized}`
+  const cached = gapCache?.get(cacheKey)
+  const character = world.npcs[topic.npc]
+  const npc = {
+    id: character.id,
+    name: character.name,
+    description: character.description,
+    lines: character.dialogue.map(rule => rule.text),
+  }
+  const context = { ...buildContext(world), parserSaid: renderParseError(parseError) }
+  const requestedStyle = { tone: style?.tone ?? null, theme: style?.theme ?? null }
+  let answer = cached == null ? null : { kind: 'text', text: cached }
+
+  if (!answer && interpreter?.speak) {
+    try {
+      answer = await interpreter.speak({ npc, topic: topic.topic, line, context, style: requestedStyle })
+    } catch {
+      return null
+    }
+  }
+  if (answer?.kind !== 'text' || !answer.text?.trim()) return null
+
+  const reply = answer.text.trim()
+  if (cached == null && gapCache) gapCache.set(cacheKey, reply)
+  // A proper name stands alone; a common noun gets an article: “Mira says”, “The droid says”.
+  const speaker = /^\p{Lu}/u.test(character.name) ? character.name : `The ${character.name}`
+  const text = `${speaker} says, '${reply}'`
+  result.route = 'improvised'
+  result.action = null
+  result.events = []
+  result.aiWritten = true
+  result.improvised = {
+    npc: topic.npc,
+    character: character.name,
+    topic: topic.topic,
+    text: reply,
+    name: interpreter?.name,
+    meta: answer.meta,
+  }
+  result.text = text
+  result.speechParts = [
+    { voice: 'narrator', speaker: null, text: `${speaker} says,` },
+    { voice: 'npc', speaker: character.name, text: reply },
+  ]
+  return result
 }
 
 async function fillGap(world, result, gap, parseError, interpreter, style, gapCache) {

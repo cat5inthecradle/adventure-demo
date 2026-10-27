@@ -14,6 +14,9 @@
 //     describe?({ noun, context, style })        // -> Promise<DescriptionResult>
 //                                                // writes words only; its answer is
 //                                                // never handed to the game engine
+//     speak?({ npc, topic, line, context, style }) // -> Promise<DescriptionResult>
+//                                                // writes words only; its answer is
+//                                                // never handed to the game engine
 //   }
 //
 //   context.parserSaid is what the parser told the player, e.g. "I don't see any
@@ -155,10 +158,11 @@ export function actionSchema(context, { explain = false } = {}) {
  * same shape.
  */
 export class ScriptedInterpreter {
-  constructor(name, script, descriptions = null) {
+  constructor(name, script, descriptions = null, replies = null) {
     this.name = name
     this.script = script
     this.descriptions = descriptions
+    this.replies = replies
   }
 
   async interpret(utterance) {
@@ -170,6 +174,13 @@ export class ScriptedInterpreter {
     const text = this.descriptions?.[noun]
     return text == null
       ? { kind: 'unavailable', detail: `no scripted description for '${noun}'` }
+      : { kind: 'text', text }
+  }
+
+  async speak({ topic }) {
+    const text = this.replies?.[topic]
+    return text == null
+      ? { kind: 'unavailable', detail: `no scripted reply for '${topic}'` }
       : { kind: 'text', text }
   }
 }

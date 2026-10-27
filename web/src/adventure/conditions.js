@@ -55,6 +55,12 @@ export const AdventureConditions = {
     description: 'Checks whether the AI wrote prose for a named detail the author mentioned but did not build.',
     source: 'play',
   },
+  AI_IMPROVISED: {
+    name: 'ai_improvised',
+    valueType: 'string',
+    description: 'Checks whether the AI wrote a line in a character’s voice that the author did not write.',
+    source: 'play',
+  },
   VIEWED_UNDERSTOOD_PANEL: {
     name: 'viewed_understood_panel',
     description: 'Checks whether the player viewed the understood panel.',

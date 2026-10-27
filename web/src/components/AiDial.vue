@@ -73,7 +73,6 @@ function save() {
     <p v-if="dial.locked.length" class="locked-note">
       <strong>Why is this locked?</strong> Inventing events can change the story without the player or author choosing.
     </p>
-    <p class="prototype-note">Improvise is not built yet. For now, it behaves like Fill gaps.</p>
     <p v-if="needsModel" class="model-note">AI can't do anything until you choose a model in the menu at the top right.</p>
     <label class="field">
       Tone
