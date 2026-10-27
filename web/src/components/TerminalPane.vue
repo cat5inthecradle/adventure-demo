@@ -215,8 +215,10 @@ defineExpose({ focus: () => field.value?.focus(), scrollToEnd })
         <p v-else class="line" :class="entry.kind">
           <template v-if="entry.kind === 'input'">{{ entry.text }}</template>
           <template v-else>
-            <span aria-hidden="true">{{ displayedText(entry) }}</span>
-            <span class="visually-hidden">{{ entry.text }}</span>
+            <span aria-hidden="true">
+              <span v-if="entry.kind === 'ai'" class="ai-label">AI wrote this</span>{{ displayedText(entry) }}
+            </span>
+            <span class="visually-hidden">{{ entry.kind === 'ai' ? 'AI wrote this: ' : '' }}{{ entry.text }}</span>
           </template>
         </p>
       </template>
@@ -293,6 +295,20 @@ defineExpose({ focus: () => field.value?.focus(), scrollToEnd })
 }
 .system { color: var(--crt-dim); }
 .echo { color: var(--crt-dim); margin-bottom: 0.3em; }
+.ai {
+  border-left: 2px dashed var(--crt-dim);
+  padding-left: 0.8em;
+  font-style: italic;
+}
+.ai-label {
+  display: block;
+  margin-bottom: 0.15em;
+  color: var(--crt-bright);
+  font-size: 0.72em;
+  font-style: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 button.play-again {
   font: inherit;
   color: var(--crt-bg);

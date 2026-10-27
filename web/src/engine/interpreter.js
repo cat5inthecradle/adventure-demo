@@ -11,6 +11,9 @@
 //   interface Interpreter {
 //     name: string                              // shown in the parser panel
 //     interpret(utterance, context, transcript) // -> Promise<InterpreterResult>
+//     describe?({ noun, context, style })        // -> Promise<DescriptionResult>
+//                                                // writes words only; its answer is
+//                                                // never handed to the game engine
 //   }
 //
 //   context.parserSaid is what the parser told the player, e.g. "I don't see any
@@ -23,6 +26,10 @@
 //                                                // words, which the parser tries first
 //     | { kind: 'clarify', question, meta? }     // ask the player something
 //     | { kind: 'unavailable', detail, meta? }   // network down, no key, etc.
+//
+//   DescriptionResult =
+//     | { kind: 'text', text, meta? }
+//     | { kind: 'unavailable', detail, meta? }
 //
 //   transcript: the last few [playerLine, gameResponse] pairs, oldest first.
 //   meta: anything worth showing in the panel — model, tokens, latency, raw reply.
@@ -148,13 +155,21 @@ export function actionSchema(context, { explain = false } = {}) {
  * same shape.
  */
 export class ScriptedInterpreter {
-  constructor(name, script) {
+  constructor(name, script, descriptions = null) {
     this.name = name
     this.script = script
+    this.descriptions = descriptions
   }
 
   async interpret(utterance) {
     return this.script[utterance.trim().toLowerCase()]
       ?? { kind: 'clarify', question: "I'm not sure what you mean." }
+  }
+
+  async describe({ noun }) {
+    const text = this.descriptions?.[noun]
+    return text == null
+      ? { kind: 'unavailable', detail: `no scripted description for '${noun}'` }
+      : { kind: 'text', text }
   }
 }

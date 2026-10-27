@@ -3,6 +3,37 @@
 // so the Benchmark view can show exactly what a model is sent without loading
 // the runtime.
 
+const DESCRIPTION_SYSTEM = `Write one or two present-tense, second-person sentences describing the named detail as part of the room shown.
+Do not add exits, characters, or things the player can take or use. Do not say the detail can be taken, opened, or used. Do not reveal puzzle solutions. Return only the description.`
+
+/** A small prose-only prompt for a detail the author mentioned but did not build. */
+export function describePrompt({ noun, context, style = {} }) {
+  const guidance = [
+    style.tone ? `Tone: ${style.tone}` : null,
+    style.theme ? `Theme: ${style.theme}` : null,
+  ].filter(Boolean)
+  const scene = [
+    `Room: ${context.roomName}`,
+    `Room description: ${context.roomDescription}`,
+    `Named detail: ${noun}`,
+    ...guidance,
+  ].join('\n')
+  return [
+    { role: 'system', content: DESCRIPTION_SYSTEM },
+    { role: 'user', content: scene },
+  ]
+}
+
+/** Keep model prose short enough to remain a room detail, not a new scene. */
+export function cleanDescription(raw) {
+  let text = String(raw ?? '').trim()
+  if (!text) return ''
+  const wrapping = text.match(/^["'“‘]([\s\S]*)["'”’]$/)
+  if (wrapping) text = wrapping[1].trim()
+  const sentences = text.match(/[^.!?]+(?:[.!?]+|$)/g) ?? []
+  return sentences.slice(0, 2).map(sentence => sentence.trim()).join(' ').slice(0, 280).trim()
+}
+
 // --- prompt v1 ----------------------------------------------------------------
 //
 // Rules and a few inline examples in the system prompt; the scene and the

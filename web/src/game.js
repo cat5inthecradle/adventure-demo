@@ -76,15 +76,18 @@ export function createGame(options = {}) {
   const definition = shallowRef(structuredClone(worldData))
   const world = shallowRef(loadWorld(worldData))
   const state = reactive({
-    log: [],            // { id, kind: 'input'|'output'|'system', text, turnId? }
+    log: [],            // { id, kind: 'input'|'output'|'ai'|'system', text, turnId? }
     turns: [],          // turn records, oldest first
     selectedTurnId: null,
     interpreter,        // see engine/interpreter.js — null means parser only
+    aiMode: 'understand',
+    style: { tone: null, theme: null },
     busy: false,
     pace: 500,          // ms between revealed phases; 0 = instant
   })
   const undoStack = []
   const transcript = []
+  const gapCache = new Map()
 
   // Panels draw from a copy, refreshed after every change: they can never mutate
   // the live world, and a fresh object is what tells Vue to redraw them.
@@ -157,6 +160,9 @@ export function createGame(options = {}) {
       const result = await takeTurn(world.value, line, {
         interpreter: state.interpreter,
         transcript: transcript.slice(-TRANSCRIPT_PAIRS),
+        aiMode: state.aiMode,
+        style: state.style,
+        gapCache,
       })
       const changes = diffWorld(before, world.value)
       if (changes.length) {
@@ -177,7 +183,7 @@ export function createGame(options = {}) {
       turn.revealed = null
 
       if (result.understood) print(`(${result.understood})`, 'echo', id)
-      print(result.text, 'output', id)
+      print(result.text, result.aiWritten ? 'ai' : 'output', id)
       transcript.push([line, result.text])
       if (result.outcome) {
         print(END_LINE[result.outcome].replace('{turns}', world.value.turn_count), 'system')
@@ -221,6 +227,7 @@ export function createGame(options = {}) {
     touch()
     undoStack.length = 0
     transcript.length = 0
+    gapCache.clear()
     state.log.splice(0)
     state.turns.splice(0)
     state.selectedTurnId = null
@@ -300,6 +307,7 @@ export function createGame(options = {}) {
       for (const note of merged.notes) print(note, 'system')
       print(renderEvent(describeRoom(world.value), undefined, pronouns()))
     }
+    gapCache.clear()
     onWorldApplied?.(raw)
   }
 

@@ -20,6 +20,8 @@ export default class LessonController {
     this.properties = null
     this.game = null
     this.listeners = new Set()
+    this.dial = { setting: 'understand', tone: null, theme: null }
+    this.dialWasSet = false
 
     this.validator = new AdventureValidator()
     this.progress = new ProgressManager(() => this.notify())
@@ -53,6 +55,18 @@ export default class LessonController {
       onTurn: (turn, world) => this.onTurn(turn, world),
       onWorldApplied: raw => this.onWorldApplied(raw),
     })
+    if (properties.levelData.aiDial) {
+      if (!this.dialWasSet) {
+        this.dial = {
+          setting: properties.levelData.aiDial.default,
+          tone: null,
+          theme: null,
+        }
+      }
+      this.applyDial(this.dial)
+    } else {
+      this.applyDial({ setting: 'understand', tone: null, theme: null })
+    }
 
     this.validator.setDefinition(worldData)
     this.progress.onLevelChange(properties.validations)
@@ -130,6 +144,28 @@ export default class LessonController {
   setInterpreter(interpreter) {
     this.interpreter = interpreter
     if (this.game) this.game.state.interpreter = interpreter
+    this.notify()
+  }
+
+  setDial({ setting, tone, theme }) {
+    const config = this.properties?.levelData.aiDial
+    if (config?.locked.includes(setting)) {
+      throw new Error(`The '${setting}' AI dial setting is locked.`)
+    }
+    this.dial = {
+      setting,
+      tone: tone === undefined ? this.dial.tone : tone,
+      theme: theme === undefined ? this.dial.theme : theme,
+    }
+    this.dialWasSet = true
+    this.applyDial(this.dial)
+    this.notify()
+  }
+
+  applyDial({ setting, tone, theme }) {
+    if (!this.game) return
+    this.game.state.aiMode = setting
+    this.game.state.style = { tone, theme }
   }
 
   get libraryKey() {

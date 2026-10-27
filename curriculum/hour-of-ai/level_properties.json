@@ -345,7 +345,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "The AI dial",
-    "longInstructions": "The five settings are **off**, **understand only**, **fill gaps**, **improvise**, and **invent events**.\n\nTry a line in Play, then set the dial to show how much AI writing belongs in your game and say why.\n\n**Invent events** is locked—use what happened in Play to debate why.",
+    "longInstructions": "The cockpit mentions a coffee mug the author never built. In the **Play tab**, try the same command with the AI dial at different settings and watch what changes.\n\nThe mug never becomes a real object: the AI can write words, not rules.\n\n**Invent events** is locked—use what happened in Play to debate why.",
     "teacherMarkdown": "- At which dial setting does the AI begin to share authorship, if any? Why?\n- Why might inventing events be locked even when improvising is available?\n- Who is responsible when AI-written story text conflicts with a world rule?",
     "freePlay": false,
     "projectTemplateLevelName": "hoai_adventure_world",
@@ -369,6 +369,28 @@
       ],
       "build": null,
       "interpreter": true,
+      "steps": [
+        {
+          "text": "Choose a model from the menu at the top right and wait for it to load."
+        },
+        {
+          "text": "In the **Play tab**, set the dial to **Off** and type `examine the mug`."
+        },
+        {
+          "text": "Still on **Off**, type `pick up the tool on the floor`. Then set the dial to **Understand** and type it again. Which setting worked out what you meant?"
+        },
+        {
+          "text": "Set it to **Fill gaps** and try once more. Notice the line marked **AI wrote this**.",
+          "conditions": [
+            {
+              "name": "ai_filled_gap"
+            }
+          ]
+        },
+        {
+          "text": "Pick the setting you want for your game. Add a tone and theme if you like, write your reason, and save it."
+        }
+      ],
       "aiDial": {
         "settings": [
           "off",

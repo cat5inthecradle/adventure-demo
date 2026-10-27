@@ -1,9 +1,10 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
   controller: { type: Object, required: true },
   dial: { type: Object, required: true },
+  revision: { type: Number, default: 0 },
 })
 
 const labels = {
@@ -14,14 +15,45 @@ const labels = {
   invent: 'Invent events — the AI decides what happens',
 }
 
-const setting = ref(props.dial.default)
-const tone = ref('cozy')
-const theme = ref('')
 const reason = ref('')
 const saved = ref(false)
 
-watch(() => props.dial, dial => {
-  setting.value = dial.default
+const setting = computed({
+  get() {
+    props.revision
+    return props.controller.dial.setting
+  },
+  set(value) {
+    props.controller.setDial({ setting: value })
+    saved.value = false
+  },
+})
+const tone = computed({
+  get() {
+    props.revision
+    return props.controller.dial.tone ?? ''
+  },
+  set(value) {
+    props.controller.setDial({ setting: setting.value, tone: value || null })
+    saved.value = false
+  },
+})
+const theme = computed({
+  get() {
+    props.revision
+    return props.controller.dial.theme ?? ''
+  },
+  set(value) {
+    props.controller.setDial({ setting: setting.value, theme: value || null })
+    saved.value = false
+  },
+})
+const needsModel = computed(() => {
+  props.revision
+  return setting.value !== 'off' && props.controller.interpreter == null
+})
+
+watch(() => props.dial, () => {
   saved.value = false
 })
 
@@ -41,10 +73,12 @@ function save() {
     <p v-if="dial.locked.length" class="locked-note">
       <strong>Why is this locked?</strong> Inventing events can change the story without the player or author choosing.
     </p>
-    <p class="prototype-note">Fill gaps and Improvise are not built yet. In this prototype, they behave like Understand.</p>
+    <p class="prototype-note">Improvise is not built yet. For now, it behaves like Fill gaps.</p>
+    <p v-if="needsModel" class="model-note">AI can't do anything until you choose a model in the menu at the top right.</p>
     <label class="field">
       Tone
       <select v-model="tone">
+        <option value="">Any</option>
         <option value="cozy">Cozy</option>
         <option value="eerie">Eerie</option>
         <option value="funny">Funny</option>
@@ -71,9 +105,10 @@ h3 { margin: 0 0 8px; font-size: 14px; }
 .setting { display: flex; align-items: flex-start; gap: 7px; margin: 7px 0; font-size: 12.5px; line-height: 1.35; }
 .setting input { margin-top: 2px; }
 .setting.locked { color: var(--muted); }
-.locked-note, .prototype-note { margin: 8px 0; padding: 8px; border-radius: 7px; font-size: 11.5px; line-height: 1.4; }
+.locked-note, .prototype-note, .model-note { margin: 8px 0; padding: 8px; border-radius: 7px; font-size: 11.5px; line-height: 1.4; }
 .locked-note { background: var(--warn-soft); }
 .prototype-note { background: var(--chip); color: var(--fg-soft); }
+.model-note { background: var(--accent-soft); color: var(--fg-soft); }
 .field { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .field select, .field input {
   min-width: 0;

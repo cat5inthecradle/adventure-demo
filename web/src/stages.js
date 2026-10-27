@@ -50,6 +50,14 @@ export function buildStages(turn) {
     add('changes', { title: 'World changes', hint: 'Every value this turn changed in the world state.', changes: turn.changes })
   }
 
+  if (turn.filled) {
+    add('filled', {
+      title: 'AI filled a gap',
+      hint: 'The author never built this detail. The AI wrote words, and the world did not change.',
+      filled: turn.filled,
+    })
+  }
+
   add('prose', { title: 'Render', hint: 'The renderer turns events into sentences on the main screen.', text: turn.text })
   return out
 }

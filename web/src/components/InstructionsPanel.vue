@@ -80,6 +80,7 @@ function continueLesson() {
         v-if="properties.levelData.aiDial"
         :controller="controller"
         :dial="properties.levelData.aiDial"
+        :revision="revision"
       />
 
       <div v-if="progress.message" class="feedback" :class="{ success: progress.satisfied }" role="status">

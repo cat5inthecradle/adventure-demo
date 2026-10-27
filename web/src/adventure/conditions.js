@@ -49,6 +49,12 @@ export const AdventureConditions = {
     description: 'Checks whether the language interpreter asked for clarification instead of producing an action.',
     source: 'play',
   },
+  AI_FILLED_GAP: {
+    name: 'ai_filled_gap',
+    valueType: 'string',
+    description: 'Checks whether the AI wrote prose for a named detail the author mentioned but did not build.',
+    source: 'play',
+  },
   VIEWED_UNDERSTOOD_PANEL: {
     name: 'viewed_understood_panel',
     description: 'Checks whether the player viewed the understood panel.',

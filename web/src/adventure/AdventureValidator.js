@@ -59,6 +59,14 @@ export default class AdventureValidator extends Validator {
       this.addPlayOrUiCondition({ name: AdventureConditions.GAME_WON.name })
     }
 
+    if (turn?.route === 'filled') {
+      this.addPlayOrUiCondition({ name: AdventureConditions.AI_FILLED_GAP.name })
+      this.addPlayOrUiCondition({
+        name: AdventureConditions.AI_FILLED_GAP.name,
+        value: turn.filled?.noun,
+      })
+    }
+
     if (failures.length > 0) {
       this.addPlayOrUiCondition({ name: AdventureConditions.TURN_FAILED.name })
       for (const failure of failures) {
@@ -67,7 +75,7 @@ export default class AdventureValidator extends Validator {
           value: failure.reason,
         })
       }
-    } else if (turn?.parseError && !turn.action) {
+    } else if (turn?.route !== 'filled' && turn?.parseError && !turn.action) {
       this.addPlayOrUiCondition({ name: AdventureConditions.TURN_FAILED.name })
       this.addPlayOrUiCondition({
         name: AdventureConditions.TURN_FAILED.name,

@@ -9,7 +9,7 @@
 import { CreateWebWorkerMLCEngine, hasModelInCache } from '@mlc-ai/web-llm'
 import { actionSchema } from '../engine/interpreter.js'
 import { supportsF16 } from './models.js'
-import { DEFAULT_PROMPT, EXPLAINS, PROMPTS } from './prompts.js'
+import { cleanDescription, DEFAULT_PROMPT, describePrompt, EXPLAINS, PROMPTS } from './prompts.js'
 
 export { MODELS, webgpuProblem } from './models.js'
 
@@ -79,5 +79,24 @@ export class WebLLMInterpreter {
       return { kind: 'clarify', question: parsed.question || 'What do you want to do?', meta }
     }
     return { kind: 'action', action: parsed, rephrased: meta.means ?? null, meta }
+  }
+
+  async describe({ noun, context, style }) {
+    if (!this.engine) return { kind: 'unavailable', detail: 'the model is not loaded' }
+    const messages = describePrompt({ noun, context, style })
+    const reply = await this.engine.chat.completions.create({
+      messages,
+      temperature: 0.7,
+      max_tokens: 90,
+    })
+    const raw = reply.choices[0]?.message?.content ?? ''
+    const meta = {
+      model: this.buildId,
+      raw,
+      prompt: messages.at(-1).content,
+      messages,
+      tokens: reply.usage && { prompt: reply.usage.prompt_tokens, completion: reply.usage.completion_tokens },
+    }
+    return { kind: 'text', text: cleanDescription(raw), meta }
   }
 }
