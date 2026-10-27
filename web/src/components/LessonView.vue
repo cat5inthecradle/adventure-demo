@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { filterToolbox } from '../builder/schema.js'
 import InstructionsPanel from './InstructionsPanel.vue'
 import InterpreterPicker from './InterpreterPicker.vue'
@@ -34,19 +34,82 @@ const changedPaths = computed(() =>
   (selectedTurn.value?.changes ?? []).map(change => change.path)
 )
 const panels = computed(() => properties.value.levelData.panels)
+const panelsRevealed = ref(false)
+const visiblePanels = computed(() =>
+  properties.value.levelData.revealPanels === 'always' || panelsRevealed.value
+    ? panels.value
+    : []
+)
 const canBuild = computed(() => properties.value.levelData.build !== null)
 const toolbox = computed(() =>
   filterToolbox(properties.value.levelData.build?.blocks)
 )
 const tab = ref(properties.value.levelData.view)
-
-watch(() => level.value.levelId, () => {
-  tab.value = properties.value.levelData.view
+const modePulse = ref(false)
+const modeAnimationKey = ref(0)
+const nudgeTurnId = ref(null)
+const latestTurnId = computed(() => {
+  revision.value
+  return game.value.state.turns.at(-1)?.id ?? null
 })
+let modePulseTimer = null
+let modePulseVersion = 0
+let nudgeTimer = null
+
 watch(() => {
   revision.value
   return game.value.state.interpreter
 }, interpreter => props.controller.setInterpreter(interpreter))
+
+async function pulseMode() {
+  const version = ++modePulseVersion
+  modePulse.value = false
+  await nextTick()
+  if (version !== modePulseVersion) return
+  modeAnimationKey.value++
+  modePulse.value = true
+  clearTimeout(modePulseTimer)
+  modePulseTimer = setTimeout(() => { modePulse.value = false }, 1050)
+}
+
+function changeTab(nextTab) {
+  tab.value = nextTab
+  pulseMode()
+}
+
+function clearNudge() {
+  clearTimeout(nudgeTimer)
+  nudgeTimer = null
+  nudgeTurnId.value = null
+}
+
+function panelsAreWaiting() {
+  return properties.value.levelData.revealPanels === 'on_select' &&
+    !panelsRevealed.value && panels.value.length > 0
+}
+
+function scheduleNudge() {
+  clearNudge()
+  const turnId = latestTurnId.value
+  if (!turnId || !panelsAreWaiting()) return
+  nudgeTimer = setTimeout(() => {
+    if (panelsAreWaiting() && latestTurnId.value === turnId) {
+      nudgeTurnId.value = turnId
+    }
+  }, 4000)
+}
+
+function noteTyping() {
+  scheduleNudge()
+}
+
+watch(() => level.value.levelId, () => {
+  panelsRevealed.value = false
+  clearNudge()
+  changeTab(properties.value.levelData.view)
+}, { immediate: true })
+
+watch(latestTurnId, scheduleNudge)
 
 async function submit(line) {
   await game.value.submit(line)
@@ -54,16 +117,23 @@ async function submit(line) {
 }
 
 function select(turnId) {
+  panelsRevealed.value = true
+  clearNudge()
   game.value.select(turnId)
   props.controller.recordUiEvent('viewed_understood_panel')
 }
 
 function restart() {
+  clearNudge()
   game.value.restart()
   terminal.value?.focus()
 }
 
-onBeforeUnmount(unsubscribe)
+onBeforeUnmount(() => {
+  unsubscribe()
+  clearTimeout(modePulseTimer)
+  clearNudge()
+})
 </script>
 
 <template>
@@ -73,31 +143,41 @@ onBeforeUnmount(unsubscribe)
   </main>
   <main v-else class="lesson">
     <InstructionsPanel :controller="controller" :revision="revision" />
-    <section class="work">
-      <header class="lesson-tabs">
-        <button type="button" :aria-current="tab === 'play' && 'page'" @click="tab = 'play'">Play</button>
-        <button v-if="canBuild" type="button" :aria-current="tab === 'build' && 'page'" @click="tab = 'build'">Build</button>
-        <span class="spacer"></span>
-        <InterpreterPicker v-show="properties.levelData.interpreter" :game="game" />
+    <section class="work" :class="{ 'mode-pulse': modePulse }">
+      <header class="lesson-header">
+        <div class="lesson-toolbar">
+          <div class="lesson-tabs" aria-label="Lesson mode">
+            <button type="button" :aria-pressed="tab === 'play'" @click="changeTab('play')">▶ Play</button>
+            <button v-if="canBuild" type="button" :aria-pressed="tab === 'build'" @click="changeTab('build')">▦ Build</button>
+          </div>
+          <span class="spacer"></span>
+          <InterpreterPicker v-show="properties.levelData.interpreter" :game="game" />
+        </div>
+        <p :key="modeAnimationKey" class="mode-banner">
+          <template v-if="tab === 'play'">Play mode: try your world by typing commands.</template>
+          <template v-else>Build mode: change your world with blocks, then press ▶ Play with my changes.</template>
+        </p>
       </header>
 
-      <div v-show="tab === 'play'" class="play-stage" :class="`panels-${panels.length}`">
+      <div v-show="tab === 'play'" class="play-stage" :class="`panels-${visiblePanels.length}`">
         <div class="terminal-frame">
           <TerminalPane
             ref="terminal"
             :log="game.state.log"
             :selected-turn-id="selectedTurn?.id ?? null"
+            :nudge-turn-id="nudgeTurnId"
             :busy="game.state.busy"
+            @input="noteTyping"
             @submit="submit"
             @select="select"
             @skip="game.skip"
             @restart="restart"
           />
         </div>
-        <aside v-if="panels.length" class="side-panels">
-          <ParserPanel v-if="panels.includes('understood')" :turn="selectedTurn" />
+        <aside v-if="visiblePanels.length" class="side-panels">
+          <ParserPanel v-if="visiblePanels.includes('understood')" :turn="selectedTurn" />
           <WorldPanel
-            v-if="panels.includes('world')"
+            v-if="visiblePanels.includes('world')"
             :world="game.world.value"
             :changed-paths="changedPaths"
           />
@@ -110,7 +190,7 @@ onBeforeUnmount(unsubscribe)
           :active="tab === 'build'"
           :toolbox="toolbox"
           :library-key="controller.libraryKey"
-          @play="tab = 'play'"
+          @play="changeTab('play')"
         />
       </div>
     </section>
@@ -120,9 +200,13 @@ onBeforeUnmount(unsubscribe)
 <style scoped>
 .lesson { flex: 1; min-height: 0; display: flex; gap: 14px; }
 .work { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
-.lesson-tabs { display: flex; align-items: center; gap: 3px; min-height: 28px; }
-.lesson-tabs button { font: inherit; font-size: 12px; padding: 4px 14px; border-radius: 7px; border: 1px solid transparent; background: none; color: var(--muted); cursor: pointer; }
-.lesson-tabs button[aria-current='page'] { background: var(--chip); border-color: var(--line); color: var(--fg); }
+.lesson-header { display: grid; gap: 6px; }
+.lesson-toolbar { display: flex; align-items: center; min-height: 38px; }
+.lesson-tabs { display: inline-flex; padding: 3px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--chip); }
+.lesson-tabs button { min-width: 100px; border: 0; border-radius: 7px; padding: 7px 18px; background: transparent; color: var(--muted); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.lesson-tabs button[aria-pressed='true'] { background: var(--accent); color: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); }
+.lesson-tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mode-banner { margin: 0; padding: 7px 10px; border-radius: 7px; background: var(--accent-soft); color: var(--fg-soft); font-size: 12.5px; font-weight: 600; }
 .spacer { flex: 1; }
 .play-stage, .build-stage { flex: 1; min-height: 0; }
 .play-stage { display: flex; gap: 14px; }
@@ -133,4 +217,11 @@ onBeforeUnmount(unsubscribe)
 .lesson-phone { margin: auto; max-width: 430px; padding: 18px; }
 .lesson-phone h2 { margin: 0 0 8px; font-size: 18px; }
 .lesson-phone p { margin: 0; line-height: 1.5; }
+@keyframes work-highlight { 0% { box-shadow: 0 0 0 3px var(--accent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+@keyframes banner-enter { from { opacity: 0.35; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+.work.mode-pulse { animation: work-highlight 1s ease-out; }
+.work.mode-pulse .mode-banner { animation: banner-enter 350ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .work.mode-pulse, .work.mode-pulse .mode-banner { animation: none; }
+}
 </style>

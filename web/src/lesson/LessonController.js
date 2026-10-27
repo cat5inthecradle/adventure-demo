@@ -98,6 +98,18 @@ export default class LessonController {
     return this.progress.getCurrentState()
   }
 
+  steps() {
+    this.validator.checkConditions()
+    return (this.properties?.levelData.steps ?? []).map(step => {
+      const checkable = step.conditions.length > 0
+      return {
+        text: step.text,
+        checkable,
+        done: checkable && this.validator.conditionsMet(step.conditions),
+      }
+    })
+  }
+
   canContinue() {
     return Boolean(this.properties?.freePlay || this.state().satisfied)
   }

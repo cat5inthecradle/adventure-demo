@@ -14,10 +14,22 @@ const AiDialSchema = z.object({
   locked: z.array(AiDialSettingSchema),
 })
 
+const ValidationConditionSchema = z.object({
+  name: z.string(),
+  value: z.union([z.string(), z.number()]).optional(),
+})
+
+const StepSchema = z.object({
+  text: z.string(),
+  conditions: z.array(ValidationConditionSchema).default([]),
+})
+
 export const AdventureLevelDataSchema = z.object({
   startWorld: z.string(),
   view: z.enum(['play', 'build']),
   panels: z.array(z.enum(['understood', 'world'])).default([]),
+  revealPanels: z.enum(['always', 'on_select']).default('always'),
+  steps: z.array(StepSchema).default([]),
   build: z.union([
     z.null(),
     z.object({
@@ -26,11 +38,6 @@ export const AdventureLevelDataSchema = z.object({
   ]).default(null),
   interpreter: z.boolean().default(false),
   aiDial: AiDialSchema.optional(),
-})
-
-const ValidationConditionSchema = z.object({
-  name: z.string(),
-  value: z.union([z.string(), z.number()]).optional(),
 })
 
 const ValidationSchema = z.object({

@@ -34,7 +34,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "Look inside",
-    "longInstructions": "The cockpit mentions a coffee mug. Try `examine coffee mug`.\n\nThen click the command you typed to see **How it was understood**: where did the game lose track of your words?\n\nYou're done once you've tried the mug and looked inside that command.",
+    "longInstructions": "The cockpit mentions a coffee mug. Type `examine coffee mug`.\n\nThen click the command you typed—it is a button—to open **How it was understood** and see where the game lost track of your words.\n\nYou're done once you've tried the mug and looked inside that command.",
     "teacherMarkdown": "- Who caused this failure: the player, the command reader, or the world author?\n- When a story names something, what does it promise the player can do?",
     "freePlay": false,
     "validations": [
@@ -69,7 +69,8 @@
         "understood"
       ],
       "build": null,
-      "interpreter": false
+      "interpreter": false,
+      "revealPanels": "on_select"
     }
   },
   "9003": {
@@ -78,7 +79,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "If you name it, answer it",
-    "longInstructions": "In **Build**, add the coffee mug as an item in the cockpit and write its description.\n\nSwitch to **Play** and examine the mug.\n\nYou are done when the game answers with the description you wrote.",
+    "longInstructions": "In the **Build tab**, add the coffee mug as an item in the cockpit and write its description.\n\nSwitch to the **Play tab** and examine the mug.\n\nYou are done when the game answers with the description you wrote.\n\nThen think like a player: what else might they call it? Add those words to **also called**, and try them in the Play tab.",
     "teacherMarkdown": "- How did one block change which player actions were possible?\n- Is the student authoring an object, a response, or both?",
     "freePlay": false,
     "projectTemplateLevelName": "hoai_adventure_world",
@@ -127,7 +128,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "Make the stuck thing a puzzle",
-    "longInstructions": "In **Build**, give the supply crate an opening refusal that hints the obstacle can be beaten.\n\nAdd a stronger refusal for when the player carries the prybar.\n\nIn **Play**, carry the prybar and try to open the crate; you are done when you see the stronger hint.",
+    "longInstructions": "Use the **Build tab** to turn the supply crate into a puzzle. Follow these steps to write and test both hints.",
     "teacherMarkdown": "- How does a useful refusal turn a dead end into a puzzle?\n- When can a rule catch confusing writing, and when does a person still need to judge it?",
     "freePlay": false,
     "projectTemplateLevelName": "hoai_adventure_world",
@@ -190,7 +191,51 @@
           "refusal_with"
         ]
       },
-      "interpreter": false
+      "interpreter": false,
+      "steps": [
+        {
+          "text": "Open the **Build tab** and find the orange **Thing supply crate** block."
+        },
+        {
+          "text": "In **if someone tries to open it, say**, write a line telling the player the crate can be opened with the right tool.",
+          "conditions": [
+            {
+              "name": "item_has_open_refusal",
+              "value": "supply_crate"
+            }
+          ]
+        },
+        {
+          "text": "From **Things** in the toolbox, drag the block that says **then say** into **unless they carry**, pick the prybar, and write a stronger hint.",
+          "conditions": [
+            {
+              "name": "item_has_tool_hint",
+              "value": "supply_crate"
+            }
+          ]
+        },
+        {
+          "text": "Press **▶ Play with my changes**. Steps 2 and 3 tick once you do."
+        },
+        {
+          "text": "In the **Play tab**, go to the cargo bay and type `open crate` to see your first hint.",
+          "conditions": [
+            {
+              "name": "saw_custom_refusal",
+              "value": "supply_crate"
+            }
+          ]
+        },
+        {
+          "text": "Go back for the prybar with `take prybar`, then `open crate` again to see your stronger hint.",
+          "conditions": [
+            {
+              "name": "saw_tool_hint",
+              "value": "supply_crate"
+            }
+          ]
+        }
+      ]
     }
   },
   "9005": {
@@ -199,7 +244,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "Add a rule",
-    "longInstructions": "In **Build**, put a door on the route between the two rooms and lock it until a flag is true.\n\nAdd a use rule that sets that flag.\n\nIn **Play**, trigger your rule and open the door; you are done when the unlocked door opens.",
+    "longInstructions": "In the **Build tab**, put a door on the route between the two rooms and lock it until a flag is true.\n\nAdd a use rule that sets that flag.\n\nIn the **Play tab**, trigger your rule and open the door; you are done when the unlocked door opens.",
     "teacherMarkdown": "- What truth does the flag remember, and who decided when it becomes true?\n- Which mistakes can this rule prevent without an AI or a person judging the story?",
     "freePlay": false,
     "projectTemplateLevelName": "hoai_adventure_world",
@@ -345,7 +390,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "Free play",
-    "longInstructions": "Keep building your world, then test it in **Play**.\n\nUse the panels to check how commands are understood and what your rules make true.\n\nWhen it feels ready, use **Download as a file** in Build so a classmate can open and play it.",
+    "longInstructions": "Keep building your world in the **Build tab**, then test it in the **Play tab**.\n\nUse the panels to check how commands are understood and what your rules make true. When a playtester types a word your world doesn't know, add it to **also called**.\n\nWhen it feels ready, use **Download as a file** in the Build tab so a classmate can open and play it.",
     "teacherMarkdown": "- Ask players where they felt the student's authorship most strongly.\n- If the AI filled a gap, who should receive credit for that moment?\n- What did human playtesting catch that the rules could not?",
     "freePlay": true,
     "projectTemplateLevelName": "hoai_adventure_world",

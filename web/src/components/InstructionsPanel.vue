@@ -27,6 +27,13 @@ const currentIndex = computed(() => level.value.levels.findIndex(candidate =>
 const previous = computed(() => level.value.levels[currentIndex.value - 1] ?? null)
 const following = computed(() => level.value.levels[currentIndex.value + 1] ?? null)
 const instructions = computed(() => renderMarkdown(properties.value.longInstructions))
+const steps = computed(() => {
+  props.revision
+  return props.controller.steps().map(step => ({
+    ...step,
+    html: renderMarkdown(step.text),
+  }))
+})
 const teacherNotes = computed(() => renderMarkdown(properties.value.teacherMarkdown))
 
 watch(() => level.value.levelId, () => { finished.value = false })
@@ -57,6 +64,17 @@ function continueLesson() {
       <p class="progression">{{ level.progression }}</p>
       <h2>{{ properties.displayName }}</h2>
       <div class="markdown" v-html="instructions"></div>
+
+      <ol v-if="steps.length" class="steps" aria-label="Level steps">
+        <li v-for="(step, index) in steps" :key="index" :class="{ done: step.done }">
+          <span
+            class="step-marker"
+            :class="{ checkable: step.checkable }"
+            :aria-label="step.checkable ? (step.done ? 'Done' : 'Not done') : null"
+          >{{ step.checkable ? (step.done ? '✓' : '') : index + 1 }}</span>
+          <div class="markdown step-text" v-html="step.html"></div>
+        </li>
+      </ol>
 
       <AiDial
         v-if="properties.levelData.aiDial"
@@ -99,6 +117,13 @@ h2 { margin: 0 0 12px; font-size: 20px; line-height: 1.2; }
 .markdown :deep(ul) { margin: 0 0 10px; padding-left: 18px; }
 .markdown :deep(code) { font-family: var(--mono); background: var(--chip); padding: 1px 4px; border-radius: 4px; }
 .markdown :deep(a) { color: var(--accent); }
+.steps { margin: 14px 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.steps li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; }
+.step-marker { width: 22px; height: 22px; display: grid; place-items: center; color: var(--muted); font-size: 12px; font-weight: 700; }
+.step-marker.checkable { border: 2px solid var(--line-strong); border-radius: 50%; }
+.steps li.done .step-marker { border-color: var(--good); background: var(--good); color: #fff; }
+.step-text { padding-top: 1px; }
+.step-text :deep(p) { margin: 0; }
 .feedback { margin: 12px 0 8px; padding: 10px; border-radius: 8px; background: var(--warn-soft); font-size: 12.5px; line-height: 1.4; }
 .feedback.success { background: var(--good-soft); color: var(--good); font-weight: 600; }
 .continue { width: 100%; border: 0; border-radius: 8px; padding: 9px 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
