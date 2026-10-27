@@ -1,14 +1,18 @@
 # Adventure Lab (web)
 
 The game, its engine and its tools, running entirely in the browser. The page is a
-Vue 3 app: a 4:3 terminal on the left, and on the right a panel that shows step by
-step how each command was understood, plus a world panel (map, room, raw state). A
-second view, **Benchmark**, scores the optional language model.
+Vue 3 app with three views, kept in the URL hash:
+
+- **Play** (no hash): a 4:3 terminal on the left, and on the right a panel that
+  shows step by step how each command was understood, plus a world panel (map,
+  room, raw state).
+- **Build** (`#build`): the World Builder, below.
+- **Benchmark** (`#bench`): scores the optional language model.
 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm test         # golden, engine and benchmark-fixture tests
+npm test         # golden, engine, builder and benchmark-fixture tests
 npm run golden   # re-record the golden sessions (see Tests)
 npm run check-world -- ../worlds/yours.json   # validate a world file
 ```
@@ -22,10 +26,14 @@ The world is `../worlds/wayfarer.json`, imported at the top of `src/game.js`.
 | `src/engine/` | The game, with no UI or Vue imports: `engine.js` (the only thing that mutates a world), `parser.js`, `renderer.js`, `loader.js`, `turn.js` (input routing) |
 | `src/engine/interpreter.js` | The plug-in point for an LLM (see below) |
 | `src/game.js` | The play session: scrollback, turn history, undo, saves, meta commands |
-| `src/components/` | Terminal, parser panel, world panel, interpreter picker, benchmark view |
+| `src/App.vue` | The top bar, the three views, restart, and the phone layout |
+| `src/components/` | Terminal, parser panel, world panel, interpreter picker, benchmark view, World Builder view |
+| `src/llm/` | The WebLLM interpreter: models, prompts, and the Web Worker it runs in |
+| `src/storage.js` | Browser storage, or nothing when the browser blocks it |
 | `src/bench/cases.js`, `tests/fixtures/nl_cases.json` | The interpreter benchmark: cases, replay, scoring |
 | `src/builder/` | The World Builder: block definitions (`schema.js`), world ↔ blocks conversion (`convert.js`), Blockly wiring (`blocks.js`), the library of saved worlds (`library.js`) |
 | `src/engine/merge.js` | Applies an edited world to a game in progress |
+| `tests/builder.test.js` | The World Builder: block schema, the Wayfarer round trip, merging, the library |
 | `tests/golden.test.js`, `scripts/golden.js` | Replays two scripted sessions and checks every response, written and spoken, against `tests/fixtures/golden.json` |
 | `scripts/check-world.js` | Validates a world file from the command line |
 
@@ -186,13 +194,22 @@ git diff tests/fixtures/golden.json   # read it: these are the lines players wil
 
 ## Deploying
 
-It deploys to CodeAI Cloud as a static site (`codeai-cloud.yaml`, `static.dir: dist`),
-at https://adventure-lab.internal.code.org/. CodeAI Cloud serves files and doesn't
-build them, so build first, then ship this folder:
+It deploys to CodeAI Cloud as a static site (`codeai-cloud.yaml`, `static.dir: dist`).
+CodeAI Cloud serves files and doesn't build them, so build first, then ship this
+folder:
 
 ```bash
 npm run build
 codeai-cloud ship .
+```
+
+That updates the internal site, https://adventure-lab.internal.code.org/ (code.org
+accounts only), straight away. The public site, https://adventure-lab.apps.code.org/
+(no sign-in), changes only through a release that cloud-ops reviews:
+
+```bash
+codeai-cloud release --note "what changed"
+codeai-cloud promote-status    # where the review stands
 ```
 
 `dist/` is ignored by the repository's root `.gitignore` rather than this folder's,

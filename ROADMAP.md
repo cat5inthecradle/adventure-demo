@@ -20,6 +20,7 @@ flowchart TD
     classDef next fill:#0e6f79,stroke:#08464d,color:#ffffff
     classDef normal fill:#2c3a45,stroke:#16202a,color:#eceff2
     classDef blocked fill:#7a3a2c,stroke:#4d241b,color:#ffffff
+    classDef partial fill:#6b5a1e,stroke:#43380f,color:#ffffff
 
     S5["S5 · web frontend"]:::done
     S3["S3 · local model"]:::done
@@ -28,12 +29,13 @@ flowchart TD
     NATIVE(["a native app"]):::blocked
 
     S13["S13 · menu and story picker"]:::normal
-    S14["S14 · a real mobile UI"]:::normal
+    S14["S14 · a real mobile UI"]:::partial
     S15["S15 · per-story theming"]:::normal
     S16["S16 · pocket hands-free"]:::blocked
 
     S10["S10 · worlds become folders"]:::next
     S12["S12 · in-place editor"]:::normal
+    S17["S17 · World Builder"]:::done
     S11["S11 · story supervisor"]:::normal
     S9["S9 · chapters"]:::normal
     S8["S8 · player-chosen pronouns"]:::done
@@ -49,10 +51,11 @@ flowchart TD
     S10 -.-> S11
     S10 -.-> S15
     S12 -.-> S11
+    S17 -.-> S12
 ```
 
-*Green is shipped · teal is what I would pick up next · red is blocked on something
-outside this project · slate is everything else. A solid arrow is a hard dependency,
+*Green is shipped · amber is partly shipped · teal is what I would pick up next · red
+is blocked on something outside this project · slate is everything else. A solid arrow is a hard dependency,
 a dotted one is a preference. S2 (braille) is shelved and sits outside the graph —
 see the table below.*
 
@@ -104,11 +107,12 @@ Everything else is genuinely optional and can happen in any order.
 | **S9** | chapters | ⬜ not started |
 | **S10** | worlds become folders | ⬜ not started · *recommended next* |
 | **S11** | story supervisor | ⬜ not started |
-| **S12** | in-place editor | ⬜ not started |
+| **S12** | in-place editor | ⬜ not started — S17 built most of the machinery |
 | **S13** | wrapper around the game loop | ⬜ not started |
-| **S14** | a mobile interface worth using | ⬜ not started |
+| **S14** | a mobile interface worth using | 🟨 half done — a phone layout for Play; Build needs a bigger screen |
 | **S15** | per-story theming | ⬜ not started |
 | **S16** | pocket hands-free | ⛔ blocked — needs a native app |
+| **S17** | World Builder | ✅ done — the Build view: worlds as Blockly blocks, live edits, a library of named worlds |
 
 ---
 
@@ -236,7 +240,11 @@ Everything else is genuinely optional and can happen in any order.
   rubber-stamps. A visible `{thier}` catches a mistyped token; only a reader catches
   a correctly-spelled word that should have been one.
 
-- **S12 — Editor mode in the web UI.** Click any piece of text in the running game
+- **S12 — Editor mode in the web UI.** *S17 has since built most of what this
+  needed* — validation as you edit, edits applied to a running game without a
+  restart, worlds kept in browser storage and downloaded as files. What is left is
+  the in-place part: clicking a line in the terminal to jump to the block (or the
+  field) it came from. Click any piece of text in the running game
   and edit it in place. The pieces mostly exist: most strings the player reads
   arrive in events naming the entity or rule they came from, the loader rejects a broken
   world and names the problem, and the parser panel already shows two things in a
@@ -249,8 +257,9 @@ Everything else is genuinely optional and can happen in any order.
   longer loads" as the failure mode to design against.
 
 - **S13 — A wrapper around the game loop.** Main menu, story picker, global settings,
-  and somewhere to arrive when you win or lose that is not a prompt telling you to
-  type `restart`. Settings belong here too: pacing, the interpreter, speech once S1
+  and somewhere to arrive when you win or lose that is more than the **Play again**
+  button the terminal offers today. The Build view's library of worlds is a first
+  story picker, but only for worlds built in that browser. Settings belong here too: pacing, the interpreter, speech once S1
   lands, verbosity, and a pronoun control alongside the `pronouns` command — the top
   bar is already running out of room, which is the first argument for this item
   existing.
@@ -260,7 +269,13 @@ Everything else is genuinely optional and can happen in any order.
   conversation that scrolls naturally, an input that behaves like a keyboard expects,
   and status that does not push the story off the screen. Adventure Lab is designed
   for landscape screens — a terminal beside its panels — so a phone needs a layout of
-  its own, probably the terminal alone with the panels a swipe away.
+  its own.
+
+  🟨 **Half done.** On a phone, Play is now one column with **Game / Understood /
+  World** tabs, sized to stay clear of the keyboard, parser only (no model
+  download); Build says it needs a bigger screen. What is still missing is the
+  conversational feel above — the terminal is the desktop one, made narrow — and a
+  look at tablets, where Build could work with its side panel in a drawer.
 
 - **S15 — Per-story theming.** A different look per story — something warm for one,
   something colder for the Wayfarer. Lives in the world's folder (S10) so a world
@@ -275,3 +290,13 @@ Everything else is genuinely optional and can happen in any order.
   screen on and the phone face-down, which is worth doing on its own and is most of
   S14. If genuine pocket play is the goal, the honest options are a small native
   wrapper or a Shortcuts-driven voice loop, and both are a different project.
+
+- **S17 — World Builder.** ✅ **Done: the Build view.** Students make worlds from
+  Blockly blocks — rooms and exits, doors and locks, things, characters and what
+  they say, and rules, with flags and counters as variables. Every part of the world
+  format has a block, and a test converts the Wayfarer to blocks and back and replays
+  the golden sessions to prove nothing was lost. Edits apply to a game in progress by
+  a three-way merge (`web/src/engine/merge.js`) that keeps what the player has done;
+  mistakes are reported by the same loader as any world file, on the block they name.
+  Worlds are kept as a named library in the browser and travel as files. Added for
+  the learning-environment goal: students as creators, not only players.

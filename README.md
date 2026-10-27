@@ -18,7 +18,9 @@ isn't bolted on afterwards; there is no visual "real" version to bolt it onto. S
 
 It runs entirely in the browser as **Adventure Lab**: the game on the left, and on the
 right a step-by-step view of how each command was understood and what it changed —
-a demo you can look under the hood of.
+a demo you can look under the hood of. A **Build** view lets students make worlds of
+their own out of blocks, and on a phone the game and its panels take turns on one
+screen.
 
 *This repository is the engine and its demo world. Story worlds authored on top of it
 live elsewhere and are not part of this cut, so a few roadmap items talk about
@@ -36,8 +38,10 @@ You wake aboard the *Wayfarer*, a freighter drifting dead in space. Restore main
 power and get off the ship. Type `help` for the command list.
 
 The app is in [web/](web/); [web/README.md](web/README.md) has the details. It is
-deployed on CodeAI Cloud at https://adventure-lab.internal.code.org/ (code.org
-accounts only).
+deployed on CodeAI Cloud, publicly at https://adventure-lab.apps.code.org/ (no
+sign-in) and internally at https://adventure-lab.internal.code.org/ (code.org
+accounts). The internal site updates on every ship; the public one only when a
+reviewed release is merged.
 
 ### Looking under the hood
 
@@ -45,7 +49,9 @@ accounts only).
   tokens, typo fixes, verb match, noun resolution, the action, the engine's events,
   the exact world values that changed, and the rendered prose. Click any command you
   typed to see its steps again. **Pace** in the top bar slows each turn down so you
-  can watch it move through the system; Esc skips ahead.
+  can watch it move through the system; Esc (or a tap on a phone) skips ahead.
+  When the game understood something other than what you typed — a typo fixed, or
+  the language model's reading — the terminal says so, e.g. `(go south)`.
 - **World** — a map of the rooms you know, what is here and what you carry, and the
   raw flags, doors and item locations, with the last turn's changes highlighted.
 - **Build** — the world itself, as Blockly blocks: rooms and exits, doors and locks,
@@ -132,7 +138,9 @@ components only draw what it returns. Four rules hold this together:
 examples — how to give scenery a response, how to telegraph an obstacle, and the
 naming rules that keep a level unambiguous.
 
-A world is a single JSON file, validated on load. Start from
+The easiest way in is the **Build** view: start from a copy of the Wayfarer, change
+it with blocks, and play it straight away. Underneath, a world is a single JSON file,
+validated on load — Build can download yours or open one. Start from
 [worlds/wayfarer.json](worlds/wayfarer.json); the field-by-field shape, with defaults,
 is in [web/src/engine/models.js](web/src/engine/models.js), and the loader will tell
 you, by name, about any room, door, item, NPC, interaction, or effect that doesn't
@@ -154,7 +162,9 @@ npm test
 ```
 
 No test touches the network or needs a GPU. The suite covers world validation, the
-parser, the turn routing and interpreter contract, pronouns, and a golden test that
+parser, the turn routing and interpreter contract, pronouns, the World Builder (the
+Wayfarer converted to blocks and back plays identically), live-edit merging, the
+world library, and a golden test that
 replays two full sessions — the winning path and a long wander through typos,
 failures and dead ends — and checks every response, written and spoken, word for
 word. When a change is meant to alter what the player sees, re-record it with

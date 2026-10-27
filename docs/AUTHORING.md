@@ -5,8 +5,11 @@ change what the ship says, you edit JSON — you never touch the engine. That is
 whole point of the engine/content split: `worlds/wayfarer.json` is data, and swapping
 it for `worlds/yours.json` gives you a different game with the same engine.
 
-To play your world, point the world import at the top of `web/src/game.js` at it,
-then run the app:
+To play your world, open the app's **Build** view, choose **Open a file…**, and
+press **Play from the start** — it runs in the game straight away, and stays in that
+browser's library. (Build also works the other way: build a world from blocks, then
+**Download as a file** to get its JSON.) To make a world the one the app starts
+with, point the world import at the top of `web/src/game.js` at it instead:
 
 ```js
 import wayfarer from '../../worlds/yours.json'
