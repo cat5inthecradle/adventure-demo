@@ -372,3 +372,27 @@ export const TOOLBOX = {
     },
   ],
 }
+
+export function filterToolbox(blocks) {
+  if (blocks == null) return TOOLBOX
+
+  const allowed = new Set(blocks)
+  const keepFlagButton = allowed.has('cond_flag') || allowed.has('eff_flag')
+  const keepCounterButton = allowed.has('cond_counter') || allowed.has('eff_counter')
+  const keep = item => {
+    if (item.kind === 'block') return allowed.has(item.type)
+    if (item.callbackKey === 'createFlag') return keepFlagButton
+    if (item.callbackKey === 'createCounter') return keepCounterButton
+    return true
+  }
+
+  return {
+    ...TOOLBOX,
+    contents: TOOLBOX.contents
+      .map(category => ({
+        ...category,
+        contents: category.contents.filter(keep),
+      }))
+      .filter(category => category.contents.length > 0),
+  }
+}

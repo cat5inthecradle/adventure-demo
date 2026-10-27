@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "title": "Drift",
+  "intro": "Your ship drifts under emergency lights. Bring the navigation console back online.",
+  "win_epilogue": "The engines answer, and the ship turns toward home.",
+  "player_location": "cockpit",
+  "rooms": {
+    "cockpit": {
+      "id": "cockpit",
+      "name": "Cockpit",
+      "description": "Stars slide past the dead windows. A dark navigation console waits beside a forgotten coffee mug. The cargo bay is south.",
+      "exits": {
+        "south": {
+          "to": "cargo_bay"
+        }
+      },
+      "sounds": "A warning light clicks in the silence."
+    },
+    "cargo_bay": {
+      "id": "cargo_bay",
+      "name": "Cargo Bay",
+      "description": "Loose straps sway over a sealed supply crate. A maintenance droid watches from the wall. The cockpit is north.",
+      "exits": {
+        "north": {
+          "to": "cockpit"
+        }
+      },
+      "sounds": "Something small taps inside the crate as the ship drifts."
+    }
+  },
+  "doors": {},
+  "items": {
+    "prybar": {
+      "id": "prybar",
+      "name": "prybar",
+      "aliases": [
+        "crowbar",
+        "bar"
+      ],
+      "description": "A steel bar with a sharp, flattened end.",
+      "location": "cockpit",
+      "portable": true
+    },
+    "nav_console": {
+      "id": "nav_console",
+      "name": "navigation console",
+      "aliases": [
+        "console",
+        "nav console"
+      ],
+      "description": "The console is dark. Its empty power slot is the size of a battery.",
+      "location": "cockpit",
+      "portable": false
+    },
+    "supply_crate": {
+      "id": "supply_crate",
+      "name": "supply crate",
+      "aliases": [
+        "crate",
+        "box"
+      ],
+      "description": "A hard-shell crate with a lid jammed tight.",
+      "alt_description": "The crate is open, its packing foam torn apart.",
+      "alt_flag": "crate_open",
+      "location": "cargo_bay",
+      "portable": false
+    },
+    "power_cell": {
+      "id": "power_cell",
+      "name": "power cell",
+      "aliases": [
+        "cell",
+        "battery"
+      ],
+      "description": "A compact power cell glowing electric blue.",
+      "location": "hidden",
+      "portable": true
+    }
+  },
+  "npcs": {
+    "maintenance_droid": {
+      "id": "maintenance_droid",
+      "name": "maintenance droid",
+      "aliases": [
+        "droid",
+        "robot"
+      ],
+      "description": "A dented repair droid with one patient green eye.",
+      "location": "cargo_bay",
+      "dialogue": [
+        {
+          "requires_flags": {
+            "crate_open": false
+          },
+          "text": "'That crate needs leverage,' the droid says. 'A prybar was left in the cockpit.'"
+        },
+        {
+          "text": "The droid points from the power cell toward the navigation console."
+        }
+      ]
+    }
+  },
+  "interactions": [
+    {
+      "id": "pry_crate",
+      "item_id": "prybar",
+      "target_id": "supply_crate",
+      "requires_flags": {
+        "crate_open": false
+      },
+      "message": "The prybar bites under the lid. With one hard pull, the crate snaps open around a glowing power cell.",
+      "effects": [
+        {
+          "type": "set_flag",
+          "flag": "crate_open",
+          "value": true
+        },
+        {
+          "type": "move_item",
+          "item_id": "power_cell",
+          "to": "cargo_bay"
+        }
+      ],
+      "once": true,
+      "fired": false
+    },
+    {
+      "id": "power_console",
+      "item_id": "power_cell",
+      "target_id": "nav_console",
+      "message": "You slot in the cell. Screens flare awake, engines hum, and the ship begins to turn.",
+      "effects": [
+        {
+          "type": "end_game",
+          "outcome": "win"
+        }
+      ]
+    }
+  ],
+  "flags": {},
+  "counters": {}
+}

@@ -50,9 +50,10 @@ const END_LINE = { win: 'Escaped in {turns} turns.', loss: 'You lasted {turns} t
 let nextId = 1
 
 /** The last world a student applied, if this browser has one that still loads. */
-function savedWorld() {
+function savedWorld(worldKey = WORLD_KEY) {
+  if (worldKey === null) return null
   try {
-    const raw = JSON.parse(storage()?.getItem(WORLD_KEY) ?? 'null')
+    const raw = JSON.parse(storage()?.getItem(worldKey) ?? 'null')
     if (raw) loadWorld(raw)
     return raw
   } catch {
@@ -60,7 +61,16 @@ function savedWorld() {
   }
 }
 
-export function createGame({ worldData = savedWorld() ?? wayfarer, interpreter = null } = {}) {
+export function createGame(options = {}) {
+  const {
+    interpreter = null,
+    onTurn = null,
+    onWorldApplied = null,
+    worldKey = WORLD_KEY,
+  } = options
+  const worldData = options.worldData === undefined
+    ? savedWorld(worldKey) ?? wayfarer
+    : options.worldData
   // What is being played, as authored — also the common ancestor a live edit is
   // merged against, since it is the world the current game started from.
   const definition = shallowRef(structuredClone(worldData))
@@ -175,6 +185,7 @@ export function createGame({ worldData = savedWorld() ?? wayfarer, interpreter =
         print("Or type 'undo' to step back.", 'system')
       }
       touch()
+      onTurn?.(turn, world.value)
       return turn
     } finally {
       state.busy = false
@@ -272,19 +283,24 @@ export function createGame({ worldData = savedWorld() ?? wayfarer, interpreter =
     await settle()
     const started = loadWorld(definition.value)
     definition.value = structuredClone(raw)
-    try {
-      storage()?.setItem(WORLD_KEY, JSON.stringify(raw))
-    } catch { /* storage full: the world still plays, it just won't survive a reload */ }
+    if (worldKey !== null) {
+      try {
+        storage()?.setItem(worldKey, JSON.stringify(raw))
+      } catch { /* storage full: the world still plays, it just won't survive a reload */ }
+    }
 
-    if (fromStart) return restart()
-
-    const merged = mergeWorld(started, world.value, next)
-    world.value = merged.world
-    undoStack.length = 0          // undo would step back into the old world
-    touch()
-    print('— The world has changed. Your game carries on from where you were. —', 'system')
-    for (const note of merged.notes) print(note, 'system')
-    print(renderEvent(describeRoom(world.value), undefined, pronouns()))
+    if (fromStart) {
+      restart()
+    } else {
+      const merged = mergeWorld(started, world.value, next)
+      world.value = merged.world
+      undoStack.length = 0          // undo would step back into the old world
+      touch()
+      print('— The world has changed. Your game carries on from where you were. —', 'system')
+      for (const note of merged.notes) print(note, 'system')
+      print(renderEvent(describeRoom(world.value), undefined, pronouns()))
+    }
+    onWorldApplied?.(raw)
   }
 
   const selectedTurn = computed(() =>

@@ -1,13 +1,14 @@
 # Adventure Lab (web)
 
 The game, its engine and its tools, running entirely in the browser. The page is a
-Vue 3 app with three views, kept in the URL hash:
+Vue 3 app with four views, kept in the URL hash:
 
 - **Play** (no hash): a 4:3 terminal on the left, and on the right a panel that
   shows step by step how each command was understood, plus a world panel (map,
   room, raw state).
 - **Build** (`#build`): the World Builder, below.
 - **Benchmark** (`#bench`): scores the optional language model.
+- **Learn** (`#learn/hoai-adventure/1/1`): hosts the eight-level Hour of AI lesson.
 
 ```bash
 npm install
@@ -56,6 +57,23 @@ switches to one thing at a time:
   hidden, because most phones can't run the 1–2 GB models.
 - Build shows a note that it needs a tablet, Chromebook or laptop, and doesn't
   load Blockly.
+
+## Learn
+
+The Learn view is the small Studio/Lab2-style host for the Hour of AI unit. Its
+hash route resolves one level, starts or restores that level's project world,
+feeds play and UI events to the Adventure validator, and enables Continue when
+the Lab2 progress state is satisfied. Phones show a note instead; the lesson is
+designed for a Chromebook, tablet or laptop.
+
+The course data uses Code.org's Lab2 shapes: `curriculum/hour-of-ai/unit.json`
+is the script structure, and `curriculum/hour-of-ai/level_properties.json` is
+the id-keyed level-properties map. `src/lab2/` resolves levels and tracks
+progress, `src/adventure/` owns the level schema and conditions, and
+`src/lesson/LessonController.js` connects those framework-free pieces to a game
+session. `src/components/LessonView.vue` and `InstructionsPanel.vue` only draw
+the controller state. The lesson's editable project and Blockly library use
+their own browser-storage keys, separate from the normal Play and Build views.
 
 ## Tracing
 

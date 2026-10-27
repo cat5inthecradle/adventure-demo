@@ -13,6 +13,8 @@ import * as Library from '../builder/library.js'
 const props = defineProps({
   game: { type: Object, required: true },
   active: Boolean,
+  toolbox: { type: Object, default: () => TOOLBOX },
+  libraryKey: { type: String, default: Library.LIBRARY_KEY },
 })
 const emit = defineEmits(['play'])
 
@@ -54,7 +56,7 @@ function check() {
   clearTimeout(timer)
   const state = Blockly.serialization.workspaces.save(workspace)
   Library.update(library, library.current, state)
-  Library.saveLibrary(library)
+  Library.saveLibrary(library, undefined, props.libraryKey)
   refreshList()
   const story = state.blocks?.blocks?.find(b => b.type === 'world')
   ui.hasStory = !!story
@@ -134,7 +136,7 @@ function deleteCurrent() {
   const gone = library.worlds[library.current]?.name
   clearTimeout(timer)
   Library.remove(library, library.current)
-  Library.saveLibrary(library)
+  Library.saveLibrary(library, undefined, props.libraryKey)
   if (library.current) load(library.worlds[library.current].state, { tidy: false })
   else newBlank()
   ui.message = `Deleted “${gone}”.`
@@ -179,7 +181,7 @@ async function openFile(event) {
 
 onMounted(() => {
   workspace = Blockly.inject(host.value, {
-    toolbox: TOOLBOX,
+    toolbox: props.toolbox,
     renderer: 'zelos',
     // Blockly's sprites and sounds, served from this app (public/blockly-media,
     // copied from the blockly package) rather than static.blockly.com: a student's
@@ -193,7 +195,7 @@ onMounted(() => {
   attachWorkspace(workspace)
   workspace.addChangeListener(event => { if (!event.isUiEvent) schedule() })
 
-  library = Library.loadLibrary()
+  library = Library.loadLibrary(undefined, props.libraryKey)
   const current = library.worlds[library.current]
   if (current) {
     load(current.state, { tidy: false })
@@ -209,6 +211,10 @@ watch(() => props.active, async active => {
   if (!active || !workspace) return
   await nextTick()
   Blockly.svgResize(workspace)
+})
+
+watch(() => props.toolbox, toolbox => {
+  workspace?.updateToolbox(toolbox)
 })
 
 onBeforeUnmount(() => {

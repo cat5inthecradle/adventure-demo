@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "title": "Tiny Vault",
+  "intro": "A test world for the progression system.",
+  "win_epilogue": "You won.",
+  "player_location": "hall",
+  "rooms": {
+    "hall": {
+      "id": "hall",
+      "name": "Hall",
+      "description": "A bare hall with a lever, a crate and a mug. A vault door is to the north.",
+      "exits": { "north": { "to": "vault", "door_id": "vault_door" } }
+    },
+    "vault": {
+      "id": "vault",
+      "name": "Vault",
+      "description": "A small vault. A coin glints on the floor.",
+      "exits": { "south": { "to": "hall", "door_id": "vault_door" } }
+    }
+  },
+  "doors": {
+    "vault_door": {
+      "id": "vault_door",
+      "name": "vault door",
+      "aliases": ["door"],
+      "description": "A heavy vault door.",
+      "open": false,
+      "locked": true,
+      "unlock_flag": "lever_pulled",
+      "locked_message": "The vault door is locked tight."
+    }
+  },
+  "items": {
+    "lever": {
+      "id": "lever",
+      "name": "lever",
+      "description": "A big iron lever.",
+      "location": "hall",
+      "portable": false
+    },
+    "crate": {
+      "id": "crate",
+      "name": "crate",
+      "aliases": ["box"],
+      "description": "A nailed-shut crate.",
+      "location": "hall",
+      "portable": false,
+      "open_refusal": "Bare hands won't do it. Something with leverage might.",
+      "open_refusal_with": { "crowbar": "The crowbar you are carrying would do it." }
+    },
+    "crowbar": {
+      "id": "crowbar",
+      "name": "crowbar",
+      "description": "A short steel crowbar.",
+      "location": "hall",
+      "portable": true
+    },
+    "mug": {
+      "id": "mug",
+      "name": "coffee mug",
+      "aliases": ["mug", "cup"],
+      "description": "A chipped coffee mug, long gone cold.",
+      "location": "hall",
+      "portable": true
+    },
+    "coin": {
+      "id": "coin",
+      "name": "coin",
+      "description": "A gold coin.",
+      "location": "vault",
+      "portable": true
+    }
+  },
+  "interactions": [
+    {
+      "id": "pull_lever",
+      "item_id": "lever",
+      "target_id": null,
+      "message": "Clunk. Somewhere a bolt slides back.",
+      "effects": [{ "type": "set_flag", "flag": "lever_pulled", "value": true }],
+      "once": true
+    },
+    {
+      "id": "spend_coin",
+      "item_id": "coin",
+      "target_id": null,
+      "message": "You flip the coin.",
+      "effects": [{ "type": "end_game", "outcome": "win" }],
+      "once": true
+    }
+  ],
+  "flags": {},
+  "turn_count": 0
+}

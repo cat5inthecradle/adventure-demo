@@ -1,0 +1,377 @@
+{
+  "9001": {
+    "id": 9001,
+    "name": "hoai_adventure_1_play",
+    "appName": "adventure",
+    "type": "Adventure",
+    "displayName": "Play",
+    "longInstructions": "Play **Drift** and wake the ship.\n\nUse the commands the game understands to find and power the navigation console. Stuck? Try `talk to droid`.\n\nYou're done when the ship wakes up.",
+    "teacherMarkdown": "- What parts of this story came from the world's rules, and what parts came from the player?\n- Does choosing an action make the player an author? Why or why not?",
+    "freePlay": false,
+    "validations": [
+      {
+        "key": "l1_game_won",
+        "conditions": [
+          {
+            "name": "game_won"
+          }
+        ],
+        "message": "The ship is awake. You made it home!",
+        "next": true
+      }
+    ],
+    "levelData": {
+      "startWorld": "space",
+      "view": "play",
+      "panels": [],
+      "build": null,
+      "interpreter": false
+    }
+  },
+  "9002": {
+    "id": 9002,
+    "name": "hoai_adventure_2_look_inside",
+    "appName": "adventure",
+    "type": "Adventure",
+    "displayName": "Look inside",
+    "longInstructions": "The cockpit mentions a coffee mug. Try `examine coffee mug`.\n\nThen click the command you typed to see **How it was understood**: where did the game lose track of your words?\n\nYou're done once you've tried the mug and looked inside that command.",
+    "teacherMarkdown": "- Who caused this failure: the player, the command reader, or the world author?\n- When a story names something, what does it promise the player can do?",
+    "freePlay": false,
+    "validations": [
+      {
+        "key": "l2_failure_explained",
+        "conditions": [
+          {
+            "name": "turn_failed"
+          },
+          {
+            "name": "viewed_understood_panel"
+          }
+        ],
+        "message": "You found the gap between the words and the world.",
+        "next": true
+      },
+      {
+        "key": "l2_open_panel",
+        "conditions": [
+          {
+            "name": "turn_failed"
+          }
+        ],
+        "message": "Now click the command you typed to see why the game didn't understand it.",
+        "next": false
+      }
+    ],
+    "levelData": {
+      "startWorld": "space",
+      "view": "play",
+      "panels": [
+        "understood"
+      ],
+      "build": null,
+      "interpreter": false
+    }
+  },
+  "9003": {
+    "id": 9003,
+    "name": "hoai_adventure_3_name_the_mug",
+    "appName": "adventure",
+    "type": "Adventure",
+    "displayName": "If you name it, answer it",
+    "longInstructions": "In **Build**, add the coffee mug as an item in the cockpit and write its description.\n\nSwitch to **Play** and examine the mug.\n\nYou are done when the game answers with the description you wrote.",
+    "teacherMarkdown": "- How did one block change which player actions were possible?\n- Is the student authoring an object, a response, or both?",
+    "freePlay": false,
+    "projectTemplateLevelName": "hoai_adventure_world",
+    "validations": [
+      {
+        "key": "l3_mug_examined",
+        "conditions": [
+          {
+            "name": "examined_matching",
+            "value": "mug"
+          }
+        ],
+        "message": "The mug now exists in both the prose and the rules.",
+        "next": true
+      },
+      {
+        "key": "l3_mug_named",
+        "conditions": [
+          {
+            "name": "entity_named_matching",
+            "value": "mug"
+          }
+        ],
+        "message": "The mug has a name. Now go to Play and examine it.",
+        "next": false
+      }
+    ],
+    "levelData": {
+      "startWorld": "space",
+      "view": "build",
+      "panels": [
+        "understood"
+      ],
+      "build": {
+        "blocks": [
+          "room",
+          "item"
+        ]
+      },
+      "interpreter": false
+    }
+  },
+  "9004": {
+    "id": 9004,
+    "name": "hoai_adventure_4_crate_puzzle",
+    "appName": "adventure",
+    "type": "Adventure",
+    "displayName": "Make the stuck thing a puzzle",
+    "longInstructions": "In **Build**, give the supply crate an opening refusal that hints the obstacle can be beaten.\n\nAdd a stronger refusal for when the player carries the prybar.\n\nIn **Play**, carry the prybar and try to open the crate; you are done when you see the stronger hint.",
+    "teacherMarkdown": "- How does a useful refusal turn a dead end into a puzzle?\n- When can a rule catch confusing writing, and when does a person still need to judge it?",
+    "freePlay": false,
+    "projectTemplateLevelName": "hoai_adventure_world",
+    "validations": [
+      {
+        "key": "l4_tool_hint_seen",
+        "conditions": [
+          {
+            "name": "item_has_open_refusal",
+            "value": "supply_crate"
+          },
+          {
+            "name": "item_has_tool_hint",
+            "value": "supply_crate"
+          },
+          {
+            "name": "saw_tool_hint",
+            "value": "supply_crate"
+          }
+        ],
+        "message": "Your crate now points the player toward a solution.",
+        "next": true
+      },
+      {
+        "key": "l4_custom_refusal_seen",
+        "conditions": [
+          {
+            "name": "item_has_open_refusal",
+            "value": "supply_crate"
+          },
+          {
+            "name": "saw_custom_refusal",
+            "value": "supply_crate"
+          }
+        ],
+        "message": "Now add the stronger hint for the prybar.",
+        "next": false
+      },
+      {
+        "key": "l4_refusal_added",
+        "conditions": [
+          {
+            "name": "item_has_open_refusal",
+            "value": "supply_crate"
+          }
+        ],
+        "message": "Try opening the crate in Play.",
+        "next": false
+      }
+    ],
+    "levelData": {
+      "startWorld": "space",
+      "view": "build",
+      "panels": [
+        "understood"
+      ],
+      "build": {
+        "blocks": [
+          "item",
+          "refusal_with"
+        ]
+      },
+      "interpreter": false
+    }
+  },
+  "9005": {
+    "id": 9005,
+    "name": "hoai_adventure_5_add_a_rule",
+    "appName": "adventure",
+    "type": "Adventure",
+    "displayName": "Add a rule",
+    "longInstructions": "In **Build**, put a door on the route between the two rooms and lock it until a flag is true.\n\nAdd a use rule that sets that flag.\n\nIn **Play**, trigger your rule and open the door; you are done when the unlocked door opens.",
+    "teacherMarkdown": "- What truth does the flag remember, and who decided when it becomes true?\n- Which mistakes can this rule prevent without an AI or a person judging the story?",
+    "freePlay": false,
+    "projectTemplateLevelName": "hoai_adventure_world",
+    "validations": [
+      {
+        "key": "l5_locked_door_opened",
+        "conditions": [
+          {
+            "name": "door_locked_by_flag"
+          },
+          {
+            "name": "opened_door_locked_by_flag"
+          }
+        ],
+        "message": "Your rule changed what the player could do.",
+        "next": true
+      },
+      {
+        "key": "l5_door_locked",
+        "conditions": [
+          {
+            "name": "door_locked_by_flag"
+          }
+        ],
+        "message": "Now play it and unlock it.",
+        "next": false
+      }
+    ],
+    "levelData": {
+      "startWorld": "space",
+      "view": "build",
+      "panels": [
+        "understood",
+        "world"
+      ],
+      "build": {
+        "blocks": [
+          "room",
+          "exit",
+          "door",
+          "lock_until",
+          "use_rule",
+          "eff_flag",
+          "cond_flag"
+        ]
+      },
+      "interpreter": false
+    }
+  },
+  "9006": {
+    "id": 9006,
+    "name": "hoai_adventure_6_meet_the_ai",
+    "appName": "adventure",
+    "type": "Adventure",
+    "displayName": "Meet the AI",
+    "longInstructions": "Turn on the AI interpreter and type a natural sentence that means a game command.\n\nThen ask for something impossible, such as opening a door with a sandwich.\n\nYou are done when the interpreter understands one request and asks for clarification on another.",
+    "teacherMarkdown": "- Did the AI change the world, or only translate the player's words into a command?\n- When the AI asks a question, who is shaping the next line of the story?",
+    "freePlay": false,
+    "projectTemplateLevelName": "hoai_adventure_world",
+    "validations": [
+      {
+        "key": "l6_understood_and_clarified",
+        "conditions": [
+          {
+            "name": "interpreter_understood"
+          },
+          {
+            "name": "interpreter_clarified"
+          }
+        ],
+        "message": "You saw the AI translate and admit uncertainty.",
+        "next": true
+      },
+      {
+        "key": "l6_understood_once",
+        "conditions": [
+          {
+            "name": "interpreter_understood"
+          }
+        ],
+        "message": "Now ask for something impossible and watch for a clarification.",
+        "next": false
+      }
+    ],
+    "levelData": {
+      "startWorld": "space",
+      "view": "play",
+      "panels": [
+        "understood"
+      ],
+      "build": null,
+      "interpreter": true
+    }
+  },
+  "9007": {
+    "id": 9007,
+    "name": "hoai_adventure_7_ai_dial",
+    "appName": "adventure",
+    "type": "Adventure",
+    "displayName": "The AI dial",
+    "longInstructions": "The five settings are **off**, **understand only**, **fill gaps**, **improvise**, and **invent events**.\n\nTry a line in Play, then set the dial to show how much AI writing belongs in your game and say why.\n\n**Invent events** is locked—use what happened in Play to debate why.",
+    "teacherMarkdown": "- At which dial setting does the AI begin to share authorship, if any? Why?\n- Why might inventing events be locked even when improvising is available?\n- Who is responsible when AI-written story text conflicts with a world rule?",
+    "freePlay": false,
+    "projectTemplateLevelName": "hoai_adventure_world",
+    "validations": [
+      {
+        "key": "l7_dial_set",
+        "conditions": [
+          {
+            "name": "ai_dial_set"
+          }
+        ],
+        "message": "Your AI boundary is set. Be ready to explain it.",
+        "next": true
+      }
+    ],
+    "levelData": {
+      "startWorld": "space",
+      "view": "play",
+      "panels": [
+        "understood"
+      ],
+      "build": null,
+      "interpreter": true,
+      "aiDial": {
+        "settings": [
+          "off",
+          "understand",
+          "fill_gaps",
+          "improvise",
+          "invent"
+        ],
+        "default": "understand",
+        "locked": [
+          "invent"
+        ]
+      }
+    }
+  },
+  "9008": {
+    "id": 9008,
+    "name": "hoai_adventure_8_free_play",
+    "appName": "adventure",
+    "type": "Adventure",
+    "displayName": "Free play",
+    "longInstructions": "Keep building your world, then test it in **Play**.\n\nUse the panels to check how commands are understood and what your rules make true.\n\nWhen it feels ready, use **Download as a file** in Build so a classmate can open and play it.",
+    "teacherMarkdown": "- Ask players where they felt the student's authorship most strongly.\n- If the AI filled a gap, who should receive credit for that moment?\n- What did human playtesting catch that the rules could not?",
+    "freePlay": true,
+    "projectTemplateLevelName": "hoai_adventure_world",
+    "validations": [],
+    "levelData": {
+      "startWorld": "space",
+      "view": "build",
+      "panels": [
+        "understood",
+        "world"
+      ],
+      "build": {},
+      "interpreter": true,
+      "aiDial": {
+        "settings": [
+          "off",
+          "understand",
+          "fill_gaps",
+          "improvise",
+          "invent"
+        ],
+        "default": "understand",
+        "locked": [
+          "invent"
+        ]
+      }
+    }
+  }
+}

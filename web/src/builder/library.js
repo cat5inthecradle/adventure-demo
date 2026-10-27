@@ -6,7 +6,7 @@
 
 import { storage } from '../storage.js'
 
-const KEY = 'adventure-lab:library'
+export const LIBRARY_KEY = 'adventure-lab:library'
 const OLD_KEY = 'adventure-lab:builder'    // the single workspace before there was a library
 
 /** A world's name, read from its Story block. */
@@ -42,12 +42,13 @@ export function emptyLibrary() {
 }
 
 /** Read the library, bringing a pre-library workspace across as its first world. */
-export function loadLibrary(store = storage()) {
+export function loadLibrary(store = storage(), key = LIBRARY_KEY) {
   let library = null
-  try { library = JSON.parse(store?.getItem(KEY) ?? 'null') } catch { library = null }
+  try { library = JSON.parse(store?.getItem(key) ?? 'null') } catch { library = null }
   if (library?.worlds) return library
 
   library = emptyLibrary()
+  if (key !== LIBRARY_KEY) return library
   try {
     const old = JSON.parse(store?.getItem(OLD_KEY) ?? 'null')
     if (old?.blocks) {
@@ -59,8 +60,8 @@ export function loadLibrary(store = storage()) {
   return library
 }
 
-export function saveLibrary(library, store = storage()) {
-  try { store?.setItem(KEY, JSON.stringify(library)) } catch { /* full or blocked: keep going */ }
+export function saveLibrary(library, store = storage(), key = LIBRARY_KEY) {
+  try { store?.setItem(key, JSON.stringify(library)) } catch { /* full or blocked: keep going */ }
 }
 
 /** Add a workspace state as a new world. Returns its id. */

@@ -5,6 +5,9 @@ import TerminalPane from './components/TerminalPane.vue'
 import ParserPanel from './components/ParserPanel.vue'
 import WorldPanel from './components/WorldPanel.vue'
 import InterpreterPicker from './components/InterpreterPicker.vue'
+import LessonView from './components/LessonView.vue'
+import LessonController from './lesson/LessonController.js'
+import { levelProperties, starters, unit } from './lesson/hourOfAi.js'
 // Loaded on first visit: players who never open it never download it.
 const BenchView = defineAsyncComponent(() => import('./components/BenchView.vue'))
 // Blockly is large; it loads the first time someone opens Build.
@@ -14,6 +17,7 @@ const BuilderView = defineAsyncComponent(() => import('./components/BuilderView.
 // See src/engine/interpreter.js for the contract any interpreter follows.
 const game = createGame({ interpreter: null })
 const { world, state, selectedTurn } = game
+const lessonController = new LessonController({ unit, levelProperties, starters })
 
 const PACES = [[0, 'instant'], [250, '0.25 s / phase'], [500, '0.5 s / phase'], [1000, '1 s / phase'], [2000, '2 s / phase']]
 
@@ -54,20 +58,42 @@ async function submit(line) {
   terminal.value?.focus()
 }
 
-// Three views over one app: playing the game, building a world, and benchmarking
-// the interpreter. The hash keeps the view across reloads (#build, #bench). The
-// game and the builder stay mounted once opened, so switching back loses nothing.
+// Four views over one app: playing, building, benchmarking, and the lesson host.
+// The hash keeps the view across reloads. The normal game and builder stay
+// mounted once opened, so switching back loses nothing.
+const lessonRoute = () => LessonController.parseRoute(location.hash)
+const initialLessonRoute = lessonRoute()
+if (initialLessonRoute?.unit === unit.name) {
+  lessonController.goTo(initialLessonRoute.lesson, initialLessonRoute.level)
+}
 const viewFromHash = () => (location.hash.startsWith('#bench') ? 'bench'
-  : location.hash.startsWith('#build') ? 'build' : 'play')
+  : location.hash.startsWith('#build') ? 'build'
+    : LessonController.parseRoute(location.hash)?.unit === unit.name ? 'learn' : 'play')
 const view = ref(viewFromHash())
 const builderOpened = ref(view.value === 'build' && !phone.value)
-const onHash = () => { view.value = viewFromHash() }
+const onHash = () => {
+  const route = lessonRoute()
+  if (route?.unit === unit.name) {
+    lessonController.goTo(route.lesson, route.level)
+    view.value = 'learn'
+    return
+  }
+  view.value = viewFromHash()
+}
 function show(next) {
+  if (next === 'learn') {
+    location.hash = '#learn/hoai-adventure/1/1'
+    return
+  }
   location.hash = next === 'play' ? '' : `#${next}`
   view.value = next
   if (next === 'build' && !phone.value) builderOpened.value = true
   if (next === 'play') setTimeout(() => terminal.value?.focus())
 }
+
+const subtitle = computed(() => view.value === 'learn'
+  ? lessonController.game?.world.value.title ?? unit.title
+  : world.value.title)
 
 // Restart asks once before throwing a game away; a finished game doesn't ask.
 const confirmingRestart = ref(false)
@@ -100,11 +126,12 @@ onBeforeUnmount(() => {
   <div class="app" :class="{ phone }">
     <header class="topbar">
       <h1>Adventure Lab</h1>
-      <span class="subtitle">{{ world.title }}</span>
+      <span class="subtitle">{{ subtitle }}</span>
       <nav class="views" aria-label="Views">
         <button type="button" :aria-current="view === 'play' && 'page'" @click="show('play')">Play</button>
         <button type="button" :aria-current="view === 'build' && 'page'" @click="show('build')">Build</button>
         <button v-if="!phone" type="button" :aria-current="view === 'bench' && 'page'" @click="show('bench')">Benchmark</button>
+        <button type="button" :aria-current="view === 'learn' && 'page'" @click="show('learn')">Learn</button>
       </nav>
       <span class="spacer"></span>
       <span v-if="view === 'play'" class="restart">
@@ -115,7 +142,7 @@ onBeforeUnmount(() => {
         </template>
         <button v-else type="button" title="Start this story over from the beginning" @click="restart">↺ Restart</button>
       </span>
-      <label class="pace">
+      <label v-if="view !== 'learn'" class="pace">
         Pace
         <select v-model.number="state.pace" aria-label="Pause between phases">
           <option v-for="[ms, label] in PACES" :key="ms" :value="ms">{{ label }}</option>
@@ -123,7 +150,7 @@ onBeforeUnmount(() => {
       </label>
       <!-- Phones play with the parser alone: the models are 1–2 GB downloads that
            most phones cannot run. -->
-      <InterpreterPicker v-show="!phone" :game="game" />
+      <InterpreterPicker v-show="!phone && view !== 'learn'" :game="game" />
     </header>
     <nav v-if="phone && view === 'play'" class="panes" aria-label="Show">
       <button
@@ -164,6 +191,7 @@ onBeforeUnmount(() => {
     <main v-if="view === 'bench'" class="stage">
       <BenchView />
     </main>
+    <LessonView v-if="view === 'learn'" :controller="lessonController" :phone="phone" />
   </div>
 </template>
 
