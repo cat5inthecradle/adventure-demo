@@ -38,6 +38,7 @@ export const AdventureLevelDataSchema = z.object({
   ]).default(null),
   interpreter: z.boolean().default(false),
   aiDial: AiDialSchema.optional(),
+  worldPicker: z.boolean().optional(),
 })
 
 const ValidationSchema = z.object({

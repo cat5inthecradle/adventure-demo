@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest'
 import space from '../../../worlds/starters/space.json'
 import unit from '../../../curriculum/hour-of-ai/unit.json'
-import levelProperties from '../../../curriculum/hour-of-ai/level_properties.json'
+import levelProperties from './spaceLesson.js'
 import LessonController from '../../src/lesson/LessonController.js'
 import { parseLevelProperties } from '../../src/adventure/levelKind.js'
 

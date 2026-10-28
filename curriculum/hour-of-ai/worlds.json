@@ -1,0 +1,81 @@
+{
+  "order": ["space", "haunted", "jungle"],
+  "default": "space",
+  "worlds": {
+    "space": {
+      "label": "Drift",
+      "blurb": "A dead spaceship drifting far from home.",
+      "terms": {
+        "world": "space",
+        "title": "Drift",
+        "goal": "wake the ship",
+        "goalTask": "find and power the navigation console",
+        "doneWhen": "the ship wakes up",
+        "winMessage": "The ship is awake. You made it home!",
+        "startRoom": "cockpit",
+        "detail": "coffee mug",
+        "detailShort": "mug",
+        "tool": "prybar",
+        "toolShort": "prybar",
+        "container": "supply crate",
+        "containerId": "supply_crate",
+        "containerShort": "crate",
+        "secondRoom": "cargo bay",
+        "toSecond": "south",
+        "npc": "droid",
+        "askAbout": "the ship",
+        "understandPhrase": "pick up the tool on the floor"
+      }
+    },
+    "haunted": {
+      "label": "Hollow House",
+      "blurb": "A spooky old house that won't let you leave.",
+      "terms": {
+        "world": "haunted",
+        "title": "Hollow House",
+        "goal": "break the spell",
+        "goalTask": "find a way to wind the stopped clock",
+        "doneWhen": "the clock chimes",
+        "winMessage": "The clock chimes and the door swings open. You escaped!",
+        "startRoom": "entrance hall",
+        "detail": "faded portrait",
+        "detailShort": "portrait",
+        "tool": "fire poker",
+        "toolShort": "poker",
+        "container": "old chest",
+        "containerId": "old_chest",
+        "containerShort": "chest",
+        "secondRoom": "library",
+        "toSecond": "east",
+        "npc": "ghost",
+        "askAbout": "the house",
+        "understandPhrase": "pick up the tool on the floor"
+      }
+    },
+    "jungle": {
+      "label": "Temple of Vines",
+      "blurb": "A ruined jungle temple that has lost its idol.",
+      "terms": {
+        "world": "jungle",
+        "title": "Temple of Vines",
+        "goal": "wake the temple",
+        "goalTask": "find the lost idol and return it to the altar",
+        "doneWhen": "the temple wakes",
+        "winMessage": "The temple is awake. You found the way home!",
+        "startRoom": "temple steps",
+        "detail": "mossy statue",
+        "detailShort": "statue",
+        "tool": "machete",
+        "toolShort": "machete",
+        "container": "clay urn",
+        "containerId": "clay_urn",
+        "containerShort": "urn",
+        "secondRoom": "inner chamber",
+        "toSecond": "north",
+        "npc": "parrot",
+        "askAbout": "the temple",
+        "understandPhrase": "pick up the tool on the floor"
+      }
+    }
+  }
+}

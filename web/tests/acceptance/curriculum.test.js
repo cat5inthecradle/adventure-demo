@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 import space from '../../../worlds/starters/space.json'
 import unit from '../../../curriculum/hour-of-ai/unit.json'
-import levelProperties from '../../../curriculum/hour-of-ai/level_properties.json'
+import levelProperties from './spaceLesson.js'
 import { loadWorld } from '../../src/engine/loader.js'
 import { takeTurn } from '../../src/engine/turn.js'
 import { TOOLBOX } from '../../src/builder/schema.js'

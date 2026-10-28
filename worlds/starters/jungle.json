@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "title": "Temple of Vines",
+  "intro": "Deep in the jungle, a ruined temple has lost its idol. Return it to the altar to wake the temple.",
+  "win_epilogue": "Sunlight floods the temple, and a hidden path opens through the jungle toward home.",
+  "player_location": "temple_steps",
+  "rooms": {
+    "temple_steps": {
+      "id": "temple_steps",
+      "name": "Temple Steps",
+      "description": "Vines choke the crumbling steps. A stone altar sits beside a mossy statue. The inner chamber is north.",
+      "exits": {
+        "north": {
+          "to": "inner_chamber"
+        }
+      },
+      "sounds": "Insects buzz, and far away something large crashes through the trees."
+    },
+    "inner_chamber": {
+      "id": "inner_chamber",
+      "name": "Inner Chamber",
+      "description": "Roots crack the walls around a vine-wrapped urn. A scarlet parrot watches from a ledge. The temple steps are south.",
+      "exits": {
+        "south": {
+          "to": "temple_steps"
+        }
+      },
+      "sounds": "Water drips somewhere in the dark."
+    }
+  },
+  "doors": {},
+  "items": {
+    "machete": {
+      "id": "machete",
+      "name": "machete",
+      "aliases": [
+        "blade",
+        "knife"
+      ],
+      "description": "A notched machete, still sharp enough to cut vines.",
+      "location": "temple_steps",
+      "portable": true
+    },
+    "stone_altar": {
+      "id": "stone_altar",
+      "name": "stone altar",
+      "aliases": [
+        "altar"
+      ],
+      "description": "The altar is bare. A hollow in its top is the shape of a small idol.",
+      "location": "temple_steps",
+      "portable": false
+    },
+    "clay_urn": {
+      "id": "clay_urn",
+      "name": "clay urn",
+      "aliases": [
+        "urn",
+        "jar",
+        "pot"
+      ],
+      "description": "A clay urn bound tight in thick vines.",
+      "alt_description": "The urn sits open, cut vines curled around its base.",
+      "alt_flag": "urn_open",
+      "location": "inner_chamber",
+      "portable": false
+    },
+    "jade_idol": {
+      "id": "jade_idol",
+      "name": "jade idol",
+      "aliases": [
+        "idol",
+        "figurine"
+      ],
+      "description": "A small green idol with a grinning face, smooth from many hands.",
+      "location": "hidden",
+      "portable": true
+    }
+  },
+  "npcs": {
+    "scarlet_parrot": {
+      "id": "scarlet_parrot",
+      "name": "scarlet parrot",
+      "aliases": [
+        "parrot",
+        "bird"
+      ],
+      "description": "A scarlet parrot with one clever black eye.",
+      "location": "inner_chamber",
+      "dialogue": [
+        {
+          "requires_flags": {
+            "urn_open": false
+          },
+          "text": "'Vines! Vines!' the parrot squawks. 'Machete on the steps! Machete on the steps!'"
+        },
+        {
+          "text": "The parrot bobs its head from the idol toward the altar outside."
+        }
+      ]
+    }
+  },
+  "interactions": [
+    {
+      "id": "cut_urn",
+      "item_id": "machete",
+      "target_id": "clay_urn",
+      "requires_flags": {
+        "urn_open": false
+      },
+      "message": "You hack through the vines. The lid slides off, and a jade idol rolls out onto the floor.",
+      "effects": [
+        {
+          "type": "set_flag",
+          "flag": "urn_open",
+          "value": true
+        },
+        {
+          "type": "move_item",
+          "item_id": "jade_idol",
+          "to": "inner_chamber"
+        }
+      ],
+      "once": true,
+      "fired": false
+    },
+    {
+      "id": "place_idol",
+      "item_id": "jade_idol",
+      "target_id": "stone_altar",
+      "message": "You set the idol in the hollow. Stone grinds on stone, and the whole temple shakes awake.",
+      "effects": [
+        {
+          "type": "end_game",
+          "outcome": "win"
+        }
+      ]
+    }
+  ],
+  "flags": {},
+  "counters": {}
+}

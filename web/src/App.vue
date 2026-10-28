@@ -7,7 +7,7 @@ import WorldPanel from './components/WorldPanel.vue'
 import InterpreterPicker from './components/InterpreterPicker.vue'
 import LessonView from './components/LessonView.vue'
 import LessonController from './lesson/LessonController.js'
-import { levelProperties, starters, unit } from './lesson/hourOfAi.js'
+import { lessonWorlds, levelProperties, starters, unit } from './lesson/hourOfAi.js'
 import { downloadLog } from './sessionLog.js'
 // Loaded on first visit: players who never open it never download it.
 const BenchView = defineAsyncComponent(() => import('./components/BenchView.vue'))
@@ -18,7 +18,7 @@ const BuilderView = defineAsyncComponent(() => import('./components/BuilderView.
 // See src/engine/interpreter.js for the contract any interpreter follows.
 const game = createGame({ interpreter: null })
 const { world, state, selectedTurn } = game
-const lessonController = new LessonController({ unit, levelProperties, starters })
+const lessonController = new LessonController({ unit, levelProperties, starters, worlds: lessonWorlds })
 
 const PACES = [[0, 'instant'], [250, '0.25 s / phase'], [500, '0.5 s / phase'], [1000, '1 s / phase'], [2000, '2 s / phase']]
 

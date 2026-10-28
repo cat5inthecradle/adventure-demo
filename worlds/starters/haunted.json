@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "title": "Hollow House",
+  "intro": "Rain hammers the old house, and the front door will not budge. Wind the stopped clock to break the spell.",
+  "win_epilogue": "The front door swings open, and you step out into the rain as the house goes dark behind you.",
+  "player_location": "entrance_hall",
+  "rooms": {
+    "entrance_hall": {
+      "id": "entrance_hall",
+      "name": "Entrance Hall",
+      "description": "Rain streaks the tall windows. A silent grandfather clock stands beside a faded portrait. The library is east.",
+      "exits": {
+        "east": {
+          "to": "library"
+        }
+      },
+      "sounds": "Somewhere upstairs, a floorboard creaks."
+    },
+    "library": {
+      "id": "library",
+      "name": "Library",
+      "description": "Dusty shelves lean over an old chest. A pale ghost drifts between the books. The entrance hall is west.",
+      "exits": {
+        "west": {
+          "to": "entrance_hall"
+        }
+      },
+      "sounds": "Something small rattles inside the chest."
+    }
+  },
+  "doors": {},
+  "items": {
+    "fire_poker": {
+      "id": "fire_poker",
+      "name": "fire poker",
+      "aliases": [
+        "poker",
+        "iron poker"
+      ],
+      "description": "A long iron poker with a hooked tip.",
+      "location": "entrance_hall",
+      "portable": true
+    },
+    "grandfather_clock": {
+      "id": "grandfather_clock",
+      "name": "grandfather clock",
+      "aliases": [
+        "clock"
+      ],
+      "description": "The hands are frozen at midnight. A small keyhole waits in the clock's face.",
+      "location": "entrance_hall",
+      "portable": false
+    },
+    "old_chest": {
+      "id": "old_chest",
+      "name": "old chest",
+      "aliases": [
+        "chest",
+        "trunk"
+      ],
+      "description": "A heavy chest with a rusted latch, shut tight.",
+      "alt_description": "The chest gapes open, its velvet lining torn.",
+      "alt_flag": "chest_open",
+      "location": "library",
+      "portable": false
+    },
+    "winding_key": {
+      "id": "winding_key",
+      "name": "winding key",
+      "aliases": [
+        "key",
+        "brass key"
+      ],
+      "description": "A small brass key, cold to the touch.",
+      "location": "hidden",
+      "portable": true
+    }
+  },
+  "npcs": {
+    "pale_ghost": {
+      "id": "pale_ghost",
+      "name": "pale ghost",
+      "aliases": [
+        "ghost",
+        "spirit"
+      ],
+      "description": "A pale girl in an old-fashioned dress, flickering like a candle.",
+      "location": "library",
+      "dialogue": [
+        {
+          "requires_flags": {
+            "chest_open": false
+          },
+          "text": "'That chest won't open for bare hands,' the ghost whispers. 'There is a poker in the hall.'"
+        },
+        {
+          "text": "The ghost points from the key toward the silent clock in the hall."
+        }
+      ]
+    }
+  },
+  "interactions": [
+    {
+      "id": "pry_chest",
+      "item_id": "fire_poker",
+      "target_id": "old_chest",
+      "requires_flags": {
+        "chest_open": false
+      },
+      "message": "You hook the poker under the latch and heave. The chest bangs open around a small brass key.",
+      "effects": [
+        {
+          "type": "set_flag",
+          "flag": "chest_open",
+          "value": true
+        },
+        {
+          "type": "move_item",
+          "item_id": "winding_key",
+          "to": "library"
+        }
+      ],
+      "once": true,
+      "fired": false
+    },
+    {
+      "id": "wind_clock",
+      "item_id": "winding_key",
+      "target_id": "grandfather_clock",
+      "message": "You turn the key. The clock shudders, the hands spin, and it chimes thirteen times.",
+      "effects": [
+        {
+          "type": "end_game",
+          "outcome": "win"
+        }
+      ]
+    }
+  ],
+  "flags": {},
+  "counters": {}
+}

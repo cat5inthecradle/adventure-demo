@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { renderMarkdown } from '../lesson/markdown.js'
 import AiDial from './AiDial.vue'
+import WorldPicker from './WorldPicker.vue'
 
 const props = defineProps({
   controller: { type: Object, required: true },
@@ -64,6 +65,12 @@ function continueLesson() {
       <p class="progression">{{ level.progression }}</p>
       <h2>{{ properties.displayName }}</h2>
       <div class="markdown" v-html="instructions"></div>
+
+      <WorldPicker
+        v-if="properties.levelData.worldPicker"
+        :controller="controller"
+        :revision="revision"
+      />
 
       <ol v-if="steps.length" class="steps" aria-label="Level steps">
         <li v-for="(step, index) in steps" :key="index" :class="{ done: step.done }">

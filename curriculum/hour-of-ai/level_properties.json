@@ -5,7 +5,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "Play",
-    "longInstructions": "Play **Drift** and wake the ship.\n\nUse the commands the game understands to find and power the navigation console. Stuck? Try `talk to droid`.\n\nYou're done when the ship wakes up.",
+    "longInstructions": "Play **{{title}}** and {{goal}}.\n\nUse the commands the game understands to {{goalTask}}. Stuck? Try `talk to {{npc}}`.\n\nYou're done when {{doneWhen}}.",
     "teacherMarkdown": "- What parts of this story came from the world's rules, and what parts came from the player?\n- Does choosing an action make the player an author? Why or why not?",
     "freePlay": false,
     "validations": [
@@ -16,12 +16,13 @@
             "name": "game_won"
           }
         ],
-        "message": "The ship is awake. You made it home!",
+        "message": "{{winMessage}}",
         "next": true
       }
     ],
     "levelData": {
-      "startWorld": "space",
+      "startWorld": "{{world}}",
+      "worldPicker": true,
       "view": "play",
       "panels": [],
       "build": null,
@@ -34,7 +35,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "Look inside",
-    "longInstructions": "The cockpit mentions a coffee mug. Type `examine coffee mug`.\n\nThen click the command you typed—it is a button—to open **How it was understood** and see where the game lost track of your words.\n\nYou're done once you've tried the mug and looked inside that command.",
+    "longInstructions": "The first room mentions a {{detail}}. Type `examine {{detail}}`.\n\nThen click the command you typed—it is a button—to open **How it was understood** and see where the game lost track of your words.\n\nYou're done once you've tried the {{detailShort}} and looked inside that command.",
     "teacherMarkdown": "- Who caused this failure: the player, the command reader, or the world author?\n- When a story names something, what does it promise the player can do?",
     "freePlay": false,
     "validations": [
@@ -63,7 +64,7 @@
       }
     ],
     "levelData": {
-      "startWorld": "space",
+      "startWorld": "{{world}}",
       "view": "play",
       "panels": [
         "understood"
@@ -79,7 +80,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "If you name it, answer it",
-    "longInstructions": "In the **Build tab**, add the coffee mug as an item in the cockpit and write its description.\n\nSwitch to the **Play tab** and examine the mug.\n\nYou are done when the game answers with the description you wrote.\n\nThen think like a player: what else might they call it? Add those words to **also called**, and try them in the Play tab.",
+    "longInstructions": "In the **Build tab**, add the {{detail}} as an item in the {{startRoom}} and write its description.\n\nSwitch to the **Play tab** and examine the {{detailShort}}.\n\nYou are done when the game answers with the description you wrote.\n\nThen think like a player: what else might they call it? Add those words to **also called**, and try them in the Play tab.",
     "teacherMarkdown": "- How did one block change which player actions were possible?\n- Is the student authoring an object, a response, or both?",
     "freePlay": false,
     "projectTemplateLevelName": "hoai_adventure_world",
@@ -89,10 +90,10 @@
         "conditions": [
           {
             "name": "examined_matching",
-            "value": "mug"
+            "value": "{{detailShort}}"
           }
         ],
-        "message": "The mug now exists in both the prose and the rules.",
+        "message": "The {{detailShort}} now exists in both the prose and the rules.",
         "next": true
       },
       {
@@ -100,15 +101,15 @@
         "conditions": [
           {
             "name": "entity_named_matching",
-            "value": "mug"
+            "value": "{{detailShort}}"
           }
         ],
-        "message": "The mug has a name. Now go to Play and examine it.",
+        "message": "The {{detailShort}} has a name. Now go to Play and examine it.",
         "next": false
       }
     ],
     "levelData": {
-      "startWorld": "space",
+      "startWorld": "{{world}}",
       "view": "build",
       "panels": [
         "understood"
@@ -128,7 +129,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "Make the stuck thing a puzzle",
-    "longInstructions": "Use the **Build tab** to turn the supply crate into a puzzle. Follow these steps to write and test both hints.",
+    "longInstructions": "Use the **Build tab** to turn the {{container}} into a puzzle. Follow these steps to write and test both hints.",
     "teacherMarkdown": "- How does a useful refusal turn a dead end into a puzzle?\n- When can a rule catch confusing writing, and when does a person still need to judge it?",
     "freePlay": false,
     "projectTemplateLevelName": "hoai_adventure_world",
@@ -138,18 +139,18 @@
         "conditions": [
           {
             "name": "item_has_open_refusal",
-            "value": "supply_crate"
+            "value": "{{containerId}}"
           },
           {
             "name": "item_has_tool_hint",
-            "value": "supply_crate"
+            "value": "{{containerId}}"
           },
           {
             "name": "saw_tool_hint",
-            "value": "supply_crate"
+            "value": "{{containerId}}"
           }
         ],
-        "message": "Your crate now points the player toward a solution.",
+        "message": "Your {{containerShort}} now points the player toward a solution.",
         "next": true
       },
       {
@@ -157,14 +158,14 @@
         "conditions": [
           {
             "name": "item_has_open_refusal",
-            "value": "supply_crate"
+            "value": "{{containerId}}"
           },
           {
             "name": "saw_custom_refusal",
-            "value": "supply_crate"
+            "value": "{{containerId}}"
           }
         ],
-        "message": "Now add the stronger hint for the prybar.",
+        "message": "Now add the stronger hint for the {{tool}}.",
         "next": false
       },
       {
@@ -172,15 +173,15 @@
         "conditions": [
           {
             "name": "item_has_open_refusal",
-            "value": "supply_crate"
+            "value": "{{containerId}}"
           }
         ],
-        "message": "Try opening the crate in Play.",
+        "message": "Try opening the {{containerShort}} in Play.",
         "next": false
       }
     ],
     "levelData": {
-      "startWorld": "space",
+      "startWorld": "{{world}}",
       "view": "build",
       "panels": [
         "understood"
@@ -194,23 +195,23 @@
       "interpreter": false,
       "steps": [
         {
-          "text": "Open the **Build tab** and find the orange **Thing supply crate** block."
+          "text": "Open the **Build tab** and find the orange **Thing {{container}}** block."
         },
         {
-          "text": "In **if someone tries to open it, say**, write a line telling the player the crate can be opened with the right tool.",
+          "text": "In **if someone tries to open it, say**, write a line telling the player the {{containerShort}} can be opened with the right tool.",
           "conditions": [
             {
               "name": "item_has_open_refusal",
-              "value": "supply_crate"
+              "value": "{{containerId}}"
             }
           ]
         },
         {
-          "text": "From **Things** in the toolbox, drag the block that says **then say** into **unless they carry**, pick the prybar, and write a stronger hint.",
+          "text": "From **Things** in the toolbox, drag the block that says **then say** into **unless they carry**, pick the {{tool}}, and write a stronger hint.",
           "conditions": [
             {
               "name": "item_has_tool_hint",
-              "value": "supply_crate"
+              "value": "{{containerId}}"
             }
           ]
         },
@@ -218,20 +219,20 @@
           "text": "Press **▶ Play with my changes**. Steps 2 and 3 tick once you do."
         },
         {
-          "text": "In the **Play tab**, go to the cargo bay and type `open crate` to see your first hint.",
+          "text": "In the **Play tab**, go to the {{secondRoom}} and type `open {{containerShort}}` to see your first hint.",
           "conditions": [
             {
               "name": "saw_custom_refusal",
-              "value": "supply_crate"
+              "value": "{{containerId}}"
             }
           ]
         },
         {
-          "text": "Go back for the prybar with `take prybar`, then `open crate` again to see your stronger hint.",
+          "text": "Go back for the {{tool}} with `take {{toolShort}}`, then `open {{containerShort}}` again to see your stronger hint.",
           "conditions": [
             {
               "name": "saw_tool_hint",
-              "value": "supply_crate"
+              "value": "{{containerId}}"
             }
           ]
         }
@@ -274,7 +275,7 @@
       }
     ],
     "levelData": {
-      "startWorld": "space",
+      "startWorld": "{{world}}",
       "view": "build",
       "panels": [
         "understood",
@@ -330,7 +331,7 @@
       }
     ],
     "levelData": {
-      "startWorld": "space",
+      "startWorld": "{{world}}",
       "view": "play",
       "panels": [
         "understood"
@@ -345,7 +346,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "The AI dial",
-    "longInstructions": "The cockpit mentions a coffee mug the author never built. In the **Play tab**, try the same command with the AI dial at different settings and watch what changes.\n\nThe mug never becomes a real object: the AI can write words, not rules. Improvise lets characters say things the author never wrote.\n\n**Invent events** is locked—use what happened in Play to debate why.",
+    "longInstructions": "The room you start in mentions a {{detail}} the author never built. In the **Play tab**, try the same command with the AI dial at different settings and watch what changes.\n\nThe {{detailShort}} never becomes a real object: the AI can write words, not rules. Improvise lets characters say things the author never wrote.\n\n**Invent events** is locked—use what happened in Play to debate why.",
     "teacherMarkdown": "- At which dial setting does the AI begin to share authorship, if any? Why?\n- Why might inventing events be locked even when improvising is available?\n- Who is responsible when AI-written story text conflicts with a world rule?",
     "freePlay": false,
     "projectTemplateLevelName": "hoai_adventure_world",
@@ -362,7 +363,7 @@
       }
     ],
     "levelData": {
-      "startWorld": "space",
+      "startWorld": "{{world}}",
       "view": "play",
       "panels": [
         "understood"
@@ -374,10 +375,10 @@
           "text": "Choose a model from the menu at the top right and wait for it to load."
         },
         {
-          "text": "In the **Play tab**, set the dial to **Off** and type `examine the mug`."
+          "text": "In the **Play tab**, set the dial to **Off** and type `examine the {{detailShort}}`."
         },
         {
-          "text": "Still on **Off**, type `pick up the tool on the floor`. Then set the dial to **Understand** and type it again. Which setting worked out what you meant?"
+          "text": "Still on **Off**, type `{{understandPhrase}}`. Then set the dial to **Understand** and type it again. Which setting worked out what you meant?"
         },
         {
           "text": "Set it to **Fill gaps** and try once more. Notice the line marked **AI wrote this**.",
@@ -388,7 +389,7 @@
           ]
         },
         {
-          "text": "Set the dial to **Improvise**, go `south` to the cargo bay, and type `ask the droid about the ship`. Notice the droid answers with a line marked **AI wrote this**—a line the author never wrote.",
+          "text": "Set the dial to **Improvise**, go `{{toSecond}}` to the {{secondRoom}}, and type `ask the {{npc}} about {{askAbout}}`. Notice the {{npc}} answers with a line marked **AI wrote this**—a line the author never wrote.",
           "conditions": [
             {
               "name": "ai_improvised"
@@ -426,7 +427,7 @@
     "projectTemplateLevelName": "hoai_adventure_world",
     "validations": [],
     "levelData": {
-      "startWorld": "space",
+      "startWorld": "{{world}}",
       "view": "build",
       "panels": [
         "understood",
