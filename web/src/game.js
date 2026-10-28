@@ -9,7 +9,7 @@
 // built — so the World Builder can swap in an edited world, either restarting or
 // carrying the game in progress across (engine/merge.js).
 
-import { computed, reactive, shallowRef } from 'vue'
+import { computed, markRaw, reactive, shallowRef, toRaw } from 'vue'
 import wayfarer from '../../worlds/wayfarer.json'
 import { loadWorld, WorldValidationError } from './engine/loader.js'
 import { describeRoom } from './engine/engine.js'
@@ -25,6 +25,14 @@ const SAVE_PREFIX = 'adventure-lab:save:'
 const WORLD_KEY = 'adventure-lab:world'     // the world being played, if not the Wayfarer
 const TRANSCRIPT_PAIRS = 6
 const UNDO_DEPTH = 50
+
+const DIAL_NAMES = {
+  off: 'Off',
+  understand: 'Understand',
+  fill_gaps: 'Fill gaps',
+  improvise: 'Improvise',
+  invent: 'Invent',
+}
 
 export const HELP_TEXT = `Commands
   Looking around:  look (l) · examine X (x X, inspect X, read X)
@@ -48,6 +56,39 @@ Meta commands
 const END_LINE = { win: 'Escaped in {turns} turns.', loss: 'You lasted {turns} turns.' }
 
 let nextId = 1
+
+function jsonSafe(value, ancestors = new WeakSet()) {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return value
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null
+  if (typeof value !== 'object') return undefined
+
+  const raw = toRaw(value)
+  if (raw instanceof Date) return Number.isNaN(raw.getTime()) ? null : raw.toISOString()
+  if (ancestors.has(raw)) return undefined
+  ancestors.add(raw)
+
+  try {
+    if (Array.isArray(raw)) {
+      const result = []
+      for (const item of raw) {
+        const safe = jsonSafe(item, ancestors)
+        if (safe !== undefined) result.push(safe)
+      }
+      return result
+    }
+
+    const result = {}
+    for (const key of Object.keys(raw)) {
+      try {
+        const safe = jsonSafe(raw[key], ancestors)
+        if (safe !== undefined) result[key] = safe
+      } catch { /* an unreadable property does not make the rest of the log unusable */ }
+    }
+    return result
+  } finally {
+    ancestors.delete(raw)
+  }
+}
 
 /** The last world a student applied, if this browser has one that still loads. */
 function savedWorld(worldKey = WORLD_KEY) {
@@ -79,7 +120,8 @@ export function createGame(options = {}) {
     log: [],            // { id, kind: 'input'|'output'|'ai'|'system', text, turnId? }
     turns: [],          // turn records, oldest first
     selectedTurnId: null,
-    interpreter,        // see engine/interpreter.js — null means parser only
+    interpreter: interpreter == null ? null : markRaw(toRaw(interpreter)),
+                        // see engine/interpreter.js — null means parser only
     aiMode: 'understand',
     style: { tone: null, theme: null },
     busy: false,
@@ -95,7 +137,49 @@ export function createGame(options = {}) {
   const touch = () => { view.value = structuredClone(world.value) }
   const pronouns = () => world.value.pronouns
   const print = (text, kind = 'output', turnId = null) => {
-    state.log.push({ id: nextId++, kind, text, turnId })
+    state.log.push({ id: nextId++, kind, text, at: new Date().toISOString(), turnId })
+  }
+
+  const currentAi = () => {
+    const currentInterpreter = state.interpreter == null ? null : toRaw(state.interpreter)
+    return {
+      model: currentInterpreter?.name == null ? null : String(currentInterpreter.name),
+      aiMode: state.aiMode,
+      style: {
+        tone: state.style?.tone ?? null,
+        theme: state.style?.theme ?? null,
+      },
+    }
+  }
+
+  function setAi({ interpreter: nextInterpreter, aiMode, style } = {}) {
+    const interpreterWasGiven = nextInterpreter !== undefined
+    const rawInterpreter = interpreterWasGiven && nextInterpreter != null
+      ? toRaw(nextInterpreter)
+      : nextInterpreter
+    const interpreterChanged = interpreterWasGiven &&
+      toRaw(state.interpreter) !== rawInterpreter
+    const aiModeChanged = aiMode !== undefined && state.aiMode !== aiMode
+    const nextStyle = style === undefined ? null : {
+      tone: style?.tone ?? null,
+      theme: style?.theme ?? null,
+    }
+    const styleChanged = nextStyle !== null && (
+      (state.style?.tone ?? null) !== nextStyle.tone ||
+      (state.style?.theme ?? null) !== nextStyle.theme
+    )
+
+    if (!interpreterChanged && !aiModeChanged && !styleChanged) return
+    if (interpreterChanged) {
+      state.interpreter = rawInterpreter == null ? null : markRaw(rawInterpreter)
+    }
+    if (aiModeChanged) state.aiMode = aiMode
+    if (styleChanged) state.style = nextStyle
+
+    const ai = currentAi()
+    const model = ai.model ?? (state.interpreter == null ? 'no model' : 'unnamed model')
+    const dial = DIAL_NAMES[ai.aiMode] ?? 'Unknown'
+    print(`AI rules: model ${model} · dial ${dial} · tone ${ai.style.tone ?? 'any'} · theme ${ai.style.theme ?? 'any'}`, 'settings')
   }
 
   function intro() {
@@ -153,15 +237,19 @@ export function createGame(options = {}) {
     print(`> ${line}`, 'input')
     if (handleMeta(trimmed)) return
 
+    const turnAt = new Date().toISOString()
+    const turnAi = currentAi()
+    const turnInterpreter = state.interpreter == null ? null : toRaw(state.interpreter)
+    const turnStyle = { ...turnAi.style }
     state.busy = true
     fast = false
     const before = structuredClone(world.value)
     try {
       const result = await takeTurn(world.value, line, {
-        interpreter: state.interpreter,
+        interpreter: turnInterpreter,
         transcript: transcript.slice(-TRANSCRIPT_PAIRS),
-        aiMode: state.aiMode,
-        style: state.style,
+        aiMode: turnAi.aiMode,
+        style: turnStyle,
         gapCache,
       })
       const changes = diffWorld(before, world.value)
@@ -170,7 +258,15 @@ export function createGame(options = {}) {
         if (undoStack.length > UNDO_DEPTH) undoStack.shift()
       }
       const id = nextId++
-      state.turns.push({ id, ...result, changes, turnNumber: world.value.turn_count, revealed: 0 })
+      state.turns.push({
+        id,
+        ...result,
+        at: turnAt,
+        ai: turnAi,
+        changes,
+        turnNumber: world.value.turn_count,
+        revealed: 0,
+      })
       const turn = state.turns.at(-1)      // the reactive copy, so reveals redraw
       state.selectedTurnId = id
       state.log.at(-1).turnId = id
@@ -311,12 +407,56 @@ export function createGame(options = {}) {
     onWorldApplied?.(raw)
   }
 
+  function exportLog(extra = {}) {
+    const exportedTurns = state.turns.map(turn => ({
+      line: turn.line,
+      at: turn.at,
+      ai: turn.ai,
+      route: turn.route,
+      understood: turn.understood ?? null,
+      text: turn.text,
+      aiWritten: Boolean(turn.aiWritten),
+      parseError: turn.parseError ?? null,
+      parseTrace: turn.parseTrace ?? [],
+      interpreter: turn.interpreter == null ? null : {
+        status: turn.interpreter.status,
+        name: turn.interpreter.name,
+        ms: turn.interpreter.ms,
+        answer: turn.interpreter.answer,
+        context: turn.interpreter.context,
+        reread: turn.interpreter.reread,
+        via: turn.interpreter.via,
+      },
+      filled: turn.filled ?? null,
+      improvised: turn.improvised ?? null,
+      events: turn.events ?? [],
+      changes: turn.changes ?? [],
+      outcome: turn.outcome ?? null,
+      clarifying: Boolean(turn.clarifying),
+    }))
+    const page = {
+      href: typeof location === 'undefined' ? null : location.href,
+      userAgent: typeof navigator === 'undefined' ? null : navigator.userAgent,
+    }
+    return jsonSafe({
+      format: 'adventure-lab-session-log',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      page,
+      world: { title: world.value.title },
+      ai: currentAi(),
+      console: state.log.map(({ kind, text, at, turnId }) => ({ kind, text, at, turnId })),
+      turns: exportedTurns,
+      ...extra,
+    })
+  }
+
   const selectedTurn = computed(() =>
     state.turns.find(t => t.id === state.selectedTurnId) ?? state.turns.at(-1) ?? null)
 
   intro()
   return {
-    world: view, definition, state, submit, skip, selectedTurn, restart, applyWorld,
+    world: view, definition, state, submit, skip, selectedTurn, restart, applyWorld, setAi, exportLog,
     select: id => { state.selectedTurnId = id },
   }
 }

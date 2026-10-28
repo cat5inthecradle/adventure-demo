@@ -1,7 +1,7 @@
 <script setup>
 // Chooses the interpreter. Off by default: a model is a large download, so it is
 // only fetched when someone picks one here. Cached models load without fetching.
-import { markRaw, onMounted, reactive } from 'vue'
+import { onMounted, reactive } from 'vue'
 import { MODELS, webgpuProblem } from '../llm/models.js'
 
 // The WebLLM runtime is a large module; fetch it only once WebGPU is confirmed.
@@ -37,7 +37,7 @@ let current = null
 
 async function choose() {
   const model = MODELS.find(m => m.id === ui.choice)
-  props.game.state.interpreter = null
+  props.game.setAi({ interpreter: null })
   const previous = current
   current = null
   await previous?.unload()
@@ -69,7 +69,7 @@ async function choose() {
   if (current !== interpreter) return interpreter.unload()
   ui.cached[model.id] = true
   ui.status = 'ready'
-  props.game.state.interpreter = markRaw(interpreter)
+  props.game.setAi({ interpreter })
 }
 </script>
 

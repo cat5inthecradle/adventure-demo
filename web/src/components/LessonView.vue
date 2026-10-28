@@ -1,6 +1,7 @@
 <script setup>
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { filterToolbox } from '../builder/schema.js'
+import { downloadLog } from '../sessionLog.js'
 import InstructionsPanel from './InstructionsPanel.vue'
 import InterpreterPicker from './InterpreterPicker.vue'
 import ParserPanel from './ParserPanel.vue'
@@ -172,6 +173,7 @@ onBeforeUnmount(() => {
             @select="select"
             @skip="game.skip"
             @restart="restart"
+            @download-log="downloadLog(controller)"
           />
         </div>
         <aside v-if="visiblePanels.length" class="side-panels">

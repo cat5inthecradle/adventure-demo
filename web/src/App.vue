@@ -8,6 +8,7 @@ import InterpreterPicker from './components/InterpreterPicker.vue'
 import LessonView from './components/LessonView.vue'
 import LessonController from './lesson/LessonController.js'
 import { levelProperties, starters, unit } from './lesson/hourOfAi.js'
+import { downloadLog } from './sessionLog.js'
 // Loaded on first visit: players who never open it never download it.
 const BenchView = defineAsyncComponent(() => import('./components/BenchView.vue'))
 // Blockly is large; it loads the first time someone opens Build.
@@ -169,6 +170,7 @@ onBeforeUnmount(() => {
           @select="select"
           @skip="game.skip"
           @restart="restart"
+          @download-log="downloadLog(game)"
         />
       </div>
       <aside class="side">

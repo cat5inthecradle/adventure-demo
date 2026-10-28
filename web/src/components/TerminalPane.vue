@@ -9,7 +9,7 @@ const props = defineProps({
   nudgeTurnId: { type: Number, default: null },
   busy: Boolean,
 })
-const emit = defineEmits(['submit', 'select', 'skip', 'restart'])
+const emit = defineEmits(['submit', 'select', 'skip', 'restart', 'download-log'])
 
 const input = ref('')
 const field = ref(null)
@@ -136,6 +136,7 @@ function copyScreen(event) {
   const copied = document.createElement('div')
   for (const range of ranges) copied.append(range.cloneContents())
   copied.querySelectorAll('.visually-hidden').forEach(element => element.remove())
+  copied.querySelectorAll('.settings-icon').forEach(element => element.remove())
   copied.querySelectorAll('.ai-label').forEach(label => label.after(document.createTextNode('\n')))
 
   const lines = [...copied.querySelectorAll('.line')]
@@ -175,7 +176,7 @@ watch(() => props.log.map(entry => [entry.id, entry.kind, entry.text]), () => {
 
   for (const entry of entries) {
     if (knownIds.has(entry.id)) continue
-    if (entry.kind === 'input' || reducedMotion || fastForwardUntilIdle) {
+    if (entry.kind === 'input' || entry.kind === 'settings' || reducedMotion || fastForwardUntilIdle) {
       shownText.set(entry.id, entry.text)
     } else {
       shownText.set(entry.id, '')
@@ -234,6 +235,9 @@ defineExpose({ focus: () => field.value?.focus(), scrollToEnd })
           <span aria-hidden="true">▶ {{ displayedText(entry) }}</span>
           <span class="visually-hidden">{{ entry.text }}</span>
         </button>
+        <p v-else-if="entry.kind === 'settings'" class="line settings">
+          <span class="settings-icon" aria-hidden="true">⚙ </span>{{ entry.text }}
+        </p>
         <p v-else class="line" :class="entry.kind">
           <template v-if="entry.kind === 'input'">{{ entry.text }}</template>
           <template v-else>
@@ -265,6 +269,13 @@ defineExpose({ focus: () => field.value?.focus(), scrollToEnd })
         @keydown.down.prevent="recall(1)"
         @keydown.esc.prevent="skip"
       />
+      <button
+        type="button"
+        class="download-log"
+        aria-label="Download session log"
+        title="Download this session as a log file"
+        @click="emit('download-log')"
+      >Download log</button>
     </form>
   </section>
 </template>
@@ -316,6 +327,7 @@ defineExpose({ focus: () => field.value?.focus(), scrollToEnd })
   margin-bottom: 0.3em;
 }
 .system { color: var(--crt-dim); }
+.settings { color: var(--crt-dim); font-size: 0.78em; }
 .echo { color: var(--crt-dim); margin-bottom: 0.3em; }
 .ai {
   border-left: 2px dashed var(--crt-dim);
@@ -407,6 +419,18 @@ button.clickable.nudge {
   border-top: 1px solid var(--crt-edge);
 }
 .prompt-mark { color: var(--crt-bright); }
+.download-log {
+  flex: none;
+  padding: 0.2em 0;
+  border: 0;
+  background: transparent;
+  color: var(--crt-dim);
+  font: inherit;
+  font-size: 0.72em;
+  cursor: pointer;
+}
+.download-log:hover { color: var(--crt-fg); }
+.download-log:focus-visible { outline: 1px solid var(--crt-bright); outline-offset: 3px; }
 @keyframes blink { to { opacity: 0.45; } }
 @keyframes nudge {
   0%, 100% { box-shadow: inset 0 0 0 1px var(--crt-dim), 0 0 2px transparent; }

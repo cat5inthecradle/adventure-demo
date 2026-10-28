@@ -18,6 +18,8 @@ export default class LessonController {
     this.interpreter = interpreter
     this.level = null
     this.properties = null
+    this.lessonPosition = null
+    this.levelPosition = null
     this.game = null
     this.listeners = new Set()
     this.dial = { setting: 'understand', tone: null, theme: null }
@@ -44,6 +46,8 @@ export default class LessonController {
 
     this.level = level
     this.properties = properties
+    this.lessonPosition = lessonPosition
+    this.levelPosition = levelPosition
 
     const template = properties.projectTemplateLevelName
     const worldData = this.loadProject(template) ??
@@ -143,7 +147,7 @@ export default class LessonController {
 
   setInterpreter(interpreter) {
     this.interpreter = interpreter
-    if (this.game) this.game.state.interpreter = interpreter
+    if (this.game) this.game.setAi({ interpreter })
     this.notify()
   }
 
@@ -164,8 +168,21 @@ export default class LessonController {
 
   applyDial({ setting, tone, theme }) {
     if (!this.game) return
-    this.game.state.aiMode = setting
-    this.game.state.style = { tone, theme }
+    this.game.setAi({ aiMode: setting, style: { tone, theme } })
+  }
+
+  exportLog() {
+    return this.game.exportLog({
+      lesson: {
+        unit: this.unit.name ?? this.unit.id,
+        lesson: this.lessonPosition,
+        level: this.levelPosition,
+        levelId: Number(this.properties.id),
+        levelName: this.properties.name,
+        dial: { ...this.dial },
+        dialWasSet: this.dialWasSet,
+      },
+    })
   }
 
   get libraryKey() {
