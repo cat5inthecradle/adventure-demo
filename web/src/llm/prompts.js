@@ -58,9 +58,30 @@ export function speakPrompt({ npc, topic, line, context, style = {} }) {
   ].join('\n')
   return [
     { role: 'system', content: SPEAK_SYSTEM },
+    ...SPEAK_EXAMPLES.flatMap(([example, reply]) => [
+      { role: 'user', content: example },
+      { role: 'assistant', content: reply },
+    ]),
     { role: 'user', content: scene },
   ]
 }
+
+// Small models narrate around the speech ("The keeper sighs, …") however firmly
+// the system prompt says not to. Worked examples of bare speech hold them to it.
+const KEEPER = `Character: old keeper
+Character description: A stooped lighthouse keeper with salt in his beard.
+Authored lines:
+- 'The lamp went dark in the storm,' the keeper says. 'Find the oil.'
+Room: Lighthouse Base
+Room description: Waves boom against the rocks. A spiral stair climbs into darkness.`
+const SPEAK_EXAMPLES = [
+  [`${KEEPER}\nTopic: the storm\nPlayer says: ask the keeper about the storm`,
+    'Worst I have seen in forty years. It took the lamp and nearly took me with it.'],
+  [`${KEEPER}\nTopic: where is everyone\nPlayer says: ask keeper where is everyone\nTone: eerie`,
+    'Gone. The boat left at dusk, and nobody rowed it.'],
+  [`${KEEPER}\nTopic: hello\nPlayer says: tell the keeper hello`,
+    'Hello yourself. Mind the stair, it bites.'],
+]
 
 /** Keep a model reply to the words spoken, with no label or wrapping quotes. */
 export function cleanReply(raw) {

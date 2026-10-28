@@ -221,14 +221,25 @@ describe('the speak prompt', () => {
 
   it('carries the character, what they already say, the question, the tone and the theme', () => {
     const messages = speakPrompt({ npc, topic: 'time', line: 'ask the droid for the time', context, style: { tone: 'eerie', theme: 'loneliness' } })
-    const all = messages.map(m => m.content).join('\n')
+    const all = messages.at(-1).content
     expect(messages[0].role).toBe('system')
+    expect(messages.at(-1).role).toBe('user')
     expect(all).toMatch(/maintenance droid/)
     expect(all).toMatch(/patient green eye/)
     expect(all).toMatch(/crate needs leverage/)
     expect(all).toMatch(/ask the droid for the time/)
     expect(all).toMatch(/eerie/i)
     expect(all).toMatch(/loneliness/)
+  })
+
+  it('shows the model worked examples of bare speech, with no narration around it', () => {
+    const messages = speakPrompt({ npc, topic: 'time', line: 'ask the droid for the time', context, style: {} })
+    const replies = messages.filter(m => m.role === 'assistant').map(m => m.content)
+    expect(replies.length).toBeGreaterThanOrEqual(2)
+    for (const reply of replies) {
+      expect(reply).not.toMatch(/["“”]/)
+      expect(reply).not.toMatch(/\bsays\b|\bsighs\b|\bnods\b/)
+    }
   })
 
   it('works without a tone or theme', () => {

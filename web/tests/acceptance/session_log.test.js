@@ -56,8 +56,27 @@ describe('changing the AI rules', () => {
     g.setAi({ aiMode: 'improvise' })
     expect(g.state.interpreter).toBe(model)
     expect(g.state.aiMode).toBe('improvise')
-    expect(settingsLines(g)).toHaveLength(2)
+    expect(settingsLines(g)).toHaveLength(1)
+    expect(settingsLines(g)[0].text).toMatch(/fake model.*improvise/i)
+    const line = settingsLines(g)[0]
     g.setAi({ interpreter: model, aiMode: 'improvise', style: { tone: null, theme: null } })
+    expect(settingsLines(g)).toEqual([line])
+  })
+
+  it('keeps one line for back-to-back changes, such as typing a theme letter by letter', () => {
+    const g = game()
+    for (const theme of ['a', 'a s', 'a spooky ship']) g.setAi({ style: { tone: 'eerie', theme } })
+    const lines = settingsLines(g)
+    expect(lines).toHaveLength(1)
+    expect(lines[0].text).toMatch(/a spooky ship/)
+    expect(g.state.log.at(-1)).toBe(lines[0])
+  })
+
+  it('starts a new line once something else was printed in between', async () => {
+    const g = game()
+    g.setAi({ aiMode: 'off' })
+    await g.submit('look')
+    g.setAi({ aiMode: 'understand' })
     expect(settingsLines(g)).toHaveLength(2)
   })
 
@@ -87,10 +106,10 @@ describe('the lesson', () => {
     c.setDial({ setting: 'fill_gaps', tone: 'funny', theme: 'home' })
     c.setInterpreter(fake('Llama test'))
     const lines = settingsLines(c.game).slice(before)
-    expect(lines).toHaveLength(2)
+    expect(lines).toHaveLength(1)                          // back to back, so one line
     expect(lines[0].text).toMatch(/fill gaps/i)
     expect(lines[0].text).toMatch(/funny/)
-    expect(lines[1].text).toMatch(/Llama test/)
+    expect(lines[0].text).toMatch(/Llama test/)
   })
 
   it('adds where the student is in the lesson to the downloaded log', () => {

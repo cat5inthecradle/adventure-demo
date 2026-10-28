@@ -179,6 +179,9 @@ export function createGame(options = {}) {
     const ai = currentAi()
     const model = ai.model ?? (state.interpreter == null ? 'no model' : 'unnamed model')
     const dial = DIAL_NAMES[ai.aiMode] ?? 'Unknown'
+    // Typing a theme changes the rules on every keystroke: one line says where
+    // they ended up, rather than one line per letter.
+    if (state.log.at(-1)?.kind === 'settings') state.log.pop()
     print(`AI rules: model ${model} · dial ${dial} · tone ${ai.style.tone ?? 'any'} · theme ${ai.style.theme ?? 'any'}`, 'settings')
   }
 
