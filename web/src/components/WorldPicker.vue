@@ -38,11 +38,12 @@ const selected = computed(() => {
 <style scoped>
 .picker { margin: 12px 0 14px; border-top: 1px solid var(--line); padding-top: 12px; }
 h3 { margin: 0 0 8px; font-size: 14px; }
-.choices { display: grid; gap: 6px; }
-button { display: grid; gap: 2px; width: 100%; border: 1px solid var(--line-strong); border-radius: 8px; padding: 7px 9px; background: var(--panel); color: var(--fg); font: inherit; text-align: left; cursor: pointer; }
-button[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
+.choices { display: grid; gap: 8px; padding-right: 3px; }
+button { display: grid; gap: 2px; width: 100%; border: 2px solid var(--edge); border-radius: 6px; padding: 7px 9px; background: var(--panel); color: var(--fg); font: inherit; text-align: left; cursor: pointer; box-shadow: var(--shadow-small); }
+button[aria-pressed='true'] { background: var(--hi); color: var(--on-hi); }
+button[aria-pressed='true'] span { color: var(--on-hi); }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-strong { font-size: 12.5px; }
+strong { font-family: var(--display); font-size: 15px; }
 span { color: var(--fg-soft); font-size: 11.5px; line-height: 1.35; }
 p { margin: 7px 0 0; color: var(--muted); font-size: 11px; line-height: 1.35; }
 </style>

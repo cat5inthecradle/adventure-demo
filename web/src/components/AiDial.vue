@@ -90,7 +90,7 @@ function save() {
       Reason
       <input v-model="reason" type="text" maxlength="120" placeholder="Why does this setting fit?">
     </label>
-    <button type="button" @click="save">Save my setting</button>
+    <button type="button" class="chunky" @click="save">Save my setting</button>
     <span v-if="saved" class="saved" role="status">Saved.</span>
   </section>
 </template>
@@ -118,6 +118,6 @@ h3 { margin: 0 0 8px; font-size: 14px; }
   text-transform: none;
   letter-spacing: normal;
 }
-button { margin-top: 10px; border: 0; border-radius: 7px; padding: 7px 10px; background: var(--accent); color: #fff; font: inherit; font-size: 12px; cursor: pointer; }
+button { margin-top: 10px; padding: 7px 12px; background: var(--accent); color: var(--on-accent); font-size: 14px; font-weight: 700; cursor: pointer; }
 .saved { margin-left: 8px; color: var(--good); font-size: 12px; }
 </style>

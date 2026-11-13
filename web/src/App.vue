@@ -184,30 +184,36 @@ onBeforeUnmount(() => {
   height: var(--app-height, 100dvh);
   display: flex;
   flex-direction: column;
-  padding: 0 18px 18px;
+  padding: 0 22px 22px 18px;
   gap: 12px;
+  /* Three stripes across the top, like the edge of an old game box. */
+  border-top: 6px solid var(--hot);
+  box-shadow: inset 0 6px 0 var(--hi), inset 0 12px 0 var(--cool);
 }
 .topbar {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 12px;
-  padding-top: 12px;
+  padding-top: 22px;
 }
-h1 { font-size: 17px; margin: 0; letter-spacing: 0.02em; }
+h1 { font-size: 24px; font-weight: 700; margin: 0; letter-spacing: 0.03em; text-shadow: 2px 2px 0 var(--hi); }
 .subtitle { color: var(--muted); font-size: 13px; }
 .spacer { flex: 1; }
 .views { display: flex; gap: 2px; margin-left: 8px; }
 .views button {
   font: inherit;
-  font-size: 12px;
-  padding: 3px 10px;
+  font-family: var(--display);
+  font-size: 14px;
+  padding: 3px 12px;
   border-radius: 6px;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
   background: none;
   color: var(--muted);
   cursor: pointer;
 }
+.views button:hover { color: var(--fg); }
+.views button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .restart { display: flex; align-items: center; gap: 6px; font-size: 12px; }
 .restart .ask { color: var(--muted); }
 .restart button {
@@ -221,7 +227,7 @@ h1 { font-size: 17px; margin: 0; letter-spacing: 0.02em; }
   cursor: pointer;
 }
 .restart button.danger { background: var(--bad); border-color: var(--bad); color: #fff; }
-.views button[aria-current='page'] { background: var(--chip); border-color: var(--line); color: var(--fg); }
+.views button[aria-current='page'] { background: var(--hi); border-color: var(--edge); color: var(--on-hi); box-shadow: var(--shadow-small); }
 .pace {
   font-size: 12px;
   color: var(--muted);
@@ -305,7 +311,7 @@ h1 { font-size: 17px; margin: 0; letter-spacing: 0.02em; }
   border-radius: 8px;
   border: 0;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   cursor: pointer;
 }
 </style>

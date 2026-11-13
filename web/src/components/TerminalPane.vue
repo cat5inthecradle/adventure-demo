@@ -286,9 +286,12 @@ defineExpose({ focus: () => field.value?.focus(), scrollToEnd })
   flex-direction: column;
   height: 100%;
   background: var(--crt-bg);
-  border: 1px solid var(--crt-edge);
-  border-radius: 14px;
-  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.6), 0 0 0 4px var(--bezel);
+  /* A plastic monitor case around the screen. */
+  border: 12px solid var(--bezel);
+  border-bottom-width: 18px;
+  border-bottom-color: var(--bezel-shade);
+  border-radius: 20px;
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.6), inset 0 0 0 2px var(--crt-edge), 0 0 0 2px var(--edge), 5px 5px 0 2px var(--ink);
   color: var(--crt-fg);
   font-family: var(--mono);
   font-size: clamp(13px, 1.45vh, 17px);
@@ -462,7 +465,7 @@ button.clickable.nudge {
   .pending { padding: 0.5em 0; }
 }
 @media (max-width: 700px), (max-height: 500px) {
-  .terminal { font-size: 15px; border-radius: 10px; }
+  .terminal { font-size: 15px; border-width: 6px; border-bottom-width: 8px; border-radius: 12px; }
   .screen { padding: 0.9em 0.9em 0.3em; }
   .prompt { padding: 0.5em 0.9em 0.7em; }
   /* Under 16px, phones zoom the page in when the field is tapped. */

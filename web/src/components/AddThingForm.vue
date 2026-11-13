@@ -72,7 +72,7 @@ async function save() {
         placeholder="other names, with commas between"
       >
     </label>
-    <button type="submit" :disabled="form.busy">{{ existing ? 'Save changes' : 'Add it to the world' }}</button>
+    <button type="submit" class="chunky" :disabled="form.busy">{{ existing ? 'Save changes' : 'Add it to the world' }}</button>
     <p v-if="form.error" class="error" role="alert">{{ form.error }}</p>
     <p v-else-if="form.status" class="status" role="status">{{ form.status }}</p>
   </form>
@@ -97,7 +97,7 @@ h3 { margin: 0 0 2px; font-size: 14px; }
   resize: vertical;
 }
 .field input:focus-visible, .field textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-button { margin-top: 10px; border: 0; border-radius: 7px; padding: 7px 10px; background: var(--accent); color: #fff; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+button { margin-top: 10px; padding: 7px 12px; background: var(--accent); color: var(--on-accent); font-size: 14px; font-weight: 700; cursor: pointer; }
 button:disabled { opacity: 0.5; cursor: default; }
 .error, .status { margin: 8px 0 0; padding: 8px; border-radius: 7px; font-size: 12px; line-height: 1.4; }
 .error { background: var(--warn-soft); }

@@ -21,8 +21,8 @@ const print = () => window.print()
 <template>
   <div class="card-stage">
     <div class="actions no-print">
-      <button type="button" class="primary" @click="print">Print my card</button>
-      <button type="button" @click="$emit('back')">Back to my answers</button>
+      <button type="button" class="primary chunky" @click="print">Print my card</button>
+      <button type="button" class="chunky" @click="$emit('back')">Back to my answers</button>
     </div>
 
     <article class="rules-card" aria-labelledby="rules-card-title">
@@ -82,15 +82,15 @@ const print = () => window.print()
 </template>
 
 <style scoped>
-.card-stage { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.card-stage { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; align-items: center; padding: 0 8px 8px 0; }
 .actions { display: flex; gap: 8px; align-self: stretch; }
-.actions button { border: 1px solid var(--line-strong); border-radius: 8px; padding: 8px 14px; background: var(--panel); color: var(--fg); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
-.actions button.primary { border-color: var(--accent); background: var(--accent); color: #fff; }
+.actions button { padding: 8px 14px; background: var(--panel); color: var(--fg); font-size: 14px; font-weight: 700; cursor: pointer; }
+.actions button.primary { background: var(--accent); color: var(--on-accent); }
 .actions button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.rules-card { width: 100%; max-width: 680px; padding: 28px 32px; border: 1px solid #c9ced3; border-radius: 12px; background: #fff; color: #1d2329; line-height: 1.45; }
+.rules-card { width: 100%; max-width: 680px; padding: 28px 32px; border: 2px solid #1f2440; border-top: 10px solid #e4572e; border-radius: 8px; box-shadow: 5px 5px 0 var(--ink); background: #fffdf7; color: #1f2440; line-height: 1.45; }
 header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-bottom: 2px solid #1d2329; padding-bottom: 8px; }
-h2 { margin: 0; font-size: 26px; }
+h2 { margin: 0; font-size: 32px; font-weight: 700; }
 .by { margin: 0; font-size: 14px; white-space: nowrap; }
 section { padding: 14px 0; border-bottom: 1px solid #c9ced3; }
 h3 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #4b5560; }
@@ -110,7 +110,7 @@ footer { padding-top: 12px; font-size: 14px; font-weight: 700; text-align: cente
 @media print {
   body * { visibility: hidden !important; }
   .rules-card, .rules-card * { visibility: visible !important; }
-  .rules-card { position: absolute; left: 0; top: 0; max-width: none; border: 0; padding: 0; }
+  .rules-card { position: absolute; left: 0; top: 0; max-width: none; border: 0; box-shadow: none; padding: 0; background: #fff; }
   .no-print { display: none !important; }
 }
 </style>

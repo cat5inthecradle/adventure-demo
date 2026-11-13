@@ -58,7 +58,12 @@ function continueLesson() {
     <nav class="level-nav" aria-label="Lesson levels">
       <a v-if="previous" :href="previous.path" aria-label="Previous level">← Previous</a>
       <span v-else></span>
-      <span class="position" aria-live="polite">Level {{ level.position }} of {{ level.totalLevels }}</span>
+      <span class="position" aria-live="polite">
+        Level {{ level.position }} of {{ level.totalLevels }}
+        <span class="pips" aria-hidden="true">
+          <i v-for="n in level.totalLevels" :key="n" :class="{ done: n < level.position, here: n === level.position }"></i>
+        </span>
+      </span>
       <a v-if="following" :href="following.path" aria-label="Next level">Next →</a>
       <span v-else></span>
     </nav>
@@ -98,12 +103,12 @@ function continueLesson() {
 
       <template v-if="finished">
         <p class="finished" role="status">You finished the lesson.</p>
-        <button type="button" class="continue" @click="emit('finish')">See my AI rules card</button>
+        <button type="button" class="continue chunky" @click="emit('finish')">See my AI rules card</button>
       </template>
       <button
         v-else
         type="button"
-        class="continue"
+        class="continue chunky"
         :disabled="!controller.canContinue()"
         @click="continueLesson"
       >Continue</button>
@@ -118,13 +123,19 @@ function continueLesson() {
 
 <style scoped>
 .instructions { width: 320px; flex: none; padding: 0; }
-.level-nav { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 11px; }
+.level-nav { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 2px dashed var(--line); font-size: 12px; }
+.level-nav a { font-family: var(--display); }
+.level-nav a:hover { text-decoration: underline; }
 .level-nav a { color: var(--accent); text-decoration: none; }
 .level-nav a:last-child { text-align: right; }
-.position { color: var(--muted); }
+.position { display: grid; justify-items: center; gap: 5px; color: var(--muted); }
+.pips { display: flex; gap: 4px; }
+.pips i { width: 12px; height: 12px; border: 2px solid var(--edge); background: var(--panel); }
+.pips i.done { background: var(--cool); }
+.pips i.here { background: var(--hi); }
 .scroll { padding: 12px; overflow-y: auto; }
-.progression { margin: 0 0 4px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
-h2 { margin: 0 0 12px; font-size: 20px; line-height: 1.2; }
+.progression { display: inline-block; margin: 0 0 8px; padding: 2px 8px; border: 2px solid var(--edge); border-radius: 4px; background: var(--hi); color: var(--on-hi); font-family: var(--display); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+h2 { margin: 0 0 12px; font-size: 24px; font-weight: 700; line-height: 1.15; }
 .markdown { color: var(--fg-soft); font-size: 13px; line-height: 1.5; }
 .markdown :deep(p) { margin: 0 0 10px; }
 .markdown :deep(ul) { margin: 0 0 10px; padding-left: 18px; }
@@ -134,14 +145,14 @@ h2 { margin: 0 0 12px; font-size: 20px; line-height: 1.2; }
 .steps li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; }
 .step-marker { width: 22px; height: 22px; display: grid; place-items: center; color: var(--muted); font-size: 12px; font-weight: 700; }
 .step-marker.checkable { border: 2px solid var(--line-strong); border-radius: 50%; }
-.steps li.done .step-marker { border-color: var(--good); background: var(--good); color: #fff; }
+.steps li.done .step-marker { border-color: var(--good); background: var(--good); color: var(--panel); }
 .step-text { padding-top: 1px; }
 .step-text :deep(p) { margin: 0; }
-.feedback { margin: 12px 0 8px; padding: 10px; border-radius: 8px; background: var(--warn-soft); font-size: 12.5px; line-height: 1.4; }
+.feedback { margin: 12px 0 10px; padding: 10px; border: 2px solid var(--edge); border-radius: 6px; background: var(--warn-soft); font-size: 12.5px; line-height: 1.4; }
 .feedback.success { background: var(--good-soft); color: var(--good); font-weight: 600; }
-.continue { width: 100%; border: 0; border-radius: 8px; padding: 9px 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.continue { width: 100%; padding: 9px 12px; background: var(--accent); color: var(--on-accent); font-size: 16px; font-weight: 700; cursor: pointer; }
 .continue:disabled { opacity: 0.45; cursor: default; }
-.finished { margin: 0 0 8px; padding: 10px; border-radius: 8px; background: var(--good-soft); color: var(--good); font-weight: 600; text-align: center; }
+.finished { margin: 0 0 10px; padding: 10px; border: 2px solid var(--edge); border-radius: 6px; background: var(--good-soft); color: var(--good); font-weight: 600; text-align: center; }
 .teachers { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
 .teachers summary { cursor: pointer; color: var(--muted); font-size: 12px; }
 .teachers .markdown { margin-top: 8px; font-size: 12px; }

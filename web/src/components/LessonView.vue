@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
 <template>
   <main v-if="phone" class="lesson-phone panel">
     <h2>This lesson needs a bigger screen</h2>
-    <p>Open Adventure Lab on a Chromebook, tablet or laptop to play and build.</p>
+    <p>Open Adventure Lab on a Chromebook, tablet or laptop to play.</p>
   </main>
   <main v-else class="lesson">
     <InstructionsPanel :controller="controller" :revision="revision" @finish="showCard = true" />
@@ -168,14 +168,14 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.lesson { flex: 1; min-height: 0; display: flex; gap: 14px; }
+.lesson { flex: 1; min-height: 0; display: flex; gap: 18px; }
 .work { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
 .lesson-toolbar { display: flex; align-items: center; min-height: 38px; }
 .spacer { flex: 1; }
-.play-stage { flex: 1; min-height: 0; display: flex; gap: 14px; }
+.play-stage { flex: 1; min-height: 0; display: flex; gap: 18px; padding: 0 8px 8px 0; }
 .terminal-frame { flex: 1; min-width: 0; height: 100%; }
 .panels-0 .terminal-frame { max-width: min(100%, calc((100vh - 130px) * 4 / 3)); }
-.side-panels { width: 320px; min-width: 260px; display: grid; grid-auto-rows: minmax(0, 1fr); gap: 12px; }
+.side-panels { width: 320px; min-width: 260px; display: grid; grid-auto-rows: minmax(0, 1fr); gap: 16px; }
 .side-panels.with-form { grid-template-rows: auto; }
 .lesson-phone { margin: auto; max-width: 430px; padding: 18px; }
 .lesson-phone h2 { margin: 0 0 8px; font-size: 18px; }

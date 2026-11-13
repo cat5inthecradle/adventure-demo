@@ -73,15 +73,15 @@ const remaining = computed(() =>
 </template>
 
 <style scoped>
-.real-life { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-.yours { margin: 0; padding: 8px 10px; border-radius: 7px; background: var(--accent-soft); color: var(--fg-soft); font-size: 13px; }
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; align-items: start; }
+.real-life { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 0 6px 6px 0; }
+.yours { margin: 0; padding: 8px 10px; border: 2px solid var(--edge); border-radius: 6px; background: var(--accent-soft); color: var(--fg-soft); font-size: 13px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; align-items: start; }
 .card { margin: 0; padding: 12px; min-width: 0; }
-legend { float: left; width: 100%; padding: 0; margin: 0 0 2px; font-size: 16px; font-weight: 700; }
+legend { float: left; width: 100%; padding: 0; margin: 0 0 2px; font-size: 19px; font-weight: 700; }
 .blurb { clear: both; margin: 0 0 8px; color: var(--muted); font-size: 13px; line-height: 1.4; }
-.option { display: flex; align-items: flex-start; gap: 7px; padding: 6px; border: 1px solid transparent; border-radius: 7px; font-size: 13px; line-height: 1.4; cursor: pointer; }
+.option { display: flex; align-items: flex-start; gap: 7px; padding: 6px; border: 2px solid transparent; border-radius: 6px; font-size: 13px; line-height: 1.4; cursor: pointer; }
 .option input { margin-top: 3px; }
-.option.chosen { border-color: var(--accent); background: var(--accent-soft); }
+.option.chosen { border-color: var(--edge); background: var(--hi); color: var(--on-hi); }
 .option:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
 .field { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .field input {
