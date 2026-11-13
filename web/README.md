@@ -1,19 +1,18 @@
 # Adventure Lab (web)
 
 The game, its engine and its tools, running entirely in the browser. The page is a
-Vue 3 app with four views, kept in the URL hash:
+Vue 3 app with three views, kept in the URL hash:
 
 - **Play** (no hash): a 4:3 terminal on the left, and on the right a panel that
   shows step by step how each command was understood, plus a world panel (map,
   room, raw state).
-- **Build** (`#build`): the World Builder, below.
 - **Benchmark** (`#bench`): scores the optional language model.
-- **Learn** (`#learn/hoai-adventure/1/1`): hosts the eight-level Hour of AI lesson.
+- **Learn** (`#learn/hoai-adventure/1/1`): hosts the six-level Hour of AI lesson.
 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm test         # golden, engine, builder and benchmark-fixture tests
+npm test         # golden, engine, lesson and benchmark-fixture tests
 npm run golden   # re-record the golden sessions (see Tests)
 npm run check-world -- ../worlds/yours.json   # validate a world file
 ```
@@ -28,13 +27,12 @@ The world is `../worlds/wayfarer.json`, imported at the top of `src/game.js`.
 | `src/engine/interpreter.js` | The plug-in point for an LLM (see below) |
 | `src/game.js` | The play session: scrollback, turn history, undo, saves, meta commands |
 | `src/App.vue` | The top bar, the three views, restart, and the phone layout |
-| `src/components/` | Terminal, parser panel, world panel, interpreter picker, benchmark view, World Builder view |
+| `src/components/` | Terminal, parser panel, world panel, interpreter picker, benchmark view, the lesson view and its add-a-thing form |
 | `src/llm/` | The WebLLM interpreter: models, prompts, and the Web Worker it runs in |
 | `src/storage.js` | Browser storage, or nothing when the browser blocks it |
 | `src/bench/cases.js`, `tests/fixtures/nl_cases.json` | The interpreter benchmark: cases, replay, scoring |
-| `src/builder/` | The World Builder: block definitions (`schema.js`), world ↔ blocks conversion (`convert.js`), Blockly wiring (`blocks.js`), the library of saved worlds (`library.js`) |
+| `src/lesson/` | The Hour of AI lesson host (`LessonController.js`) and the add-a-thing edit (`addThing.js`) |
 | `src/engine/merge.js` | Applies an edited world to a game in progress |
-| `tests/builder.test.js` | The World Builder: block schema, the Wayfarer round trip, merging, the library |
 | `tests/golden.test.js`, `scripts/golden.js` | Replays two scripted sessions and checks every response, written and spoken, against `tests/fixtures/golden.json` |
 | `scripts/check-world.js` | Validates a world file from the command line |
 
@@ -55,8 +53,6 @@ switches to one thing at a time:
   skip".
 - Phones play with the parser alone. The model picker and the Benchmark tab are
   hidden, because most phones can't run the 1–2 GB models.
-- Build shows a note that it needs a tablet, Chromebook or laptop, and doesn't
-  load Blockly.
 
 ## Learn
 
@@ -72,8 +68,28 @@ the id-keyed level-properties map. `src/lab2/` resolves levels and tracks
 progress, `src/adventure/` owns the level schema and conditions, and
 `src/lesson/LessonController.js` connects those framework-free pieces to a game
 session. `src/components/LessonView.vue` and `InstructionsPanel.vue` only draw
-the controller state. The lesson's editable project and Blockly library use
-their own browser-storage keys, separate from the normal Play and Build views.
+the controller state. The lesson's editable project uses its own
+browser-storage key, separate from the normal Play view.
+
+Level 5 is the lesson's one authoring step. It comes after the AI
+levels, which need the missing detail to still be missing and so always start
+from the starter world. `AddThingForm.vue` takes a name, a
+description and other names, and `src/lesson/addThing.js` turns them into one
+item in the starting room. The edit is applied to the game in progress by a
+three-way merge (`engine/merge.js`): what the author changed comes from the
+edit, and what the game changed (item locations, open doors, flags, fired
+rules) carries over.
+
+The last level has no game. `RealLifeView.vue` shows three apps outside the
+game (the scenarios are in the level's `realLife` data) and asks where the
+student would set the same dial for each, and why. The controller keeps the
+answers in browser storage and adds them to the downloaded log.
+
+Finishing the lesson opens **My AI rules** (`AiRulesCard.vue`), a one-page card
+the student can print: the dial they set for their game and why, the thing they
+made real, and the dial they set for each real-life app. It draws what
+`LessonController.card()` gathers from browser storage. Nothing is uploaded, and
+the name line is left blank to fill in by hand.
 
 ## Tracing
 
@@ -160,42 +176,6 @@ and set it as `game.state.interpreter` (wrap it in `markRaw`).
 
 `rephrased` is optional: the request in plain words. If you include it, the
 parser tries it before your `action` (see above).
-
-## The World Builder
-
-The **Build** tab is the world as Blockly blocks. Every part of the world format has a
-block, so the Wayfarer loads in full, and a test converts it to blocks and back and
-then replays both golden sessions to check it plays exactly the same.
-
-- **Blocks are data.** `schema.js` declares the blocks with no Blockly import, and
-  `convert.js` turns a world into Blockly's serialized workspace format and back as
-  plain JSON. That is what makes the round trip testable without a browser.
-- **Students never type ids.** Blocks that define something (rooms, doors, things,
-  characters, rules) keep their world id in `block.data`, assigned from the name
-  when the block is made. Everything else picks from dropdowns by name, so renaming
-  a room never breaks an exit.
-- **Flags and counters are Blockly variables**, created from buttons in the
-  Conditions category.
-- **Mistakes are pointed out as you go.** The built world goes through the same
-  loader as any world file, and its complaint shows in the side panel and as a
-  warning on the block it names.
-- **Live edits.** *Play with my changes* merges three versions (`engine/merge.js`):
-  the world the game started from, the game as it stands, and the edited world.
-  What the author changed comes from the edit, and what the game changed (item
-  locations, open doors, flags, fired rules) carries over. If the player's room
-  was deleted, they go back to the start and are told why. *Play from the start*
-  restarts with the edited world.
-- **A library of worlds** (`builder/library.js`). Each world is a workspace
-  state saved in the browser and autosaved as you build. A world's name is its
-  Story block's title, so it's the same in the library, Play's top bar and a
-  downloaded file's name; the World name field edits that title. New,
-  Duplicate, "A copy of the Wayfarer" and "Open a file…" all add a world rather
-  than replace one, and names never collide ("My adventure 2"). Switching worlds
-  doesn't change what Play is running until one of the Play buttons is pressed;
-  the panel says when the game is playing a different world. The world being
-  played is remembered separately, so a reload keeps it.
-- Blockly's sprites and sounds are served from `public/blockly-media` (copied from
-  the `blockly` package), not from `static.blockly.com`.
 
 ## Tests
 

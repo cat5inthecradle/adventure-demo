@@ -17,7 +17,7 @@ const NAMES = {
   play: ['game_won', 'turn_failed', 'examined_matching', 'saw_custom_refusal', 'saw_tool_hint',
     'opened_door_locked_by_flag', 'flag_set', 'interpreter_understood', 'interpreter_clarified',
     'ai_filled_gap', 'ai_improvised'],
-  ui: ['viewed_understood_panel', 'ai_dial_set'],
+  ui: ['viewed_understood_panel', 'ai_dial_set', 'real_life_dials_set'],
   definition: ['entity_named_matching', 'item_has_open_refusal', 'item_has_tool_hint', 'door_locked_by_flag'],
 }
 
@@ -198,9 +198,9 @@ describe('Adventure level properties', () => {
     validations: [{ key: 'pass', conditions: [{ name: 'examined_matching', value: 'mug' }], message: 'Nice.', next: true }],
     levelData: {
       startWorld: 'space',
-      view: 'build',
+      view: 'play',
       panels: ['understood'],
-      build: { blocks: ['room', 'item'] },
+      addThing: { name: 'coffee mug' },
       interpreter: false,
     },
   }
@@ -211,7 +211,7 @@ describe('Adventure level properties', () => {
     expect(parsed.freePlay).toBe(false)
     const bare = parseLevelProperties({ ...level, validations: undefined, levelData: { startWorld: 'space', view: 'play' } })
     expect(bare.validations).toEqual([])
-    expect(bare.levelData).toMatchObject({ panels: [], build: null, interpreter: false })
+    expect(bare.levelData).toMatchObject({ panels: [], interpreter: false })
     expect(bare.levelData.aiDial).toBeUndefined()
   })
 

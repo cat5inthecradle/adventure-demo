@@ -249,7 +249,7 @@ describe('the lesson', () => {
 
   it('starts a dial level at its default and applies the dial to the game at once', () => {
     const c = controller()
-    c.goTo(1, 7)
+    c.goTo(1, 4)
     expect(c.dial.setting).toBe('understand')
     expect(c.game.state.aiMode).toBe('understand')
     c.setDial({ setting: 'off' })
@@ -262,25 +262,25 @@ describe('the lesson', () => {
 
   it('refuses a locked setting', () => {
     const c = controller()
-    c.goTo(1, 7)
+    c.goTo(1, 4)
     expect(() => c.setDial({ setting: 'invent' })).toThrow(/locked/i)
     expect(c.game.state.aiMode).toBe('understand')
   })
 
-  it('keeps the student’s dial between dial levels, and uses Understand elsewhere', () => {
+  it('keeps the student’s dial when they come back to the dial level, and uses Understand elsewhere', () => {
     const c = controller()
-    c.goTo(1, 7)
+    c.goTo(1, 4)
     c.setDial({ setting: 'fill_gaps', tone: 'funny', theme: 'home' })
-    c.goTo(1, 8)
+    c.goTo(1, 3)
+    expect(c.game.state.aiMode).toBe('understand')
+    c.goTo(1, 4)
     expect(c.game.state.aiMode).toBe('fill_gaps')
     expect(c.game.state.style).toEqual({ tone: 'funny', theme: 'home' })
-    c.goTo(1, 6)
-    expect(c.game.state.aiMode).toBe('understand')
   })
 
   it('records a filled gap for the validator', async () => {
     const c = controller()
-    c.goTo(1, 7)
+    c.goTo(1, 4)
     c.setInterpreter(fake())
     c.setDial({ setting: 'fill_gaps' })
     c.game.state.pace = 0
@@ -290,7 +290,7 @@ describe('the lesson', () => {
     expect(c.validator.conditionsMet([{ name: 'ai_filled_gap', value: 'mug' }])).toBe(true)
   })
 
-  it('level 7 walks the student through Off, Understand and Fill gaps on the mug', () => {
+  it('the dial level walks the student through Off, Understand and Fill gaps on the mug', () => {
     const level = levelProperties['9007']
     const text = [level.longInstructions, ...(level.levelData.steps ?? []).map(s => s.text)].join(' ')
     expect(text).toMatch(/mug/i)

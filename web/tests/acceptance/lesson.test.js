@@ -45,7 +45,7 @@ describe('LessonController', () => {
   it('resolves a level and starts its world', () => {
     const c = controller()
     const level = c.goTo(1, 1)
-    expect(level).toMatchObject({ position: 1, totalLevels: 8, levelId: 9001 })
+    expect(level).toMatchObject({ position: 1, totalLevels: 6, levelId: 9001 })
     expect(c.level).toBe(level)
     expect(c.properties.levelData.view).toBe('play')
     expect(c.game.world.value.title).toBe(space.title)
@@ -72,7 +72,7 @@ describe('LessonController', () => {
 
   it('records UI events for the validator', () => {
     const c = controller()
-    c.goTo(1, 7)
+    c.goTo(1, 4)
     expect(c.state().satisfied).toBe(false)
     c.recordUiEvent('ai_dial_set', 'fill_gaps')
     expect(c.state().satisfied).toBe(true)
@@ -80,7 +80,7 @@ describe('LessonController', () => {
 
   it('gives partway feedback after an edit, and passes once the edit is played', async () => {
     const c = controller()
-    c.goTo(1, 3)
+    c.goTo(1, 5)
     await c.game.applyWorld(withMug(), { restart: true })
     expect(c.state()).toMatchObject({ satisfied: false })
     expect(c.state().message).toBeTruthy()
@@ -88,23 +88,25 @@ describe('LessonController', () => {
     expect(c.state().satisfied).toBe(true)
   })
 
-  it('carries the student’s world from level to level through the project template', async () => {
+  it('keeps the student’s world for the level that edits it, and starts the AI levels from the starter', async () => {
     const store = memoryStore()
     const first = controller(store)
-    first.goTo(1, 3)
+    first.goTo(1, 5)
     await first.game.applyWorld(withMug(), { restart: true })
 
     const later = controller(store)
-    later.goTo(1, 4)
+    later.goTo(1, 5)
     expect(Object.keys(later.game.definition.value.items)).toContain('coffee_mug')
-    later.goTo(1, 8)
-    expect(Object.keys(later.game.definition.value.items)).toContain('coffee_mug')
+    for (const position of [3, 4]) {
+      later.goTo(1, position)                      // the mug must still be missing for the AI to fill in
+      expect(Object.keys(later.game.definition.value.items)).not.toContain('coffee_mug')
+    }
   })
 
   it('starts levels without a project template from the starter, every time', async () => {
     const store = memoryStore()
     const c = controller(store)
-    c.goTo(1, 3)
+    c.goTo(1, 5)
     await c.game.applyWorld(withMug(), { restart: true })
     c.goTo(1, 1)
     expect(Object.keys(c.game.definition.value.items)).not.toContain('coffee_mug')
@@ -119,9 +121,10 @@ describe('LessonController', () => {
     expect(c.state()).toMatchObject({ satisfied: false, message: null })
   })
 
-  it('treats free play as always finishable', () => {
-    const c = controller()
-    c.goTo(1, 8)
+  it('treats a free-play level as always finishable, and ends the lesson after the last level', () => {
+    const freePlay = { ...levelProperties, 9009: { ...levelProperties['9009'], freePlay: true } }
+    const c = new LessonController({ unit, levelProperties: freePlay, starters: { space }, store: memoryStore() })
+    c.goTo(1, 6)
     expect(c.canContinue()).toBe(true)
     expect(c.next()).toHaveProperty('href')
     c.goTo(1, 1)

@@ -1,0 +1,92 @@
+// Acceptance tests for the "My AI rules" card: the one page a student takes
+// away. LessonController.card() gathers it; AiRulesCard.vue only draws it.
+
+import { readFileSync } from 'node:fs'
+import { describe, expect, it } from 'vitest'
+import space from '../../../worlds/starters/space.json'
+import haunted from '../../../worlds/starters/haunted.json'
+import unit from '../../../curriculum/hour-of-ai/unit.json'
+import levelProperties from '../../../curriculum/hour-of-ai/level_properties.json'
+import { withThing } from '../../src/lesson/addThing.js'
+import LessonController from '../../src/lesson/LessonController.js'
+
+function memoryStore() {
+  const data = new Map()
+  return { getItem: k => (data.has(k) ? data.get(k) : null), setItem: (k, v) => data.set(k, String(v)) }
+}
+const controller = (store = memoryStore()) =>
+  new LessonController({ unit, levelProperties, starters: { space, haunted }, store })
+
+/** Do the parts of the lesson the card reports on. */
+async function doLesson(c) {
+  c.goTo(1, 4)
+  c.setDial({ setting: 'fill_gaps', tone: 'eerie' })
+  c.setDialReason('  Details are safe to make up.  ')
+  c.goTo(1, 5)
+  const { world } = withThing(c.game.definition.value, { name: 'coffee mug', description: 'Cold coffee.', aliases: 'mug, cup' })
+  await c.game.applyWorld(world)
+  c.goTo(1, 6)
+  c.setRealLife('homework', { setting: 'understand' })
+  c.setRealLife('clinic', { setting: 'off', reason: 'A wrong dose could hurt someone.' })
+  c.setRealLife('story_game', { setting: 'invent' })
+}
+
+describe('the AI rules card', () => {
+  it('is empty, not broken, before the student has done anything', () => {
+    const card = controller().card()
+    expect(card.title).toBe('Drift')
+    expect(card.dial).toBeNull()
+    expect(card.thing).toBeNull()
+    expect(card.realLife.map(a => a.id)).toEqual(['homework', 'clinic', 'story_game'])
+    for (const app of card.realLife) expect(app).toMatchObject({ setting: null, name: null, means: null, reason: '' })
+  })
+
+  it('gathers the game dial, the thing made real and the real-life dials', async () => {
+    const c = controller()
+    await doLesson(c)
+    const card = c.card()
+    expect(card.dial).toMatchObject({ setting: 'fill_gaps', name: 'Fill gaps', reason: 'Details are safe to make up.' })
+    expect(card.dial.meaning).toMatch(/writes/)
+    expect(card.thing).toEqual({ name: 'coffee mug', description: 'Cold coffee.', aliases: ['mug', 'cup'] })
+    const clinic = card.realLife.find(a => a.id === 'clinic')
+    expect(clinic).toMatchObject({ title: 'A clinic app', name: 'Off', reason: 'A wrong dose could hurt someone.' })
+    expect(clinic.means).toBe(levelProperties['9009'].levelData.realLife.scenarios[1].options.off)
+  })
+
+  it('survives a reload', async () => {
+    const store = memoryStore()
+    await doLesson(controller(store))
+    const again = controller(store)
+    again.goTo(1, 6)
+    const card = again.card()
+    expect(card.dial).toMatchObject({ setting: 'fill_gaps', tone: 'eerie', reason: 'Details are safe to make up.' })
+    expect(card.thing?.name).toBe('coffee mug')
+    expect(card.realLife.every(a => a.setting)).toBe(true)
+    again.goTo(1, 4)
+    expect(again.game.state.aiMode).toBe('fill_gaps')          // the saved dial is applied again
+  })
+
+  it('reports the thing made in the world the student chose', async () => {
+    const c = controller()
+    c.setWorld('haunted')
+    c.goTo(1, 5)
+    const { world } = withThing(c.game.definition.value, { name: 'faded portrait', description: 'Eyes that follow.', aliases: '' })
+    await c.game.applyWorld(world)
+    expect(c.card()).toMatchObject({ title: 'Hollow House', thing: { name: 'faded portrait' } })
+    c.setWorld('space')
+    expect(c.card().thing).toBeNull()                         // the space world has no thing yet
+  })
+
+  it('puts the dial reason in the downloaded log', async () => {
+    const c = controller()
+    await doLesson(c)
+    expect(c.exportLog().lesson.dial).toMatchObject({ setting: 'fill_gaps', reason: 'Details are safe to make up.' })
+  })
+
+  it('asks for no name on screen and prints the card alone', () => {
+    const source = readFileSync(new URL('../../src/components/AiRulesCard.vue', import.meta.url), 'utf8')
+    expect(source).not.toMatch(/<input/)                      // the name line is filled in by hand
+    expect(source).toMatch(/@media print/)
+    expect(source).toMatch(/window\.print\(\)/)
+  })
+})

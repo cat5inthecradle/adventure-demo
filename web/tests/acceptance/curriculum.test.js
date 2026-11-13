@@ -9,15 +9,13 @@ import unit from '../../../curriculum/hour-of-ai/unit.json'
 import levelProperties from './spaceLesson.js'
 import { loadWorld } from '../../src/engine/loader.js'
 import { takeTurn } from '../../src/engine/turn.js'
-import { TOOLBOX } from '../../src/builder/schema.js'
 
 const CONDITION_NAMES = [
   'game_won', 'turn_failed', 'examined_matching', 'saw_custom_refusal', 'saw_tool_hint',
   'opened_door_locked_by_flag', 'flag_set', 'interpreter_understood', 'interpreter_clarified',
-  'viewed_understood_panel', 'ai_dial_set',
+  'viewed_understood_panel', 'ai_dial_set', 'real_life_dials_set',
   'entity_named_matching', 'item_has_open_refusal', 'item_has_tool_hint', 'door_locked_by_flag',
 ]
-const BLOCK_TYPES = TOOLBOX.contents.flatMap(c => c.contents).filter(b => b.kind === 'block').map(b => b.type)
 const PANELS = ['understood', 'world']
 const DIAL = ['off', 'understand', 'fill_gaps', 'improvise', 'invent']
 
@@ -78,12 +76,12 @@ describe('Space starter world', () => {
 describe('Hour of AI unit', () => {
   const lesson = unit.lessons?.[0]
 
-  it('is one lesson of eight levels in script-structure shape', () => {
+  it('is one lesson of six levels in script-structure shape', () => {
     expect(unit).toMatchObject({ name: 'hoai-adventure' })
     expect(typeof unit.title).toBe('string')
     expect(unit.lessons).toHaveLength(1)
     expect(lesson).toMatchObject({ position: 1, script_name: 'hoai-adventure' })
-    expect(lesson.levels.map(l => l.position)).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
+    expect(lesson.levels.map(l => l.position)).toEqual([1, 2, 3, 4, 5, 6])
     for (const level of lesson.levels) {
       expect(level).toMatchObject({
         activeId: String(level.activeId),
@@ -94,16 +92,16 @@ describe('Hour of AI unit', () => {
       })
       expect(typeof level.id).toBe('string')
       expect(typeof level.progression_display_name).toBe('string')
-      expect(level.freePlay).toBe(level.position === 8)
+      expect(level.freePlay).toBe(false)
     }
   })
 
   it('groups levels into the four sections', () => {
     expect(lesson.levels.map(l => l.progression)).toEqual([
       'Play and look inside', 'Play and look inside',
-      'Fix the world', 'Fix the world', 'Fix the world',
       'AI and the author', 'AI and the author',
-      'Free play',
+      'Make it real',
+      'AI in real life',
     ])
   })
 })
@@ -136,66 +134,54 @@ describe('Hour of AI level properties', () => {
     }
   })
 
-  it('gives every level but free play a way to pass, and free play none', () => {
-    for (const level of levels.slice(0, 7)) {
+  it('gives every level a way to pass', () => {
+    for (const level of levels) {
       expect(props(level.position).validations.some(v => v.next)).toBe(true)
+      expect(props(level.position).freePlay).toBe(false)
     }
-    expect(props(8).validations).toEqual([])
-    expect(props(8).freePlay).toBe(true)
   })
 
   it('passes each level on the conditions the design names', () => {
     const passing = position => props(position).validations.find(v => v.next).conditions
     expect(passing(1)).toEqual([{ name: 'game_won' }])
     expect(passing(2)).toEqual(expect.arrayContaining([{ name: 'turn_failed' }, { name: 'viewed_understood_panel' }]))
-    expect(passing(3)).toEqual([{ name: 'examined_matching', value: 'mug' }])
-    expect(passing(4)).toEqual(expect.arrayContaining([
-      { name: 'item_has_open_refusal', value: 'supply_crate' },
-      { name: 'item_has_tool_hint', value: 'supply_crate' },
-      { name: 'saw_tool_hint', value: 'supply_crate' },
-    ]))
-    expect(passing(5)).toEqual(expect.arrayContaining([{ name: 'door_locked_by_flag' }, { name: 'opened_door_locked_by_flag' }]))
-    expect(passing(6)).toEqual(expect.arrayContaining([{ name: 'interpreter_understood' }, { name: 'interpreter_clarified' }]))
-    expect(passing(7)).toEqual([{ name: 'ai_dial_set' }])
+    expect(passing(3)).toEqual(expect.arrayContaining([{ name: 'interpreter_understood' }, { name: 'interpreter_clarified' }]))
+    expect(passing(4)).toEqual([{ name: 'ai_dial_set' }])
+    expect(passing(5)).toEqual([{ name: 'examined_matching', value: 'mug' }])
+    expect(passing(6)).toEqual([{ name: 'real_life_dials_set' }])
   })
 
   it('puts the passing validation first and adds partway feedback where the design has it', () => {
-    for (const position of [3, 4, 5, 6]) {
+    for (const position of [3, 5]) {
       const validations = props(position).validations
       expect(validations[0].next).toBe(true)
       expect(validations.some(v => !v.next)).toBe(true)
     }
   })
 
-  it('shares one student world from level 3 on', () => {
-    expect(props(1).projectTemplateLevelName).toBeUndefined()
-    expect(props(2).projectTemplateLevelName).toBeUndefined()
-    for (const position of [3, 4, 5, 6, 7, 8]) {
-      expect(props(position).projectTemplateLevelName).toBe('hoai_adventure_world')
+  it('keeps a student world only for the level that edits it', () => {
+    // The AI levels come first and need the detail to be missing, so they start from the starter.
+    for (const position of [1, 2, 3, 4, 6]) {
+      expect(props(position).projectTemplateLevelName).toBeUndefined()
     }
+    expect(props(5).projectTemplateLevelName).toBe('hoai_adventure_world')
   })
 
-  it('sets up each level’s view, panels, blocks and AI', () => {
+  it('sets up each level’s view, panels, form and AI', () => {
     for (const level of levels) {
       const data = props(level.position).levelData
       expect(data.startWorld).toBe('space')
-      expect(['play', 'build']).toContain(data.view)
+      expect(data.view).toBe('play')
+      expect(data).not.toHaveProperty('build')
       for (const panel of data.panels) expect(PANELS).toContain(panel)
       expect(typeof data.interpreter).toBe('boolean')
-      if (data.build?.blocks) for (const type of data.build.blocks) expect(BLOCK_TYPES).toContain(type)
     }
     const data = position => props(position).levelData
-    expect(data(1)).toMatchObject({ view: 'play', panels: [], build: null, interpreter: false })
-    expect(data(2)).toMatchObject({ view: 'play', panels: ['understood'], build: null, interpreter: false })
-    expect(data(3)).toMatchObject({ view: 'build', build: { blocks: ['room', 'item'] } })
-    expect(data(4)).toMatchObject({ view: 'build', build: { blocks: ['item', 'refusal_with'] } })
-    expect(data(5).view).toBe('build')
-    expect(data(5).build.blocks).toEqual(expect.arrayContaining(['door', 'lock_until', 'use_rule', 'eff_flag']))
-    expect(data(6)).toMatchObject({ view: 'play', build: null, interpreter: true })
-    expect(data(8).build).toEqual({})
-    for (const position of [7, 8]) {
-      expect(data(position).interpreter).toBe(true)
-      expect(data(position).aiDial).toEqual({ settings: DIAL, default: 'understand', locked: ['invent'] })
-    }
+    expect(data(1)).toMatchObject({ view: 'play', panels: [], interpreter: false })
+    expect(data(2)).toMatchObject({ view: 'play', panels: ['understood'], interpreter: false })
+    expect(data(3)).toMatchObject({ view: 'play', interpreter: true })
+    expect(data(4).interpreter).toBe(true)
+    expect(data(4).aiDial).toEqual({ settings: DIAL, default: 'understand', locked: ['invent'] })
+    expect(data(5)).toMatchObject({ view: 'play', interpreter: false, addThing: { name: 'coffee mug' } })
   })
 })

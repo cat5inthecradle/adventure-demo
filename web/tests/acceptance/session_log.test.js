@@ -101,7 +101,7 @@ describe('the lesson', () => {
 
   it('shows dial and model changes in the console', () => {
     const c = controller()
-    c.goTo(1, 7)
+    c.goTo(1, 4)
     const before = settingsLines(c.game).length
     c.setDial({ setting: 'fill_gaps', tone: 'funny', theme: 'home' })
     c.setInterpreter(fake('Llama test'))
@@ -114,10 +114,10 @@ describe('the lesson', () => {
 
   it('adds where the student is in the lesson to the downloaded log', () => {
     const c = controller()
-    c.goTo(1, 7)
+    c.goTo(1, 4)
     c.setDial({ setting: 'improvise' })
     const log = c.exportLog()
-    expect(log.lesson).toMatchObject({ lesson: 1, level: 7, levelId: 9007 })
+    expect(log.lesson).toMatchObject({ lesson: 1, level: 4, levelId: 9007 })
     expect(log.lesson.dial).toMatchObject({ setting: 'improvise' })
     expect(log.ai.aiMode).toBe('improvise')
   })

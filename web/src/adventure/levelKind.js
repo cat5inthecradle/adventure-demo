@@ -14,6 +14,15 @@ const AiDialSchema = z.object({
   locked: z.array(AiDialSettingSchema),
 })
 
+const RealLifeSchema = z.object({
+  scenarios: z.array(z.object({
+    id: z.string(),
+    title: z.string(),
+    blurb: z.string(),
+    options: z.record(AiDialSettingSchema, z.string()),
+  })).min(1),
+})
+
 const ValidationConditionSchema = z.object({
   name: z.string(),
   value: z.union([z.string(), z.number()]).optional(),
@@ -26,19 +35,15 @@ const StepSchema = z.object({
 
 export const AdventureLevelDataSchema = z.object({
   startWorld: z.string(),
-  view: z.enum(['play', 'build']),
+  view: z.enum(['play']).default('play'),
   panels: z.array(z.enum(['understood', 'world'])).default([]),
   revealPanels: z.enum(['always', 'on_select']).default('always'),
   steps: z.array(StepSchema).default([]),
-  build: z.union([
-    z.null(),
-    z.object({
-      blocks: z.array(z.string()).optional(),
-    }),
-  ]).default(null),
   interpreter: z.boolean().default(false),
   aiDial: AiDialSchema.optional(),
   worldPicker: z.boolean().optional(),
+  addThing: z.object({ name: z.string().default('') }).optional(),
+  realLife: RealLifeSchema.optional(),
 })
 
 const ValidationSchema = z.object({

@@ -4,12 +4,15 @@ import { nextDestination, resolveCourseLevel } from '../lab2/resolveCourseLevel.
 import AdventureValidator from '../adventure/AdventureValidator.js'
 import { parseLevelProperties } from '../adventure/levelKind.js'
 import { loadWorld } from '../engine/loader.js'
+import { studentThing } from './addThing.js'
+import { DIAL } from './dial.js'
 import { storage } from '../storage.js'
 import lessonWorlds from '../../../curriculum/hour-of-ai/worlds.json'
 
 const PROJECT_PREFIX = 'adventure-lab:project:'
-const LIBRARY_PREFIX = 'adventure-lab:lesson-library:'
 const WORLD_KEY = 'adventure-lab:lesson-world'
+const REAL_LIFE_KEY = 'adventure-lab:lesson-real-life'
+const DIAL_KEY = 'adventure-lab:lesson-dial'
 
 function substituteTerms(value, terms) {
   if (typeof value === 'string') {
@@ -49,6 +52,20 @@ export default class LessonController {
     this.listeners = new Set()
     this.dial = { setting: 'understand', tone: null, theme: null }
     this.dialWasSet = false
+    this.dialReason = ''
+    try {
+      const saved = JSON.parse(this.store?.getItem(DIAL_KEY) ?? 'null')
+      if (saved && Object.hasOwn(DIAL, saved.setting)) {
+        this.dial = { setting: saved.setting, tone: saved.tone ?? null, theme: saved.theme ?? null }
+        this.dialReason = typeof saved.reason === 'string' ? saved.reason : ''
+        this.dialWasSet = true
+      }
+    } catch { /* blocked or damaged storage: the dial starts at its default */ }
+    this.realLife = {}
+    try {
+      const saved = JSON.parse(this.store?.getItem(REAL_LIFE_KEY) ?? 'null')
+      if (saved && typeof saved === 'object' && !Array.isArray(saved)) this.realLife = saved
+    } catch { /* blocked or damaged storage: start with no answers */ }
 
     let savedWorld = null
     try {
@@ -113,6 +130,7 @@ export default class LessonController {
 
     this.validator.setDefinition(worldData)
     this.progress.onLevelChange(properties.validations)
+    this.noteRealLife()
     this.progress.updateProgress()
     this.notify()
     return this.level
@@ -222,8 +240,86 @@ export default class LessonController {
       theme: theme === undefined ? this.dial.theme : theme,
     }
     this.dialWasSet = true
+    this.saveDial()
     this.applyDial(this.dial)
     this.notify()
+  }
+
+  /** Keep the student's reason for their dial setting, for the card. */
+  setDialReason(reason) {
+    this.dialReason = String(reason ?? '').trim().slice(0, 200)
+    this.saveDial()
+    this.notify()
+  }
+
+  saveDial() {
+    if (!this.dialWasSet) return
+    try {
+      this.store?.setItem(DIAL_KEY, JSON.stringify({ ...this.dial, reason: this.dialReason }))
+    } catch { /* full or blocked: the dial still holds for this visit */ }
+  }
+
+  /**
+   * What the student decided and made in the lesson, for the "My AI rules"
+   * card: their game's dial, the thing they made real, and the dial they set
+   * for each real-life app. Parts they have not done yet come back empty.
+   */
+  card() {
+    const all = Object.values(this.levelProperties)
+    const terms = this.worlds.worlds[this.world].terms
+    const starter = this.starters[terms.world ?? this.world]
+    const template = all.find(p => p.levelData?.addThing)?.projectTemplateLevelName
+    const thing = studentThing(this.loadProject(template), starter)
+    const scenarios = all.find(p => p.levelData?.realLife)?.levelData.realLife.scenarios ?? []
+    return {
+      title: starter.title,
+      dial: this.dialWasSet
+        ? { ...this.dial, name: DIAL[this.dial.setting].name, meaning: DIAL[this.dial.setting].meaning, reason: this.dialReason }
+        : null,
+      thing: thing
+        ? { name: thing.name, description: thing.description, aliases: [...(thing.aliases ?? [])] }
+        : null,
+      realLife: scenarios.map(scenario => {
+        const answer = this.realLife[scenario.id]
+        const setting = answer?.setting ?? null
+        return {
+          id: scenario.id,
+          title: scenario.title,
+          setting,
+          name: setting ? DIAL[setting].short : null,
+          means: setting ? scenario.options[setting] : null,
+          reason: answer?.reason ?? '',
+        }
+      }),
+    }
+  }
+
+  /** Record the student's dial setting, and reason, for one real-life scenario. */
+  setRealLife(id, { setting, reason }) {
+    const scenario = this.properties?.levelData.realLife?.scenarios.find(s => s.id === id)
+    if (!scenario) throw new Error(`This level has no scenario '${id}'.`)
+    const answer = { setting: null, reason: '', ...this.realLife[id] }
+    if (setting !== undefined) {
+      if (!Object.hasOwn(scenario.options, setting)) {
+        throw new Error(`'${setting}' is not a setting for '${id}'.`)
+      }
+      answer.setting = setting
+    }
+    if (reason !== undefined) answer.reason = String(reason).slice(0, 200)
+    this.realLife = { ...this.realLife, [id]: answer }
+    try {
+      this.store?.setItem(REAL_LIFE_KEY, JSON.stringify(this.realLife))
+    } catch { /* full or blocked: the answers still count for this visit */ }
+    this.noteRealLife()
+    this.progress.updateProgress()
+    this.notify()
+  }
+
+  noteRealLife() {
+    const scenarios = this.properties?.levelData.realLife?.scenarios
+    if (scenarios?.every(s => this.realLife[s.id]?.setting)) {
+      this.validator.recordUiEvent('real_life_dials_set')
+    }
   }
 
   applyDial({ setting, tone, theme }) {
@@ -240,17 +336,11 @@ export default class LessonController {
         levelId: Number(this.properties.id),
         levelName: this.properties.name,
         world: this.world,
-        dial: { ...this.dial },
+        dial: { ...this.dial, reason: this.dialReason },
         dialWasSet: this.dialWasSet,
+        realLife: structuredClone(this.realLife),
       },
     })
-  }
-
-  get libraryKey() {
-    const template = this.properties?.projectTemplateLevelName
-    if (!template) return null
-    const suffix = this.world === 'space' ? '' : `:${this.world}`
-    return LIBRARY_PREFIX + template + suffix
   }
 
   projectKey(template) {

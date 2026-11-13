@@ -72,6 +72,11 @@ export const AdventureConditions = {
     description: 'Checks whether the player set the AI dial, optionally to a specific setting.',
     source: 'ui',
   },
+  REAL_LIFE_DIALS_SET: {
+    name: 'real_life_dials_set',
+    description: 'Checks whether the student chose a dial setting for every real-life scenario.',
+    source: 'ui',
+  },
   ENTITY_NAMED_MATCHING: {
     name: 'entity_named_matching',
     valueType: 'string',

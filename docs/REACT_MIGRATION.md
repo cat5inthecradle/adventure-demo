@@ -43,9 +43,9 @@ Each phase leaves the app working and the tests green.
 
 - Swap `@vitejs/plugin-vue` for `@vitejs/plugin-react` and rewrite the views one
   by one in TypeScript: terminal, parser panel, world panel, instructions, AI
-  dial, World Builder, benchmark.
+  dial, the add-a-thing form, benchmark.
 - Reuse what Lab2 already has instead of porting ours: its instructions panel
-  (with validation feedback and Continue), its layout and its Blockly wrappers.
+  (with validation feedback and Continue), and its layout.
   Our `InstructionsPanel` and markdown renderer exist only to stand in for them.
 - Use `@code-dot-org/component-library` for buttons, tabs and form controls so
   the look matches Studio.

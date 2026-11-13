@@ -5,9 +5,9 @@
 // panels can show any turn, not just the latest. Meta commands — help, save,
 // undo, pronouns — are handled here because they are not world mutations.
 //
-// It also owns the world *definition* — the Wayfarer, or whatever a student
-// built — so the World Builder can swap in an edited world, either restarting or
-// carrying the game in progress across (engine/merge.js).
+// It also owns the world *definition* — the Wayfarer, or a lesson world the
+// student has added to — so an edited world can be swapped in, either restarting
+// or carrying the game in progress across (engine/merge.js).
 
 import { computed, markRaw, reactive, shallowRef, toRaw } from 'vue'
 import wayfarer from '../../worlds/wayfarer.json'

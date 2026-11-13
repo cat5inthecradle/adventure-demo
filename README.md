@@ -18,9 +18,8 @@ isn't bolted on afterwards; there is no visual "real" version to bolt it onto. S
 
 It runs entirely in the browser as **Adventure Lab**: the game on the left, and on the
 right a step-by-step view of how each command was understood and what it changed —
-a demo you can look under the hood of. A **Build** view lets students make worlds of
-their own out of blocks, and on a phone the game and its panels take turns on one
-screen.
+a demo you can look under the hood of. A **Learn** view hosts a short Hour of AI
+lesson, and on a phone the game and its panels take turns on one screen.
 
 *This repository is the engine and its demo world. Story worlds authored on top of it
 live elsewhere and are not part of this cut, so a few roadmap items talk about
@@ -54,13 +53,10 @@ reviewed release is merged.
   the language model's reading — the terminal says so, e.g. `(go south)`.
 - **World** — a map of the rooms you know, what is here and what you carry, and the
   raw flags, doors and item locations, with the last turn's changes highlighted.
-- **Build** — the world itself, as Blockly blocks: rooms and exits, doors and locks,
-  things, characters and what they say, and rules ("when the player uses ☐ on ☐ …
-  only if … then …"), with flags and counters as variables. Edit it, then **play
-  with your changes** — the game in progress carries on, keeping what the player
-  already did — or play your world from the start. Keep several named worlds in
-  the browser (new, duplicate, delete, or start from a copy of the Wayfarer), and
-  download or open them as files.
+- **Learn** — the Hour of AI lesson: play, look inside a failed command, meet the
+  AI and set how much it may do, add one thing to the world with a short form, then
+  set the same dial for three apps outside the game. It ends with a printable
+  "My AI rules" card of what the student decided.
 - **Benchmark** — 59 sentences the parser can't understand, run through the language
   model and scored, with every prompt open for inspection.
 
@@ -138,9 +134,7 @@ components only draw what it returns. Four rules hold this together:
 examples — how to give scenery a response, how to telegraph an obstacle, and the
 naming rules that keep a level unambiguous.
 
-The easiest way in is the **Build** view: start from a copy of the Wayfarer, change
-it with blocks, and play it straight away. Underneath, a world is a single JSON file,
-validated on load — Build can download yours or open one. Start from
+A world is a single JSON file, validated on load. Start from
 [worlds/wayfarer.json](worlds/wayfarer.json); the field-by-field shape, with defaults,
 is in [web/src/engine/models.js](web/src/engine/models.js), and the loader will tell
 you, by name, about any room, door, item, NPC, interaction, or effect that doesn't
@@ -162,9 +156,8 @@ npm test
 ```
 
 No test touches the network or needs a GPU. The suite covers world validation, the
-parser, the turn routing and interpreter contract, pronouns, the World Builder (the
-Wayfarer converted to blocks and back plays identically), live-edit merging, the
-world library, and a golden test that
+parser, the turn routing and interpreter contract, pronouns, live-edit merging, the
+Hour of AI lesson, and a golden test that
 replays two full sessions — the winning path and a long wander through typos,
 failures and dead ends — and checks every response, written and spoken, word for
 word. When a change is meant to alter what the player sees, re-record it with

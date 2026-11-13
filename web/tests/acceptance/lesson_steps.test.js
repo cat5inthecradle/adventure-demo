@@ -17,12 +17,13 @@ async function play(c, lines) {
   for (const line of lines) await c.game.submit(line)
 }
 
-function crateWithHints() {
-  const raw = structuredClone(space)
-  raw.items.supply_crate.open_refusal = 'The lid will not budge by hand. Something with leverage might do it.'
-  raw.items.supply_crate.open_refusal_with = { prybar: 'That prybar would fit right under the lid.' }
-  return raw
-}
+/** An interpreter that understands nothing but will write when it is asked to. */
+const fake = () => ({
+  name: 'fake',
+  async interpret() { return { kind: 'clarify', question: 'What do you mean?' } },
+  async describe() { return { kind: 'text', text: 'A chipped mug, long gone cold.' } },
+  async speak() { return { kind: 'text', text: 'The ship has been quiet a long time.' } },
+})
 
 describe('level data for steps and revealed panels', () => {
   const base = {
@@ -60,14 +61,16 @@ describe('LessonController.steps()', () => {
       expect(step.done).toBe(false)
     }
 
-    await c.game.applyWorld(crateWithHints(), { restart: true })
-    const afterEdit = c.steps()
-    expect(afterEdit.some(s => s.done)).toBe(true)
-    expect(afterEdit.some(s => s.checkable && !s.done)).toBe(true)
+    c.setInterpreter(fake())
+    c.setDial({ setting: 'fill_gaps' })
+    await play(c, ['examine mug'])
+    const afterGap = c.steps()
+    expect(afterGap.some(s => s.done)).toBe(true)
+    expect(afterGap.some(s => s.checkable && !s.done)).toBe(true)
 
-    await play(c, ['go south', 'open crate', 'go north', 'take prybar', 'go south', 'open crate'])
+    c.setDial({ setting: 'improvise' })
+    await play(c, ['south', 'ask the droid about the ship'])
     expect(c.steps().filter(s => s.checkable).every(s => s.done)).toBe(true)
-    expect(c.state().satisfied).toBe(true)
   })
 
   it('never ticks a step that has no conditions', () => {
@@ -89,25 +92,19 @@ describe('Hour of AI content for these fixes', () => {
     expect(props('9002').longInstructions.toLowerCase()).toMatch(/click/)
   })
 
-  it('gives level 4 a checklist that covers the edit and the two tries in Play', () => {
-    const steps = props('9004').levelData.steps
-    expect(steps.length).toBeGreaterThanOrEqual(4)
-    const conditions = steps.flatMap(s => s.conditions ?? [])
-    expect(conditions).toEqual(expect.arrayContaining([
-      { name: 'item_has_open_refusal', value: 'supply_crate' },
-      { name: 'item_has_tool_hint', value: 'supply_crate' },
-      { name: 'saw_custom_refusal', value: 'supply_crate' },
-      { name: 'saw_tool_hint', value: 'supply_crate' },
-    ]))
-    const text = steps.map(s => s.text).join(' ').toLowerCase()
-    expect(text).toContain('build tab')
-    expect(text).toContain('play with my changes')
-    expect(text).toContain('prybar')
+  it('has no level that sends the student to the block builder', () => {
+    for (const level of Object.values(levelProperties)) {
+      expect(level.levelData).not.toHaveProperty('build')
+      expect(level.levelData.view).toBe('play')
+      expect(level.longInstructions).not.toMatch(/Build tab/)
+    }
   })
 
-  it('names the Build tab in every level that builds', () => {
-    for (const id of ['9003', '9004', '9005', '9008']) {
-      expect(props(id).longInstructions).toMatch(/Build tab/)
-    }
+  it('names the form and its buttons in the level that adds a thing', () => {
+    const level = props('9003')
+    expect(level.levelData.addThing).toEqual({ name: 'coffee mug' })
+    expect(level.longInstructions).toMatch(/Add a thing/)
+    expect(level.longInstructions).toMatch(/Add it to the world/)
+    expect(level.longInstructions).toMatch(/Also called/)
   })
 })

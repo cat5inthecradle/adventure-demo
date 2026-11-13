@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { DIAL } from '../lesson/dial.js'
 
 const props = defineProps({
   controller: { type: Object, required: true },
@@ -7,15 +8,10 @@ const props = defineProps({
   revision: { type: Number, default: 0 },
 })
 
-const labels = {
-  off: 'Off — commands only',
-  understand: 'Understand — the AI turns your words into commands',
-  fill_gaps: "Fill gaps — the AI writes when you didn't",
-  improvise: 'Improvise characters — the AI talks beyond your lines',
-  invent: 'Invent events — the AI decides what happens',
-}
+const labels = Object.fromEntries(Object.entries(DIAL)
+  .map(([key, { name, meaning }]) => [key, `${name} — ${meaning}`]))
 
-const reason = ref('')
+const reason = ref(props.controller.dialReason)
 const saved = ref(false)
 
 const setting = computed({
@@ -58,6 +54,7 @@ watch(() => props.dial, () => {
 })
 
 function save() {
+  props.controller.setDialReason(reason.value)
   props.controller.recordUiEvent('ai_dial_set', setting.value)
   saved.value = true
 }

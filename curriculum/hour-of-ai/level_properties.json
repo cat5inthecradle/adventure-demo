@@ -25,7 +25,6 @@
       "worldPicker": true,
       "view": "play",
       "panels": [],
-      "build": null,
       "interpreter": false
     }
   },
@@ -69,230 +68,8 @@
       "panels": [
         "understood"
       ],
-      "build": null,
       "interpreter": false,
       "revealPanels": "on_select"
-    }
-  },
-  "9003": {
-    "id": 9003,
-    "name": "hoai_adventure_3_name_the_mug",
-    "appName": "adventure",
-    "type": "Adventure",
-    "displayName": "If you name it, answer it",
-    "longInstructions": "In the **Build tab**, add the {{detail}} as an item in the {{startRoom}} and write its description.\n\nSwitch to the **Play tab** and examine the {{detailShort}}.\n\nYou are done when the game answers with the description you wrote.\n\nThen think like a player: what else might they call it? Add those words to **also called**, and try them in the Play tab.",
-    "teacherMarkdown": "- How did one block change which player actions were possible?\n- Is the student authoring an object, a response, or both?",
-    "freePlay": false,
-    "projectTemplateLevelName": "hoai_adventure_world",
-    "validations": [
-      {
-        "key": "l3_mug_examined",
-        "conditions": [
-          {
-            "name": "examined_matching",
-            "value": "{{detailShort}}"
-          }
-        ],
-        "message": "The {{detailShort}} now exists in both the prose and the rules.",
-        "next": true
-      },
-      {
-        "key": "l3_mug_named",
-        "conditions": [
-          {
-            "name": "entity_named_matching",
-            "value": "{{detailShort}}"
-          }
-        ],
-        "message": "The {{detailShort}} has a name. Now go to Play and examine it.",
-        "next": false
-      }
-    ],
-    "levelData": {
-      "startWorld": "{{world}}",
-      "view": "build",
-      "panels": [
-        "understood"
-      ],
-      "build": {
-        "blocks": [
-          "room",
-          "item"
-        ]
-      },
-      "interpreter": false
-    }
-  },
-  "9004": {
-    "id": 9004,
-    "name": "hoai_adventure_4_crate_puzzle",
-    "appName": "adventure",
-    "type": "Adventure",
-    "displayName": "Make the stuck thing a puzzle",
-    "longInstructions": "Use the **Build tab** to turn the {{container}} into a puzzle. Follow these steps to write and test both hints.",
-    "teacherMarkdown": "- How does a useful refusal turn a dead end into a puzzle?\n- When can a rule catch confusing writing, and when does a person still need to judge it?",
-    "freePlay": false,
-    "projectTemplateLevelName": "hoai_adventure_world",
-    "validations": [
-      {
-        "key": "l4_tool_hint_seen",
-        "conditions": [
-          {
-            "name": "item_has_open_refusal",
-            "value": "{{containerId}}"
-          },
-          {
-            "name": "item_has_tool_hint",
-            "value": "{{containerId}}"
-          },
-          {
-            "name": "saw_tool_hint",
-            "value": "{{containerId}}"
-          }
-        ],
-        "message": "Your {{containerShort}} now points the player toward a solution.",
-        "next": true
-      },
-      {
-        "key": "l4_custom_refusal_seen",
-        "conditions": [
-          {
-            "name": "item_has_open_refusal",
-            "value": "{{containerId}}"
-          },
-          {
-            "name": "saw_custom_refusal",
-            "value": "{{containerId}}"
-          }
-        ],
-        "message": "Now add the stronger hint for the {{tool}}.",
-        "next": false
-      },
-      {
-        "key": "l4_refusal_added",
-        "conditions": [
-          {
-            "name": "item_has_open_refusal",
-            "value": "{{containerId}}"
-          }
-        ],
-        "message": "Try opening the {{containerShort}} in Play.",
-        "next": false
-      }
-    ],
-    "levelData": {
-      "startWorld": "{{world}}",
-      "view": "build",
-      "panels": [
-        "understood"
-      ],
-      "build": {
-        "blocks": [
-          "item",
-          "refusal_with"
-        ]
-      },
-      "interpreter": false,
-      "steps": [
-        {
-          "text": "Open the **Build tab** and find the orange **Thing {{container}}** block."
-        },
-        {
-          "text": "In **if someone tries to open it, say**, write a line telling the player the {{containerShort}} can be opened with the right tool.",
-          "conditions": [
-            {
-              "name": "item_has_open_refusal",
-              "value": "{{containerId}}"
-            }
-          ]
-        },
-        {
-          "text": "From **Things** in the toolbox, drag the block that says **then say** into **unless they carry**, pick the {{tool}}, and write a stronger hint.",
-          "conditions": [
-            {
-              "name": "item_has_tool_hint",
-              "value": "{{containerId}}"
-            }
-          ]
-        },
-        {
-          "text": "Press **▶ Play with my changes**. Steps 2 and 3 tick once you do."
-        },
-        {
-          "text": "In the **Play tab**, go to the {{secondRoom}} and type `open {{containerShort}}` to see your first hint.",
-          "conditions": [
-            {
-              "name": "saw_custom_refusal",
-              "value": "{{containerId}}"
-            }
-          ]
-        },
-        {
-          "text": "Go back for the {{tool}} with `take {{toolShort}}`, then `open {{containerShort}}` again to see your stronger hint.",
-          "conditions": [
-            {
-              "name": "saw_tool_hint",
-              "value": "{{containerId}}"
-            }
-          ]
-        }
-      ]
-    }
-  },
-  "9005": {
-    "id": 9005,
-    "name": "hoai_adventure_5_add_a_rule",
-    "appName": "adventure",
-    "type": "Adventure",
-    "displayName": "Add a rule",
-    "longInstructions": "In the **Build tab**, put a door on the route between the two rooms and lock it until a flag is true.\n\nAdd a use rule that sets that flag.\n\nIn the **Play tab**, trigger your rule and open the door; you are done when the unlocked door opens.",
-    "teacherMarkdown": "- What truth does the flag remember, and who decided when it becomes true?\n- Which mistakes can this rule prevent without an AI or a person judging the story?",
-    "freePlay": false,
-    "projectTemplateLevelName": "hoai_adventure_world",
-    "validations": [
-      {
-        "key": "l5_locked_door_opened",
-        "conditions": [
-          {
-            "name": "door_locked_by_flag"
-          },
-          {
-            "name": "opened_door_locked_by_flag"
-          }
-        ],
-        "message": "Your rule changed what the player could do.",
-        "next": true
-      },
-      {
-        "key": "l5_door_locked",
-        "conditions": [
-          {
-            "name": "door_locked_by_flag"
-          }
-        ],
-        "message": "Now play it and unlock it.",
-        "next": false
-      }
-    ],
-    "levelData": {
-      "startWorld": "{{world}}",
-      "view": "build",
-      "panels": [
-        "understood",
-        "world"
-      ],
-      "build": {
-        "blocks": [
-          "room",
-          "exit",
-          "door",
-          "lock_until",
-          "use_rule",
-          "eff_flag",
-          "cond_flag"
-        ]
-      },
-      "interpreter": false
     }
   },
   "9006": {
@@ -304,7 +81,6 @@
     "longInstructions": "Turn on the AI interpreter and type a natural sentence that means a game command.\n\nThen ask for something impossible, such as opening a door with a sandwich.\n\nYou are done when the interpreter understands one request and asks for clarification on another.",
     "teacherMarkdown": "- Did the AI change the world, or only translate the player's words into a command?\n- When the AI asks a question, who is shaping the next line of the story?",
     "freePlay": false,
-    "projectTemplateLevelName": "hoai_adventure_world",
     "validations": [
       {
         "key": "l6_understood_and_clarified",
@@ -336,7 +112,6 @@
       "panels": [
         "understood"
       ],
-      "build": null,
       "interpreter": true
     }
   },
@@ -346,10 +121,9 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "The AI dial",
-    "longInstructions": "The room you start in mentions a {{detail}} the author never built. In the **Play tab**, try the same command with the AI dial at different settings and watch what changes.\n\nThe {{detailShort}} never becomes a real object: the AI can write words, not rules. Improvise lets characters say things the author never wrote.\n\n**Invent events** is locked—use what happened in Play to debate why.",
+    "longInstructions": "The room you start in mentions a {{detail}} the author never built. Try the same command with the AI dial at different settings and watch what changes.\n\nThe {{detailShort}} never becomes a real object: the AI can write words, not rules. Improvise lets characters say things the author never wrote.\n\n**Invent events** is locked—use what happened in the game to debate why.",
     "teacherMarkdown": "- At which dial setting does the AI begin to share authorship, if any? Why?\n- Why might inventing events be locked even when improvising is available?\n- Who is responsible when AI-written story text conflicts with a world rule?",
     "freePlay": false,
-    "projectTemplateLevelName": "hoai_adventure_world",
     "validations": [
       {
         "key": "l7_dial_set",
@@ -368,14 +142,13 @@
       "panels": [
         "understood"
       ],
-      "build": null,
       "interpreter": true,
       "steps": [
         {
           "text": "Choose a model from the menu at the top right and wait for it to load."
         },
         {
-          "text": "In the **Play tab**, set the dial to **Off** and type `examine the {{detailShort}}`."
+          "text": "Set the dial to **Off** and type `examine the {{detailShort}}`."
         },
         {
           "text": "Still on **Off**, type `{{understandPhrase}}`. Then set the dial to **Understand** and type it again. Which setting worked out what you meant?"
@@ -415,37 +188,116 @@
       }
     }
   },
-  "9008": {
-    "id": 9008,
-    "name": "hoai_adventure_8_free_play",
+  "9003": {
+    "id": 9003,
+    "name": "hoai_adventure_3_name_the_mug",
     "appName": "adventure",
     "type": "Adventure",
-    "displayName": "Free play",
-    "longInstructions": "Keep building your world in the **Build tab**, then test it in the **Play tab**.\n\nUse the panels to check how commands are understood and what your rules make true. When a playtester types a word your world doesn't know, add it to **also called**.\n\nWhen it feels ready, use **Download as a file** in the Build tab so a classmate can open and play it.",
-    "teacherMarkdown": "- Ask players where they felt the student's authorship most strongly.\n- If the AI filled a gap, who should receive credit for that moment?\n- What did human playtesting catch that the rules could not?",
-    "freePlay": true,
+    "displayName": "If you name it, answer it",
+    "longInstructions": "The AI could write words about the {{detail}}, but you still could not pick it up. Only the author can make it real, and you are the author now.\n\nIn **Add a thing**, write what a player sees when they examine the {{detail}}. Then press **Add it to the world**.\n\nType `examine {{detailShort}}`, then `take {{detailShort}}`. You are done when the game answers with the words you wrote.\n\nThen think like a player: what else might they call it? Add those words to **Also called**, press **Save changes**, and try them.",
+    "teacherMarkdown": "- The AI described the {{detail}} and the student built it. What is different about the two?\n- How did one short form change which player actions were possible?\n- Who should decide what is true in a story: the author, the player, or the AI?",
+    "freePlay": false,
     "projectTemplateLevelName": "hoai_adventure_world",
-    "validations": [],
+    "validations": [
+      {
+        "key": "l3_mug_examined",
+        "conditions": [
+          {
+            "name": "examined_matching",
+            "value": "{{detailShort}}"
+          }
+        ],
+        "message": "The {{detailShort}} is real now: it is in the rules, not only in the words.",
+        "next": true
+      },
+      {
+        "key": "l3_mug_named",
+        "conditions": [
+          {
+            "name": "entity_named_matching",
+            "value": "{{detailShort}}"
+          }
+        ],
+        "message": "The {{detailShort}} is in the world. Now examine it in the game.",
+        "next": false
+      }
+    ],
     "levelData": {
       "startWorld": "{{world}}",
-      "view": "build",
+      "view": "play",
       "panels": [
-        "understood",
-        "world"
+        "understood"
       ],
-      "build": {},
-      "interpreter": true,
-      "aiDial": {
-        "settings": [
-          "off",
-          "understand",
-          "fill_gaps",
-          "improvise",
-          "invent"
+      "interpreter": false,
+      "addThing": {
+        "name": "{{detail}}"
+      }
+    }
+  },
+  "9009": {
+    "id": 9009,
+    "name": "hoai_adventure_9_real_life",
+    "appName": "adventure",
+    "type": "Adventure",
+    "displayName": "Set the dial for real life",
+    "longInstructions": "The dial is not only for games. Anyone who builds an app with AI has to decide how much the AI may do.\n\nHere are three apps. For each one, pick where you would set the dial and say why.\n\nThere is no single right answer, so be ready to defend yours. You are done when you have set all three.",
+    "teacherMarkdown": "- Where did the class disagree most? What made that app different from the others?\n- For each app, what could go wrong at the highest setting, and who would be harmed?\n- Who should get to set the dial: the people who build the app, the people who use it, or someone else?\n- Name an app you use that has AI in it. Where do you think its dial is set?",
+    "freePlay": false,
+    "validations": [
+      {
+        "key": "l9_real_life_set",
+        "conditions": [
+          {
+            "name": "real_life_dials_set"
+          }
         ],
-        "default": "understand",
-        "locked": [
-          "invent"
+        "message": "You set all three. Be ready to explain what made them different.",
+        "next": true
+      }
+    ],
+    "levelData": {
+      "startWorld": "{{world}}",
+      "view": "play",
+      "panels": [],
+      "interpreter": false,
+      "realLife": {
+        "scenarios": [
+          {
+            "id": "homework",
+            "title": "A homework helper",
+            "blurb": "An app that helps students with their math homework.",
+            "options": {
+              "off": "No AI. It shows the worked examples from the textbook.",
+              "understand": "The AI works out what you are asking, then shows the explanation your teacher wrote.",
+              "fill_gaps": "The AI writes a hint when your teacher did not write one.",
+              "improvise": "The AI chats with you like a tutor, in its own words.",
+              "invent": "The AI decides whether your answer is right and gives you the grade."
+            }
+          },
+          {
+            "id": "clinic",
+            "title": "A clinic app",
+            "blurb": "An app people use to ask a clinic about their medicine.",
+            "options": {
+              "off": "No AI. It shows the label the pharmacist wrote.",
+              "understand": "The AI works out which medicine you mean, then shows the pharmacist's instructions.",
+              "fill_gaps": "The AI writes an answer when the pharmacist's notes do not cover your question.",
+              "improvise": "The AI talks with you about how you feel, in its own words.",
+              "invent": "The AI decides how much medicine you should take."
+            }
+          },
+          {
+            "id": "story_game",
+            "title": "A story game for your friends",
+            "blurb": "A text adventure you wrote, like the one you just played.",
+            "options": {
+              "off": "No AI. Players type exact commands.",
+              "understand": "The AI works out what players mean. Your rules decide what happens.",
+              "fill_gaps": "The AI describes details you did not write.",
+              "improvise": "The AI makes up what your characters say.",
+              "invent": "The AI makes up new events in your story."
+            }
+          }
         ]
       }
     }

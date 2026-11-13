@@ -9,6 +9,7 @@ const props = defineProps({
   revision: { type: Number, default: 0 },
 })
 
+const emit = defineEmits(['finish'])
 const finished = ref(false)
 const level = computed(() => {
   props.revision
@@ -45,6 +46,7 @@ function continueLesson() {
     window.location.hash = destination.to
   } else if (!following.value) {
     finished.value = true
+    emit('finish')
   } else if (destination.href) {
     window.location.href = destination.href
   }
@@ -94,7 +96,10 @@ function continueLesson() {
         {{ progress.message }}
       </div>
 
-      <p v-if="finished" class="finished" role="status">You finished the lesson.</p>
+      <template v-if="finished">
+        <p class="finished" role="status">You finished the lesson.</p>
+        <button type="button" class="continue" @click="emit('finish')">See my AI rules card</button>
+      </template>
       <button
         v-else
         type="button"
@@ -136,7 +141,7 @@ h2 { margin: 0 0 12px; font-size: 20px; line-height: 1.2; }
 .feedback.success { background: var(--good-soft); color: var(--good); font-weight: 600; }
 .continue { width: 100%; border: 0; border-radius: 8px; padding: 9px 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
 .continue:disabled { opacity: 0.45; cursor: default; }
-.finished { padding: 10px; border-radius: 8px; background: var(--good-soft); color: var(--good); font-weight: 600; text-align: center; }
+.finished { margin: 0 0 8px; padding: 10px; border-radius: 8px; background: var(--good-soft); color: var(--good); font-weight: 600; text-align: center; }
 .teachers { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
 .teachers summary { cursor: pointer; color: var(--muted); font-size: 12px; }
 .teachers .markdown { margin-top: 8px; font-size: 12px; }

@@ -11,8 +11,6 @@ import { lessonWorlds, levelProperties, starters, unit } from './lesson/hourOfAi
 import { downloadLog } from './sessionLog.js'
 // Loaded on first visit: players who never open it never download it.
 const BenchView = defineAsyncComponent(() => import('./components/BenchView.vue'))
-// Blockly is large; it loads the first time someone opens Build.
-const BuilderView = defineAsyncComponent(() => import('./components/BuilderView.vue'))
 
 // Starts parser-only; InterpreterPicker swaps a WebLLM interpreter in on request.
 // See src/engine/interpreter.js for the contract any interpreter follows.
@@ -59,19 +57,17 @@ async function submit(line) {
   terminal.value?.focus()
 }
 
-// Four views over one app: playing, building, benchmarking, and the lesson host.
-// The hash keeps the view across reloads. The normal game and builder stay
-// mounted once opened, so switching back loses nothing.
+// Three views over one app: playing, benchmarking, and the lesson host.
+// The hash keeps the view across reloads. The normal game stays mounted, so
+// switching back loses nothing.
 const lessonRoute = () => LessonController.parseRoute(location.hash)
 const initialLessonRoute = lessonRoute()
 if (initialLessonRoute?.unit === unit.name) {
   lessonController.goTo(initialLessonRoute.lesson, initialLessonRoute.level)
 }
 const viewFromHash = () => (location.hash.startsWith('#bench') ? 'bench'
-  : location.hash.startsWith('#build') ? 'build'
-    : LessonController.parseRoute(location.hash)?.unit === unit.name ? 'learn' : 'play')
+  : LessonController.parseRoute(location.hash)?.unit === unit.name ? 'learn' : 'play')
 const view = ref(viewFromHash())
-const builderOpened = ref(view.value === 'build' && !phone.value)
 const onHash = () => {
   const route = lessonRoute()
   if (route?.unit === unit.name) {
@@ -88,7 +84,6 @@ function show(next) {
   }
   location.hash = next === 'play' ? '' : `#${next}`
   view.value = next
-  if (next === 'build' && !phone.value) builderOpened.value = true
   if (next === 'play') setTimeout(() => terminal.value?.focus())
 }
 
@@ -130,7 +125,6 @@ onBeforeUnmount(() => {
       <span class="subtitle">{{ subtitle }}</span>
       <nav class="views" aria-label="Views">
         <button type="button" :aria-current="view === 'play' && 'page'" @click="show('play')">Play</button>
-        <button type="button" :aria-current="view === 'build' && 'page'" @click="show('build')">Build</button>
         <button v-if="!phone" type="button" :aria-current="view === 'bench' && 'page'" @click="show('bench')">Benchmark</button>
         <button type="button" :aria-current="view === 'learn' && 'page'" @click="show('learn')">Learn</button>
       </nav>
@@ -177,18 +171,6 @@ onBeforeUnmount(() => {
         <ParserPanel :turn="selectedTurn" />
         <WorldPanel :world="world" :changed-paths="changedPaths" />
       </aside>
-    </main>
-    <main v-if="phone && view === 'build'" class="stage">
-      <div class="panel phone-note">
-        <h2>Building needs a bigger screen</h2>
-        <p>The World Builder is made of blocks you drag around, which doesn’t fit on a phone.
-          Open Adventure Lab on a tablet, Chromebook or laptop to build a world.</p>
-        <p class="muted">Worlds you’ve built are saved in each browser, so they won’t show up here.</p>
-        <button type="button" @click="show('play')">▶ Back to the game</button>
-      </div>
-    </main>
-    <main v-if="builderOpened" v-show="view === 'build' && !phone" class="stage">
-      <BuilderView :game="game" :active="view === 'build' && !phone" @play="show('play')" />
     </main>
     <main v-if="view === 'bench'" class="stage">
       <BenchView />

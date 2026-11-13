@@ -81,11 +81,13 @@ describe('the lesson in each world', () => {
   it('templates the checks too, so they look for the chosen world’s things', () => {
     const c = controller()
     c.setWorld('haunted')
+    c.goTo(1, 5)
+    const values = JSON.stringify(c.properties.validations.flatMap(v => [v.conditions, v.message]))
+    expect(values).toMatch(/portrait/)
+    expect(values).not.toMatch(/mug/)
+    expect(c.properties.levelData.addThing.name).toBe('faded portrait')
     c.goTo(1, 4)
-    const values = JSON.stringify(c.properties.validations)
-    expect(values).toMatch(/old_chest/)
-    expect(values).not.toMatch(/supply_crate/)
-    expect(c.steps().map(s => s.text).join(' ')).toMatch(/chest/)
+    expect(c.steps().map(s => s.text).join(' ')).toMatch(/ghost/)
   })
 
   it('names the world in the first level', () => {
@@ -109,7 +111,7 @@ describe('the lesson in each world', () => {
   it('fills the new world’s gap on the AI dial level', async () => {
     const c = controller()
     c.setWorld('jungle')
-    c.goTo(1, 7)
+    c.goTo(1, 4)
     c.setInterpreter({ name: 'fake', async interpret() { return { kind: 'clarify', question: '?' } }, async describe() { return { kind: 'text', text: 'Moss hides its face.' } } })
     c.setDial({ setting: 'fill_gaps' })
     c.game.state.pace = 0
@@ -156,7 +158,7 @@ describe('choosing a world', () => {
   it('keeps each world’s built project apart, and space’s where it always was', () => {
     const store = memoryStore()
     const c = controller(store)
-    c.goTo(1, 3)
+    c.goTo(1, 5)
     const built = { ...space, title: 'Drift, with a mug' }
     c.onWorldApplied(built)
     expect(store.getItem('adventure-lab:project:hoai_adventure_world')).toMatch(/with a mug/)

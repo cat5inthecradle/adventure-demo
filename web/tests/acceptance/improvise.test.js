@@ -265,7 +265,7 @@ describe('the lesson', () => {
 
   it('records an improvised reply for the validator', async () => {
     const c = controller()
-    c.goTo(1, 7)
+    c.goTo(1, 4)
     c.setInterpreter(fake())
     c.setDial({ setting: 'improvise' })
     c.game.state.pace = 0
@@ -276,7 +276,7 @@ describe('the lesson', () => {
     expect(c.validator.conditionsMet([{ name: 'ai_improvised', value: 'maintenance_droid' }])).toBe(true)
   })
 
-  it('level 7 has the student try Improvise on the droid', () => {
+  it('the dial level has the student try Improvise on the droid', () => {
     const level = levelProperties['9007']
     const steps = level.levelData.steps
     const step = steps.find(s => (s.conditions ?? []).some(c => c.name === 'ai_improvised'))
