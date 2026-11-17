@@ -44,6 +44,11 @@ export const AdventureConditions = {
     description: 'Checks whether the language interpreter produced an action.',
     source: 'play',
   },
+  INTERPRETER_GUESSED: {
+    name: 'interpreter_guessed',
+    description: 'Checks whether the language interpreter produced an action for a request that had no command word the game knows.',
+    source: 'play',
+  },
   INTERPRETER_CLARIFIED: {
     name: 'interpreter_clarified',
     description: 'Checks whether the language interpreter asked for clarification instead of producing an action.',

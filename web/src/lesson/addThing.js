@@ -33,7 +33,7 @@ export function studentThing(definition, starter) {
  * names one that is already there. Throws an Error with a message a student can
  * act on when a field is missing; the world loader checks everything else.
  */
-export function withThing(definition, { id = null, name, description, aliases = '' }) {
+export function withThing(definition, { id = null, name, description, aliases = '', portable }) {
   const cleanName = String(name ?? '').trim().replace(/\s+/g, ' ')
   const cleanDescription = String(description ?? '').trim()
   if (!cleanName) throw new Error('Give your thing a name.')
@@ -41,6 +41,15 @@ export function withThing(definition, { id = null, name, description, aliases = 
 
   const world = structuredClone(definition)
   world.items ??= {}
+  const wanted = [cleanName.toLowerCase(), ...parseAliases(aliases, cleanName)]
+  for (const table of ['items', 'npcs', 'doors']) {
+    for (const other of Object.values(world[table] ?? {})) {
+      if (table === 'items' && other.id === id) continue
+      const taken = [other.name, ...(other.aliases ?? [])].map(n => String(n).toLowerCase())
+      const clash = wanted.find(n => taken.includes(n))
+      if (clash) throw new Error(`The game already has something called “${clash}”. Pick a different name.`)
+    }
+  }
   let thingId = id
   if (!thingId || !Object.hasOwn(world.items, thingId)) {
     const used = new Set(TABLES.flatMap(table => Object.keys(world[table] ?? {})))
@@ -58,5 +67,6 @@ export function withThing(definition, { id = null, name, description, aliases = 
     aliases: parseAliases(aliases, cleanName),
     description: cleanDescription,
   }
+  if (portable !== undefined) world.items[thingId].portable = Boolean(portable)
   return { world, id: thingId }
 }

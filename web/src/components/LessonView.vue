@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { downloadLog } from '../sessionLog.js'
 import AddThingForm from './AddThingForm.vue'
+import AiDial from './AiDial.vue'
 import AiRulesCard from './AiRulesCard.vue'
 import InstructionsPanel from './InstructionsPanel.vue'
 import InterpreterPicker from './InterpreterPicker.vue'
@@ -45,7 +46,8 @@ const showCard = ref(false)
 const realLife = computed(() => properties.value.levelData.realLife ?? null)
 const addThing = computed(() => properties.value.levelData.addThing ?? null)
 const starter = computed(() => props.controller.starters[properties.value.levelData.startWorld])
-const sideCount = computed(() => visiblePanels.value.length + (addThing.value ? 1 : 0))
+const aiDial = computed(() => properties.value.levelData.aiDial ?? null)
+const sideCount = computed(() => visiblePanels.value.length + (addThing.value ? 1 : 0) + (aiDial.value ? 1 : 0))
 const nudgeTurnId = ref(null)
 const latestTurnId = computed(() => {
   revision.value
@@ -122,7 +124,7 @@ onBeforeUnmount(() => {
     <p>Open Adventure Lab on a Chromebook, tablet or laptop to play.</p>
   </main>
   <main v-else class="lesson">
-    <InstructionsPanel :controller="controller" :revision="revision" @finish="showCard = true" />
+    <InstructionsPanel :controller="controller" :revision="revision" :card-open="showCard" @finish="showCard = true" />
     <section class="work">
       <header v-show="properties.levelData.interpreter" class="lesson-toolbar">
         <span class="spacer"></span>
@@ -147,7 +149,10 @@ onBeforeUnmount(() => {
             @download-log="downloadLog(controller)"
           />
         </div>
-        <aside v-if="sideCount" class="side-panels" :class="{ 'with-form': addThing }">
+        <aside v-if="sideCount" class="side-panels" :class="{ 'with-form': addThing || aiDial }">
+          <div v-if="aiDial" class="panel dial-panel">
+            <AiDial :controller="controller" :dial="aiDial" :revision="revision" />
+          </div>
           <AddThingForm
             v-if="addThing"
             :game="game"
@@ -177,6 +182,7 @@ onBeforeUnmount(() => {
 .panels-0 .terminal-frame { max-width: min(100%, calc((100vh - 130px) * 4 / 3)); }
 .side-panels { width: 320px; min-width: 260px; display: grid; grid-auto-rows: minmax(0, 1fr); gap: 16px; }
 .side-panels.with-form { grid-template-rows: auto; }
+.dial-panel { padding: 12px; overflow-y: auto; max-height: 62vh; }
 .lesson-phone { margin: auto; max-width: 430px; padding: 18px; }
 .lesson-phone h2 { margin: 0 0 8px; font-size: 18px; }
 .lesson-phone p { margin: 0; line-height: 1.5; }

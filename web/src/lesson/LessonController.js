@@ -13,6 +13,14 @@ const PROJECT_PREFIX = 'adventure-lab:project:'
 const WORLD_KEY = 'adventure-lab:lesson-world'
 const REAL_LIFE_KEY = 'adventure-lab:lesson-real-life'
 const DIAL_KEY = 'adventure-lab:lesson-dial'
+const PASSED_KEY = 'adventure-lab:lesson-passed'
+
+// How long each step of "How it was understood" stays on screen in the lesson.
+// With no such panel there is nothing to watch, so the reply comes at once.
+const LESSON_PACE_MS = 150
+// A reason has to be a few words, not "idk".
+const MIN_REASON_WORDS = 3
+export const isReason = text => String(text ?? '').trim().split(/\s+/).filter(Boolean).length >= MIN_REASON_WORDS
 
 function substituteTerms(value, terms) {
   if (typeof value === 'string') {
@@ -52,15 +60,27 @@ export default class LessonController {
     this.listeners = new Set()
     this.dial = { setting: 'understand', tone: null, theme: null }
     this.dialWasSet = false
-    this.dialReason = ''
+    // The dial the student pressed Save on, with their reason. The live dial
+    // can be moved around to experiment; only this one goes on the card.
+    this.dialSaved = null
     try {
       const saved = JSON.parse(this.store?.getItem(DIAL_KEY) ?? 'null')
       if (saved && Object.hasOwn(DIAL, saved.setting)) {
-        this.dial = { setting: saved.setting, tone: saved.tone ?? null, theme: saved.theme ?? null }
-        this.dialReason = typeof saved.reason === 'string' ? saved.reason : ''
+        this.dialSaved = {
+          setting: saved.setting,
+          tone: saved.tone ?? null,
+          theme: saved.theme ?? null,
+          reason: typeof saved.reason === 'string' ? saved.reason : '',
+        }
+        this.dial = { setting: saved.setting, tone: this.dialSaved.tone, theme: this.dialSaved.theme }
         this.dialWasSet = true
       }
     } catch { /* blocked or damaged storage: the dial starts at its default */ }
+    this.passed = new Set()
+    try {
+      const saved = JSON.parse(this.store?.getItem(PASSED_KEY) ?? '[]')
+      if (Array.isArray(saved)) this.passed = new Set(saved.map(Number))
+    } catch { /* blocked or damaged storage: no levels count as passed yet */ }
     this.realLife = {}
     try {
       const saved = JSON.parse(this.store?.getItem(REAL_LIFE_KEY) ?? 'null')
@@ -115,6 +135,7 @@ export default class LessonController {
       onTurn: (turn, world) => this.onTurn(turn, world),
       onWorldApplied: raw => this.onWorldApplied(raw),
     })
+    this.game.state.pace = properties.levelData.panels.includes('understood') ? LESSON_PACE_MS : 0
     if (properties.levelData.aiDial) {
       if (!this.dialWasSet) {
         this.dial = {
@@ -132,6 +153,7 @@ export default class LessonController {
     this.progress.onLevelChange(properties.validations)
     this.noteRealLife()
     this.progress.updateProgress()
+    this.notePassed()
     this.notify()
     return this.level
   }
@@ -151,6 +173,7 @@ export default class LessonController {
   onTurn(turn, world) {
     this.validator.recordTurn(turn, world)
     this.progress.updateProgress()
+    this.notePassed()
   }
 
   onWorldApplied(raw) {
@@ -162,11 +185,13 @@ export default class LessonController {
     }
     this.validator.setDefinition(raw)
     this.progress.updateProgress()
+    this.notePassed()
   }
 
   recordUiEvent(name, value) {
     this.validator.recordUiEvent(name, value)
     this.progress.updateProgress()
+    this.notePassed()
   }
 
   state() {
@@ -186,7 +211,9 @@ export default class LessonController {
   }
 
   canContinue() {
-    return Boolean(this.properties?.freePlay || this.state().satisfied)
+    // A level passed earlier stays passed when the student comes back to it.
+    const passedBefore = this.properties && this.passed.has(Number(this.properties.id))
+    return Boolean(this.properties?.freePlay || this.state().satisfied || passedBefore)
   }
 
   next() {
@@ -199,7 +226,29 @@ export default class LessonController {
   }
 
   notify() {
+    this.notePassed()
     for (const listener of this.listeners) listener()
+  }
+
+  /** Remember a level once its checks are met, so progress shows what was done, not what was visited. */
+  notePassed() {
+    if (!this.properties || this.properties.freePlay) return
+    const id = Number(this.properties.id)
+    if (this.passed.has(id) || !this.progress.getCurrentState().satisfied) return
+    this.passed.add(id)
+    try {
+      this.store?.setItem(PASSED_KEY, JSON.stringify([...this.passed]))
+    } catch { /* full or blocked: progress still shows for this visit */ }
+  }
+
+  /** One entry per level of the lesson: 'passed', 'here', 'skipped' (behind, not passed) or 'ahead'. */
+  levelStatuses() {
+    this.notePassed()
+    return (this.level?.levels ?? []).map(level => {
+      if (this.passed.has(level.levelId)) return 'passed'
+      if (level.position === this.levelPosition) return 'here'
+      return level.position < this.levelPosition ? 'skipped' : 'ahead'
+    })
   }
 
   setInterpreter(interpreter) {
@@ -240,23 +289,25 @@ export default class LessonController {
       theme: theme === undefined ? this.dial.theme : theme,
     }
     this.dialWasSet = true
-    this.saveDial()
     this.applyDial(this.dial)
     this.notify()
   }
 
-  /** Keep the student's reason for their dial setting, for the card. */
-  setDialReason(reason) {
-    this.dialReason = String(reason ?? '').trim().slice(0, 200)
-    this.saveDial()
-    this.notify()
-  }
-
-  saveDial() {
-    if (!this.dialWasSet) return
+  /**
+   * The student's decision: the dial as it stands now, with their reason.
+   * This is what the card reports and what passes the dial level. Throws when
+   * there is no real reason, in words a student can act on.
+   */
+  saveDialChoice(reason) {
+    const why = String(reason ?? '').trim().slice(0, 200)
+    if (!isReason(why)) throw new Error('Write a reason first: a few words on why this setting fits.')
+    this.dialSaved = { ...this.dial, reason: why }
+    this.dialWasSet = true
     try {
-      this.store?.setItem(DIAL_KEY, JSON.stringify({ ...this.dial, reason: this.dialReason }))
-    } catch { /* full or blocked: the dial still holds for this visit */ }
+      this.store?.setItem(DIAL_KEY, JSON.stringify(this.dialSaved))
+    } catch { /* full or blocked: the choice still holds for this visit */ }
+    this.recordUiEvent('ai_dial_set', this.dial.setting)
+    this.notify()
   }
 
   /**
@@ -273,8 +324,8 @@ export default class LessonController {
     const scenarios = all.find(p => p.levelData?.realLife)?.levelData.realLife.scenarios ?? []
     return {
       title: starter.title,
-      dial: this.dialWasSet
-        ? { ...this.dial, name: DIAL[this.dial.setting].name, meaning: DIAL[this.dial.setting].meaning, reason: this.dialReason }
+      dial: this.dialSaved
+        ? { ...this.dialSaved, name: DIAL[this.dialSaved.setting].name, meaning: DIAL[this.dialSaved.setting].meaning }
         : null,
       thing: thing
         ? { name: thing.name, description: thing.description, aliases: [...(thing.aliases ?? [])] }
@@ -312,12 +363,19 @@ export default class LessonController {
     } catch { /* full or blocked: the answers still count for this visit */ }
     this.noteRealLife()
     this.progress.updateProgress()
+    this.notePassed()
     this.notify()
+  }
+
+  /** A scenario counts once it has both a setting and a reason. */
+  realLifeAnswered(id) {
+    const answer = this.realLife[id]
+    return Boolean(answer?.setting) && isReason(answer.reason)
   }
 
   noteRealLife() {
     const scenarios = this.properties?.levelData.realLife?.scenarios
-    if (scenarios?.every(s => this.realLife[s.id]?.setting)) {
+    if (scenarios?.every(s => this.realLifeAnswered(s.id))) {
       this.validator.recordUiEvent('real_life_dials_set')
     }
   }
@@ -336,7 +394,8 @@ export default class LessonController {
         levelId: Number(this.properties.id),
         levelName: this.properties.name,
         world: this.world,
-        dial: { ...this.dial, reason: this.dialReason },
+        dial: { ...this.dial },
+        dialSaved: this.dialSaved ? { ...this.dialSaved } : null,
         dialWasSet: this.dialWasSet,
         realLife: structuredClone(this.realLife),
       },

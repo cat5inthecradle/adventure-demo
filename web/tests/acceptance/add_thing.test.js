@@ -44,9 +44,32 @@ describe('withThing', () => {
   })
 
   it('picks an id nothing else in the world uses', () => {
-    const { id, world } = withThing(space, { name: 'Prybar', description: 'Another one.' })
-    expect(id).toBe('prybar_2')
-    expect(world.items.prybar).toEqual(space.items.prybar)
+    const { id, world } = withThing(space, { name: 'Cargo Bay', description: 'A model of the bay.' })
+    expect(id).toBe('cargo_bay_2')                      // the room already has that id
+    expect(world.rooms.cargo_bay).toEqual(space.rooms.cargo_bay)
+  })
+
+  it('refuses a name or other name the game already uses, so nothing is ambiguous', () => {
+    expect(() => withThing(space, { name: 'Prybar', description: 'Another one.' })).toThrow(/already has something called “prybar”/)
+    expect(() => withThing(space, { name: 'lever', description: 'A lever.', aliases: 'tool, crowbar' })).toThrow(/crowbar/)
+    expect(() => withThing(space, { name: 'droid', description: 'A toy.' })).toThrow(/droid/)
+  })
+
+  it('lets the student keep their own thing’s name when they edit it', () => {
+    const first = withThing(space, MUG)
+    expect(() => withThing(first.world, { id: first.id, ...MUG, description: 'Colder now.' })).not.toThrow()
+  })
+
+  it('lets the author say a thing cannot be picked up', async () => {
+    const { world, id } = withThing(space, { ...MUG, name: 'stone statue', aliases: '', portable: false })
+    expect(world.items[id].portable).toBe(false)
+    const c = new LessonController({ unit, levelProperties, starters, store: null })
+    c.goTo(1, 5)
+    await c.game.applyWorld(world)
+    await play(c, ['take statue'])
+    expect(c.game.world.value.items[id].location).toBe(space.player_location)   // still where it was
+    const edited = withThing(world, { id, ...MUG, name: 'stone statue', aliases: '' })
+    expect(edited.world.items[id].portable).toBe(false)     // an edit that says nothing keeps it
   })
 
   it('asks for a name and a description in words a student can act on', () => {

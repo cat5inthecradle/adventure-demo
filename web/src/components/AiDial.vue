@@ -11,7 +11,8 @@ const props = defineProps({
 const labels = Object.fromEntries(Object.entries(DIAL)
   .map(([key, { name, meaning }]) => [key, `${name} — ${meaning}`]))
 
-const reason = ref(props.controller.dialReason)
+const reason = ref(props.controller.dialSaved?.reason ?? '')
+const problem = ref('')
 const saved = ref(false)
 
 const setting = computed({
@@ -54,9 +55,13 @@ watch(() => props.dial, () => {
 })
 
 function save() {
-  props.controller.setDialReason(reason.value)
-  props.controller.recordUiEvent('ai_dial_set', setting.value)
-  saved.value = true
+  problem.value = ''
+  try {
+    props.controller.saveDialChoice(reason.value)
+    saved.value = true
+  } catch (err) {
+    problem.value = err.message
+  }
 }
 </script>
 
@@ -88,16 +93,17 @@ function save() {
     </label>
     <label class="field">
       Reason
-      <input v-model="reason" type="text" maxlength="120" placeholder="Why does this setting fit?">
+      <input v-model="reason" type="text" maxlength="120" placeholder="Why does this setting fit?" @input="saved = false">
     </label>
     <button type="button" class="chunky" @click="save">Save my setting</button>
     <span v-if="saved" class="saved" role="status">Saved.</span>
+    <p v-else-if="problem" class="model-note" role="alert">{{ problem }}</p>
   </section>
 </template>
 
 <style scoped>
-.dial { border-top: 1px solid var(--line); padding-top: 12px; }
-h3 { margin: 0 0 8px; font-size: 14px; }
+.dial { min-height: 0; }
+h3 { margin: 0 0 8px; font-size: 16px; }
 .setting { display: flex; align-items: flex-start; gap: 7px; margin: 7px 0; font-size: 12.5px; line-height: 1.35; }
 .setting input { margin-top: 2px; }
 .setting.locked { color: var(--muted); }

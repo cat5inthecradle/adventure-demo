@@ -15,7 +15,7 @@ import { AdventureLevelPropertiesSchema, parseLevelProperties } from '../../src/
 
 const NAMES = {
   play: ['game_won', 'turn_failed', 'examined_matching', 'saw_custom_refusal', 'saw_tool_hint',
-    'opened_door_locked_by_flag', 'flag_set', 'interpreter_understood', 'interpreter_clarified',
+    'opened_door_locked_by_flag', 'flag_set', 'interpreter_understood', 'interpreter_clarified', 'interpreter_guessed',
     'ai_filled_gap', 'ai_improvised'],
   ui: ['viewed_understood_panel', 'ai_dial_set', 'real_life_dials_set'],
   definition: ['entity_named_matching', 'item_has_open_refusal', 'item_has_tool_hint', 'door_locked_by_flag'],

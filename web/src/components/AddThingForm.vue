@@ -11,7 +11,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['applied'])
 
-const form = reactive({ name: '', description: '', aliases: '', error: '', status: '', busy: false })
+const form = reactive({ name: '', description: '', aliases: '', portable: true, error: '', status: '', busy: false })
 
 const existing = computed(() => studentThing(props.game.definition.value, props.starter))
 const roomName = computed(() => {
@@ -23,6 +23,7 @@ watch(existing, thing => {
   form.name = thing?.name ?? props.suggestedName
   form.description = thing?.description ?? ''
   form.aliases = (thing?.aliases ?? []).join(', ')
+  form.portable = thing?.portable ?? true
 }, { immediate: true })
 
 async function save() {
@@ -36,10 +37,11 @@ async function save() {
       name: form.name,
       description: form.description,
       aliases: form.aliases,
+      portable: form.portable,
     })
     await props.game.applyWorld(world)
     form.status = adding
-      ? `Added. Now type “examine ${form.name.trim()}” in the game.`
+      ? 'Added. Now examine it in the game.'
       : 'Saved. Try it in the game.'
     emit('applied')
   } catch (err) {
@@ -72,6 +74,11 @@ async function save() {
         placeholder="other names, with commas between"
       >
     </label>
+    <label class="check">
+      <input v-model="form.portable" type="checkbox">
+      Players can pick it up
+    </label>
+    <p class="limits">Your description is only words. It cannot open a door or make something happen; that takes a rule.</p>
     <button type="submit" class="chunky" :disabled="form.busy">{{ existing ? 'Save changes' : 'Add it to the world' }}</button>
     <p v-if="form.error" class="error" role="alert">{{ form.error }}</p>
     <p v-else-if="form.status" class="status" role="status">{{ form.status }}</p>
@@ -82,6 +89,8 @@ async function save() {
 .add-thing { padding: 12px; overflow-y: auto; }
 h3 { margin: 0 0 2px; font-size: 14px; }
 .where { margin: 0 0 4px; color: var(--muted); font-size: 12px; }
+.check { display: flex; align-items: center; gap: 7px; margin-top: 10px; font-size: 13px; color: var(--fg); }
+.limits { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
 .field { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .field input, .field textarea {
   min-width: 0;

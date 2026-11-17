@@ -121,16 +121,16 @@ const errorLabel = e => ({
 
         <div v-if="s.kind === 'parsed'">
           <code v-if="s.status === 'ok'" class="result ok">{{ describeAction(s.parsed) }}</code>
-          <code v-else class="result fail">ParseError: {{ errorLabel(s.parsed) }}</code>
+          <code v-else class="result fail">Could not understand: {{ errorLabel(s.parsed) }}</code>
         </div>
 
         <div v-if="s.kind === 'interp'" class="interp">
           <template v-if="!s.interp">
-            <span class="muted">Not needed — the parser understood.</span>
+            <span class="muted">Not needed. The game understood by itself.</span>
           </template>
           <template v-else-if="s.interp.status === 'skipped'">
-            <span class="slot">No interpreter connected.</span>
-            <span class="muted small">This is where a language model would try to understand what the parser could not.</span>
+            <span class="slot">The AI is off.</span>
+            <span class="muted small">This is where an AI would try to work out what the game could not.</span>
           </template>
           <template v-else>
             <div class="interp-head">

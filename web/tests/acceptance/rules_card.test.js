@@ -21,14 +21,14 @@ const controller = (store = memoryStore()) =>
 async function doLesson(c) {
   c.goTo(1, 4)
   c.setDial({ setting: 'fill_gaps', tone: 'eerie' })
-  c.setDialReason('  Details are safe to make up.  ')
+  c.saveDialChoice('  Details are safe to make up.  ')
   c.goTo(1, 5)
   const { world } = withThing(c.game.definition.value, { name: 'coffee mug', description: 'Cold coffee.', aliases: 'mug, cup' })
   await c.game.applyWorld(world)
   c.goTo(1, 6)
-  c.setRealLife('homework', { setting: 'understand' })
+  c.setRealLife('homework', { setting: 'understand', reason: 'The teacher wrote it.' })
   c.setRealLife('clinic', { setting: 'off', reason: 'A wrong dose could hurt someone.' })
-  c.setRealLife('story_game', { setting: 'invent' })
+  c.setRealLife('story_game', { setting: 'invent', reason: 'Surprises are fun.' })
 }
 
 describe('the AI rules card', () => {
@@ -77,10 +77,26 @@ describe('the AI rules card', () => {
     expect(c.card().thing).toBeNull()                         // the space world has no thing yet
   })
 
-  it('puts the dial reason in the downloaded log', async () => {
+  it('puts the saved dial and its reason in the downloaded log', async () => {
     const c = controller()
     await doLesson(c)
-    expect(c.exportLog().lesson.dial).toMatchObject({ setting: 'fill_gaps', reason: 'Details are safe to make up.' })
+    expect(c.exportLog().lesson.dialSaved).toMatchObject({ setting: 'fill_gaps', reason: 'Details are safe to make up.' })
+  })
+
+  it('reports the dial the student saved, not one they only tried', async () => {
+    const c = controller()
+    await doLesson(c)
+    c.goTo(1, 4)
+    c.setDial({ setting: 'improvise' })                       // experimenting, not saved
+    expect(c.card().dial).toMatchObject({ setting: 'fill_gaps', name: 'Fill gaps' })
+    expect(c.exportLog().lesson.dial).toMatchObject({ setting: 'improvise' })
+  })
+
+  it('shows no game dial when the student moved it but never saved', () => {
+    const c = controller()
+    c.goTo(1, 4)
+    c.setDial({ setting: 'fill_gaps' })
+    expect(c.card().dial).toBeNull()
   })
 
   it('asks for no name on screen and prints the card alone', () => {

@@ -20,14 +20,14 @@ const answers = computed(() => {
 })
 const gameDial = computed(() => {
   props.revision
-  return props.controller.dialWasSet ? NAMES[props.controller.dial.setting] : null
+  return props.controller.dialSaved ? NAMES[props.controller.dialSaved.setting] : null
 })
 const scenarios = computed(() => props.config.scenarios.map(scenario => ({
   ...scenario,
   settings: ORDER.filter(key => Object.hasOwn(scenario.options, key)),
 })))
 const remaining = computed(() =>
-  scenarios.value.filter(scenario => !answers.value[scenario.id]?.setting).length
+  (props.revision, scenarios.value.filter(scenario => !props.controller.realLifeAnswered(scenario.id)).length)
 )
 </script>
 
@@ -61,13 +61,13 @@ const remaining = computed(() =>
             autocomplete="off"
             :value="answers[scenario.id]?.reason ?? ''"
             placeholder="What could go right or wrong?"
-            @change="controller.setRealLife(scenario.id, { reason: $event.target.value })"
+            @input="controller.setRealLife(scenario.id, { reason: $event.target.value })"
           >
         </label>
       </fieldset>
     </div>
     <p class="count" role="status">
-      {{ remaining ? `${remaining} left to set.` : 'All three are set.' }}
+      {{ remaining ? `${remaining} still need${remaining === 1 ? 's' : ''} a setting and a reason.` : 'All three are set.' }}
     </p>
   </div>
 </template>

@@ -6,8 +6,8 @@ export const DIAL = {
   off: { name: 'Off', short: 'Off', meaning: 'commands only' },
   understand: { name: 'Understand', short: 'Understand', meaning: 'the AI turns your words into commands' },
   fill_gaps: { name: 'Fill gaps', short: 'Fill gaps', meaning: "the AI writes when you didn't" },
-  improvise: { name: 'Improvise characters', short: 'Improvise', meaning: 'the AI talks beyond your lines' },
-  invent: { name: 'Invent events', short: 'Invent', meaning: 'the AI decides what happens' },
+  improvise: { name: 'Improvise', short: 'Improvise', meaning: 'the AI talks beyond your lines' },
+  invent: { name: 'Invent', short: 'Invent', meaning: 'the AI decides what happens' },
 }
 
 export const DIAL_ORDER = Object.keys(DIAL)

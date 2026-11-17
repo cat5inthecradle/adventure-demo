@@ -5,7 +5,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "Play",
-    "longInstructions": "Play **{{title}}** and {{goal}}.\n\nUse the commands the game understands to {{goalTask}}. Stuck? Try `talk to {{npc}}`.\n\nYou're done when {{doneWhen}}.",
+    "longInstructions": "Play **{{title}}** and {{goal}}.\n\nThe game only understands a few commands. Type `help` to see them, then {{goalTask}}.\n\nStuck? Go `{{toSecond}}` and `talk to {{npc}}`.\n\nYou're done when {{doneWhen}}.",
     "teacherMarkdown": "- What parts of this story came from the world's rules, and what parts came from the player?\n- Does choosing an action make the player an author? Why or why not?",
     "freePlay": false,
     "validations": [
@@ -78,8 +78,8 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "Meet the AI",
-    "longInstructions": "Turn on the AI interpreter and type a natural sentence that means a game command.\n\nThen ask for something impossible, such as opening a door with a sandwich.\n\nYou are done when the interpreter understands one request and asks for clarification on another.",
-    "teacherMarkdown": "- Did the AI change the world, or only translate the player's words into a command?\n- When the AI asks a question, who is shaping the next line of the story?",
+    "longInstructions": "Turn on the AI: pick a model from the **Interpreter** menu at the top right and wait for it to load.\n\nType a normal sentence that means a game command, like `can you grab the {{toolShort}} for me`.\n\nThen ask for something the game cannot do, like `fly to the moon`. A careful AI asks you a question. A careless one guesses a command you never asked for. Watch which one yours does.\n\nYou are done when the AI has understood one request, and has asked or guessed at another.",
+    "teacherMarkdown": "- Did the AI change the world, or only translate the player's words into a command?\n- When the AI guessed instead of asking, what did it do? Would that be acceptable in an app that matters?\n- When the AI asks a question, who is shaping the next line of the story?",
     "freePlay": false,
     "validations": [
       {
@@ -92,7 +92,20 @@
             "name": "interpreter_clarified"
           }
         ],
-        "message": "You saw the AI translate and admit uncertainty.",
+        "message": "The AI asked a question when it was not sure. That is the careful choice.",
+        "next": true
+      },
+      {
+        "key": "l6_understood_and_guessed",
+        "conditions": [
+          {
+            "name": "interpreter_understood"
+          },
+          {
+            "name": "interpreter_guessed"
+          }
+        ],
+        "message": "The AI guessed. The game cannot do what you asked, so it picked a command you never typed. Look at what it did.",
         "next": true
       },
       {
@@ -102,7 +115,7 @@
             "name": "interpreter_understood"
           }
         ],
-        "message": "Now ask for something impossible and watch for a clarification.",
+        "message": "Now ask for something the game cannot do, like flying to the moon, and watch for a question.",
         "next": false
       }
     ],
@@ -121,8 +134,8 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "The AI dial",
-    "longInstructions": "The room you start in mentions a {{detail}} the author never built. Try the same command with the AI dial at different settings and watch what changes.\n\nThe {{detailShort}} never becomes a real object: the AI can write words, not rules. Improvise lets characters say things the author never wrote.\n\n**Invent events** is locked—use what happened in the game to debate why.",
-    "teacherMarkdown": "- At which dial setting does the AI begin to share authorship, if any? Why?\n- Why might inventing events be locked even when improvising is available?\n- Who is responsible when AI-written story text conflicts with a world rule?",
+    "longInstructions": "The room you start in mentions a {{detail}} the author never built. Try the same command with the **AI dial**, beside the game, at different settings and watch what changes.\n\nThe {{detailShort}} never becomes a real object: the AI can write words, not rules. Improvise lets characters say things the author never wrote.\n\n**Invent** is locked—use what happened in the game to debate why.",
+    "teacherMarkdown": "- At which dial setting does the AI begin to share authorship, if any? Why?\n- Why might inventing events be locked even when improvising is available?\n- Who is responsible when AI-written story text conflicts with a world rule?\n- Did a line marked **AI wrote this** ever say something that was not true in the game? How could a player tell?",
     "freePlay": false,
     "validations": [
       {
@@ -145,7 +158,7 @@
       "interpreter": true,
       "steps": [
         {
-          "text": "Choose a model from the menu at the top right and wait for it to load."
+          "text": "If you have not already, choose a model from the **Interpreter** menu at the top right and wait for it to load."
         },
         {
           "text": "Set the dial to **Off** and type `examine the {{detailShort}}`."
@@ -154,7 +167,7 @@
           "text": "Still on **Off**, type `{{understandPhrase}}`. Then set the dial to **Understand** and type it again. Which setting worked out what you meant?"
         },
         {
-          "text": "Set it to **Fill gaps** and try once more. Notice the line marked **AI wrote this**.",
+          "text": "Set the dial to **Fill gaps** and type `examine the {{detailShort}}` again. Notice the line marked **AI wrote this**.",
           "conditions": [
             {
               "name": "ai_filled_gap"
@@ -162,7 +175,7 @@
           ]
         },
         {
-          "text": "Set the dial to **Improvise**, go `{{toSecond}}` to the {{secondRoom}}, and type `ask the {{npc}} about {{askAbout}}`. Notice the {{npc}} answers with a line marked **AI wrote this**—a line the author never wrote.",
+          "text": "Set the dial to **Improvise**, go `{{toSecond}}` to the {{secondRoom}}, and type `ask the {{npc}} about {{askAbout}}`. Notice the {{npc}} answers with a line marked **AI wrote this**—a line the author never wrote. Is what it says true in the game? Check with `look` and `inventory`.",
           "conditions": [
             {
               "name": "ai_improvised"
@@ -170,7 +183,12 @@
           ]
         },
         {
-          "text": "Pick the setting you want for your game. Add a tone and theme if you like, write your reason, and save it."
+          "text": "Pick the setting you want for your game. Add a tone and theme if you like, write your reason, and press **Save my setting**.",
+          "conditions": [
+            {
+              "name": "ai_dial_set"
+            }
+          ]
         }
       ],
       "aiDial": {
@@ -194,7 +212,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "If you name it, answer it",
-    "longInstructions": "The AI could write words about the {{detail}}, but you still could not pick it up. Only the author can make it real, and you are the author now.\n\nIn **Add a thing**, write what a player sees when they examine the {{detail}}. Then press **Add it to the world**.\n\nType `examine {{detailShort}}`, then `take {{detailShort}}`. You are done when the game answers with the words you wrote.\n\nThen think like a player: what else might they call it? Add those words to **Also called**, press **Save changes**, and try them.",
+    "longInstructions": "The AI could write words about the {{detail}}, but you still could not pick it up. Only the author can make it real, and you are the author now.\n\nIn **Add a thing**, write what a player sees when they examine the {{detail}}. Then press **Add it to the world**.\n\nType `examine {{detailShort}}`. You are done when the game answers with the words you wrote. Try `take {{detailShort}}` too.\n\nThen think like a player: what else might they call it? Add those words to **Also called**, press **Save changes**, and try them.",
     "teacherMarkdown": "- The AI described the {{detail}} and the student built it. What is different about the two?\n- How did one short form change which player actions were possible?\n- Who should decide what is true in a story: the author, the player, or the AI?",
     "freePlay": false,
     "projectTemplateLevelName": "hoai_adventure_world",
@@ -240,7 +258,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "Set the dial for real life",
-    "longInstructions": "The dial is not only for games. Anyone who builds an app with AI has to decide how much the AI may do.\n\nHere are three apps. For each one, pick where you would set the dial and say why.\n\nThere is no single right answer, so be ready to defend yours. You are done when you have set all three.",
+    "longInstructions": "The dial is not only for games. Anyone who builds an app with AI has to decide how much the AI may do.\n\nHere are three apps. For each one, pick where you would set the dial and write why.\n\nThere is no single right answer, so be ready to defend yours. You are done when all three have a setting and a reason.",
     "teacherMarkdown": "- Where did the class disagree most? What made that app different from the others?\n- For each app, what could go wrong at the highest setting, and who would be harmed?\n- Who should get to set the dial: the people who build the app, the people who use it, or someone else?\n- Name an app you use that has AI in it. Where do you think its dial is set?",
     "freePlay": false,
     "validations": [

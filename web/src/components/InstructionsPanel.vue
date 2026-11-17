@@ -1,12 +1,12 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { renderMarkdown } from '../lesson/markdown.js'
-import AiDial from './AiDial.vue'
 import WorldPicker from './WorldPicker.vue'
 
 const props = defineProps({
   controller: { type: Object, required: true },
   revision: { type: Number, default: 0 },
+  cardOpen: Boolean,
 })
 
 const emit = defineEmits(['finish'])
@@ -36,9 +36,25 @@ const steps = computed(() => {
     html: renderMarkdown(step.text),
   }))
 })
+const statuses = computed(() => {
+  props.revision
+  return props.controller.levelStatuses()
+})
+const canContinue = computed(() => {
+  props.revision
+  return props.controller.canContinue()
+})
 const teacherNotes = computed(() => renderMarkdown(properties.value.teacherMarkdown))
 
 watch(() => level.value.levelId, () => { finished.value = false })
+
+// The result of a level can be below a long list of steps, so bring it into view.
+const result = ref(null)
+watch(() => progress.value.message, async message => {
+  if (!message) return
+  await nextTick()
+  result.value?.scrollIntoView?.({ block: 'nearest' })
+})
 
 function continueLesson() {
   const destination = props.controller.next()
@@ -61,7 +77,7 @@ function continueLesson() {
       <span class="position" aria-live="polite">
         Level {{ level.position }} of {{ level.totalLevels }}
         <span class="pips" aria-hidden="true">
-          <i v-for="n in level.totalLevels" :key="n" :class="{ done: n < level.position, here: n === level.position }"></i>
+          <i v-for="(status, index) in statuses" :key="index" :class="status"></i>
         </span>
       </span>
       <a v-if="following" :href="following.path" aria-label="Next level">Next →</a>
@@ -85,17 +101,11 @@ function continueLesson() {
             class="step-marker"
             :class="{ checkable: step.checkable }"
             :aria-label="step.checkable ? (step.done ? 'Done' : 'Not done') : null"
-          >{{ step.checkable ? (step.done ? '✓' : '') : index + 1 }}</span>
+          >{{ step.done ? '✓' : index + 1 }}</span>
           <div class="markdown step-text" v-html="step.html"></div>
         </li>
       </ol>
 
-      <AiDial
-        v-if="properties.levelData.aiDial"
-        :controller="controller"
-        :dial="properties.levelData.aiDial"
-        :revision="revision"
-      />
 
       <div v-if="progress.message" class="feedback" :class="{ success: progress.satisfied }" role="status">
         {{ progress.message }}
@@ -103,16 +113,20 @@ function continueLesson() {
 
       <template v-if="finished">
         <p class="finished" role="status">You finished the lesson.</p>
-        <button type="button" class="continue chunky" @click="emit('finish')">See my AI rules card</button>
+        <button v-if="!cardOpen" type="button" class="continue chunky" @click="emit('finish')">See my AI rules card</button>
       </template>
       <button
         v-else
         type="button"
         class="continue chunky"
-        :disabled="!controller.canContinue()"
+        :disabled="!canContinue"
         @click="continueLesson"
       >Continue</button>
+      <p v-if="!finished && !canContinue" class="locked-hint">
+        Continue unlocks when you finish this level.<template v-if="following"> Stuck? <strong>Next →</strong> at the top skips it.</template>
+      </p>
 
+      <span ref="result"></span>
       <details v-if="properties.teacherMarkdown" class="teachers">
         <summary>For teachers</summary>
         <div class="markdown" v-html="teacherNotes"></div>
@@ -131,8 +145,9 @@ function continueLesson() {
 .position { display: grid; justify-items: center; gap: 5px; color: var(--muted); }
 .pips { display: flex; gap: 4px; }
 .pips i { width: 12px; height: 12px; border: 2px solid var(--edge); background: var(--panel); }
-.pips i.done { background: var(--cool); }
+.pips i.passed { background: var(--cool); }
 .pips i.here { background: var(--hi); }
+.pips i.skipped { background: repeating-linear-gradient(45deg, var(--panel) 0 2px, var(--line-strong) 2px 4px); }
 .scroll { padding: 12px; overflow-y: auto; }
 .progression { display: inline-block; margin: 0 0 8px; padding: 2px 8px; border: 2px solid var(--edge); border-radius: 4px; background: var(--hi); color: var(--on-hi); font-family: var(--display); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
 h2 { margin: 0 0 12px; font-size: 24px; font-weight: 700; line-height: 1.15; }
@@ -152,6 +167,7 @@ h2 { margin: 0 0 12px; font-size: 24px; font-weight: 700; line-height: 1.15; }
 .feedback.success { background: var(--good-soft); color: var(--good); font-weight: 600; }
 .continue { width: 100%; padding: 9px 12px; background: var(--accent); color: var(--on-accent); font-size: 16px; font-weight: 700; cursor: pointer; }
 .continue:disabled { opacity: 0.45; cursor: default; }
+.locked-hint { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
 .finished { margin: 0 0 10px; padding: 10px; border: 2px solid var(--edge); border-radius: 6px; background: var(--good-soft); color: var(--good); font-weight: 600; text-align: center; }
 .teachers { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
 .teachers summary { cursor: pointer; color: var(--muted); font-size: 12px; }

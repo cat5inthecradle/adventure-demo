@@ -70,6 +70,8 @@ describe('LessonController.steps()', () => {
 
     c.setDial({ setting: 'improvise' })
     await play(c, ['south', 'ask the droid about the ship'])
+    expect(c.steps().at(-1).done).toBe(false)               // the last step is saving a setting
+    c.saveDialChoice('It may describe things, not change them.')
     expect(c.steps().filter(s => s.checkable).every(s => s.done)).toBe(true)
   })
 

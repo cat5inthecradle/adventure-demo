@@ -43,14 +43,17 @@ describe('the real-life level’s content', () => {
 })
 
 describe('setting the dial for real life', () => {
-  it('passes only once every scenario has a setting', () => {
+  it('passes only once every scenario has a setting and a reason', () => {
     const c = controller()
     c.goTo(1, LAST)
     expect(c.canContinue()).toBe(false)
-    c.setRealLife('homework', { setting: 'fill_gaps' })
+    c.setRealLife('homework', { setting: 'fill_gaps', reason: 'Hints are low risk.' })
     c.setRealLife('clinic', { setting: 'understand', reason: 'A wrong dose could hurt someone.' })
-    expect(c.canContinue()).toBe(false)
     c.setRealLife('story_game', { setting: 'invent' })      // nothing is locked here
+    expect(c.canContinue()).toBe(false)                     // a setting without a reason is not an answer
+    c.setRealLife('story_game', { reason: ' x ' })
+    expect(c.canContinue()).toBe(false)                     // nor is a stray letter
+    c.setRealLife('story_game', { reason: 'Surprises are the fun part.' })
     expect(c.canContinue()).toBe(true)
     expect(c.state().message).toBeTruthy()
   })
@@ -75,7 +78,7 @@ describe('setting the dial for real life', () => {
     const store = memoryStore()
     const first = controller(store)
     first.goTo(1, LAST)
-    for (const id of ['homework', 'clinic', 'story_game']) first.setRealLife(id, { setting: 'understand' })
+    for (const id of ['homework', 'clinic', 'story_game']) first.setRealLife(id, { setting: 'understand', reason: 'People check it.' })
 
     const again = controller(store)
     again.goTo(1, LAST)
