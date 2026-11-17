@@ -1,0 +1,12 @@
+# Secret-scan settings for this project. The default rules all still apply.
+[extend]
+useDefault = true
+
+# The built bundle contains the lesson's validation keys, such as
+# key:"l2_failure_explained". They are names of lesson checks from
+# curriculum/hour-of-ai/level_properties.json, not credentials, but the
+# generic-api-key rule reads `key:"..."` as one. Only that exact shape is allowed.
+[allowlist]
+description = "Lesson validation keys in the built bundle"
+regexTarget = "match"
+regexes = ['''key:"l\d+_[a-z0-9_]+"''']
