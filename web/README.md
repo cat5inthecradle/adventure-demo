@@ -91,6 +91,14 @@ made real, and the dial they set for each real-life app. It draws what
 `LessonController.card()` gathers from browser storage. Nothing is uploaded, and
 the name line is left blank to fill in by hand.
 
+## Privacy
+
+What the app stores in the browser and what leaves it is written down in
+[../docs/PRIVACY.md](../docs/PRIVACY.md). `tests/privacy.test.js` fails if the
+code makes a network request of its own, loads anything from another site, or
+uses a browser-storage key that document does not list. If you add a field that
+keeps something a student typed, add it to that document.
+
 ## Tracing
 
 `parse(world, text, trace)` pushes one record per decision it makes: tokens,

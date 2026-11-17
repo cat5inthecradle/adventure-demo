@@ -72,6 +72,13 @@ timed deaths, triggers that fire on where the player is standing, and endings ot
 than winning — none of which this world uses, all of which are documented in
 [docs/AUTHORING.md](docs/AUTHORING.md).
 
+## Privacy
+
+The app has no server, no accounts and no analytics, and nothing a student types
+leaves their browser. [docs/PRIVACY.md](docs/PRIVACY.md) lists what is stored and
+what is sent, and records what a data-privacy review still has to decide. No such
+review has happened yet.
+
 ## The optional language model
 
 Without it, you play in terse commands: `take power cell`, `use prybar on crate`,
