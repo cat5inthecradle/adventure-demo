@@ -26,7 +26,8 @@
       "view": "play",
       "panels": [],
       "interpreter": false
-    }
+    },
+    "shortInstructions": "Your goal: **{{goal}}**. Your task: {{goalTask}}. Type `help` for commands. **Need a hint?** offers a clue before showing an exact command."
   },
   "9002": {
     "id": 9002,
@@ -70,7 +71,8 @@
       ],
       "interpreter": false,
       "revealPanels": "on_select"
-    }
+    },
+    "shortInstructions": "Try `examine {{detailShort}}`. Then choose **Inspect latest command**, or focus a command in the game and press **Enter**. Compare the words in the story with the objects the game knows. Open **Details** for the evidence."
   },
   "9006": {
     "id": 9006,
@@ -78,45 +80,19 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "Meet the AI",
-    "longInstructions": "Turn on the AI: pick a model from the **Interpreter** menu at the top right and wait for it to load.\n\nType a normal sentence that means a game command, like `can you grab the {{toolShort}} for me`.\n\nThen ask for something the game cannot do, like `fly to the moon`. A careful AI asks you a question. A careless one guesses a command you never asked for. Watch which one yours does.\n\nYou are done when the AI has understood one request, and has asked or guessed at another.",
-    "teacherMarkdown": "- Did the AI change the world, or only translate the player's words into a command?\n- When the AI guessed instead of asking, what did it do? Would that be acceptable in an app that matters?\n- When the AI asks a question, who is shaping the next line of the story?",
+    "longInstructions": "Turn on the AI: pick a model from the **AI Interpreter** menu at the top right and wait for it to load.\n\nType a normal sentence that means a game command, like `can you grab the {{toolShort}} for me`.\n\nThen ask for something the game cannot do, like `fly to the moon`. The AI will often guess a command anyway. The game checks the proposed action and its target against your words. If it cannot support that interpretation, it throws the guess away and asks you a question. These checks can also turn down a reasonable request; try naming the action and object clearly.\n\nClick that command to see what the AI guessed.\n\nOpen **Review experiments** to inspect your results and write what you noticed. Unhelpful replies count as observations too. If the model is unavailable, slow, or keeps getting stuck, choose **Use recorded examples**; no download is needed.",
+    "teacherMarkdown": "- Did the AI change the world, or only translate the player's words into a command?\n- When the AI guessed, who stopped the guess: the AI or the game's rules? Why does that matter?\n- Would you want a check like this in an app that matters, such as one that gives medical advice?",
     "freePlay": false,
     "validations": [
       {
-        "key": "l6_understood_and_clarified",
+        "key": "l6_experiments_reviewed",
         "conditions": [
           {
-            "name": "interpreter_understood"
-          },
-          {
-            "name": "interpreter_clarified"
+            "name": "ai_experiments_reviewed"
           }
         ],
-        "message": "The AI asked a question when it was not sure. That is the careful choice.",
+        "message": "You inspected two requests and recorded what happened.",
         "next": true
-      },
-      {
-        "key": "l6_understood_and_guessed",
-        "conditions": [
-          {
-            "name": "interpreter_understood"
-          },
-          {
-            "name": "interpreter_guessed"
-          }
-        ],
-        "message": "The AI guessed. The game cannot do what you asked, so it picked a command you never typed. Look at what it did.",
-        "next": true
-      },
-      {
-        "key": "l6_understood_once",
-        "conditions": [
-          {
-            "name": "interpreter_understood"
-          }
-        ],
-        "message": "Now ask for something the game cannot do, like flying to the moon, and watch for a question.",
-        "next": false
       }
     ],
     "levelData": {
@@ -126,7 +102,8 @@
         "understood"
       ],
       "interpreter": true
-    }
+    },
+    "shortInstructions": "Try `can you grab the {{toolShort}} for me`, then `fly to the moon`. Inspect what happened and save two observations in **Review experiments**. Choose a model for live attempts, or **Use recorded examples** without a download. A failed reply can still teach you something."
   },
   "9007": {
     "id": 9007,
@@ -134,7 +111,7 @@
     "appName": "adventure",
     "type": "Adventure",
     "displayName": "The AI dial",
-    "longInstructions": "The room you start in mentions a {{detail}} the author never built. Try the same command with the **AI dial**, beside the game, at different settings and watch what changes.\n\nThe {{detailShort}} never becomes a real object: the AI can write words, not rules. Improvise lets characters say things the author never wrote.\n\n**Invent** is locked—use what happened in the game to debate why.",
+    "longInstructions": "The room you start in mentions a {{detail}} the author never built. Try the same command with the **AI dial**, beside the game, at different settings and watch what changes.\n\nThe {{detailShort}} never becomes a real object: the AI can write words, not rules. Improvise lets characters say things the author never wrote.\n\n**Invent** is locked—use what happened in the game to debate why.\n\nOpen **Review experiments** to save observations for the comparison, scenery, and dialogue. You can **Use recorded examples** at any time, including when the model fails. Saving your preferred setting is a separate step.",
     "teacherMarkdown": "- At which dial setting does the AI begin to share authorship, if any? Why?\n- Why might inventing events be locked even when improvising is available?\n- Who is responsible when AI-written story text conflicts with a world rule?\n- Did a line marked **AI wrote this** ever say something that was not true in the game? How could a player tell?",
     "freePlay": false,
     "validations": [
@@ -143,9 +120,12 @@
         "conditions": [
           {
             "name": "ai_dial_set"
+          },
+          {
+            "name": "ai_experiments_reviewed"
           }
         ],
-        "message": "Your AI boundary is set. Be ready to explain it.",
+        "message": "Your experiments and preferred AI boundary are saved.",
         "next": true
       }
     ],
@@ -158,27 +138,35 @@
       "interpreter": true,
       "steps": [
         {
-          "text": "If you have not already, choose a model from the **Interpreter** menu at the top right and wait for it to load."
+          "text": "Choose a model to try the experiments live, or choose **Use recorded examples** without a download."
         },
         {
           "text": "Set the dial to **Off** and type `examine the {{detailShort}}`."
         },
         {
-          "text": "Still on **Off**, type `{{understandPhrase}}`. Then set the dial to **Understand** and type it again. Which setting worked out what you meant?"
-        },
-        {
-          "text": "Set the dial to **Fill gaps** and type `examine the {{detailShort}}` again. Notice the line marked **AI wrote this**.",
+          "text": "Still on **Off**, type `{{understandPhrase}}`. Then set the dial to **Understand** and type it again. What did each reply do? Neither has to succeed for you to compare them. Then save your observation in **Review experiments**, using your live result or the recorded example.",
           "conditions": [
             {
-              "name": "ai_filled_gap"
+              "name": "ai_experiment_reviewed",
+              "value": "compare"
             }
           ]
         },
         {
-          "text": "Set the dial to **Improvise**, go `{{toSecond}}` to the {{secondRoom}}, and type `ask the {{npc}} about {{askAbout}}`. Notice the {{npc}} answers with a line marked **AI wrote this**—a line the author never wrote. Is what it says true in the game? Check with `look` and `inventory`.",
+          "text": "Set the dial to **Fill gaps** and type `examine the {{detailShort}}` again. Notice the line marked **AI wrote this**. Then save your observation in **Review experiments**, using your live result or the recorded example.",
           "conditions": [
             {
-              "name": "ai_improvised"
+              "name": "ai_experiment_reviewed",
+              "value": "scenery"
+            }
+          ]
+        },
+        {
+          "text": "Set the dial to **Improvise**, go `{{toSecond}}` to the {{secondRoom}}, and type `ask the {{npc}} about {{askAbout}}`. Notice the {{npc}} answers with a line marked **AI wrote this**—a line the author never wrote. Is what it says true in the game? Check with `look` and `inventory`. Then save your observation in **Review experiments**, using your live result or the recorded example.",
+          "conditions": [
+            {
+              "name": "ai_experiment_reviewed",
+              "value": "dialogue"
             }
           ]
         },
@@ -204,7 +192,8 @@
           "invent"
         ]
       }
-    }
+    },
+    "shortInstructions": "Compare **Off / Understand**, **Fill gaps**, and **Improvise**. Open the live steps below, or **Use recorded examples**. Save three observations in **Review experiments**, then save your preferred dial setting and reason. Generated words do not create game objects or rules."
   },
   "9003": {
     "id": 9003,
@@ -250,7 +239,8 @@
       "addThing": {
         "name": "{{detail}}"
       }
-    }
+    },
+    "shortInstructions": "Make the {{detailShort}} real: enter a description in **Add a thing** and apply it. Then type `examine {{detailShort}}` to test your change. Try taking it or giving it another name if you finish early."
   },
   "9009": {
     "id": 9009,
@@ -318,6 +308,7 @@
           }
         ]
       }
-    }
+    },
+    "shortInstructions": "For each app, choose how much AI it may use and explain why. There is no single right setting. Think about what could go wrong if it invented information. Save all three answers to see your AI rules card."
   }
 }

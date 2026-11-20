@@ -52,6 +52,9 @@ All of it is `localStorage` on the site's own origin. There are no cookies.
 |---|---|
 | `adventure-lab:lesson-world` | Which of the three worlds the student chose |
 | `adventure-lab:lesson-passed` | Which lesson levels they have passed |
+| `adventure-lab:lesson-level` | Which lesson level they were last on, so the lesson reopens there |
+| `adventure-lab:lesson-challenges` | Optional practice worlds, saved positions, observations and self-checks, separate for each challenge and lesson world; cleared by Reset lesson |
+| `adventure-lab:lesson-experiments-v1` | Investigation observations, live or recorded route, world, and the evidence reviewed; cleared by Reset lesson |
 | `adventure-lab:lesson-dial` | Their saved AI dial setting, tone, theme and reason |
 | `adventure-lab:lesson-real-life` | Their setting and reason for each of the three apps |
 | `adventure-lab:project:…` | The lesson world with the thing they added, one per world |

@@ -24,7 +24,7 @@
         "toSecond": "south",
         "npc": "droid",
         "askAbout": "the ship",
-        "understandPhrase": "pick up the tool on the floor"
+        "understandPhrase": "could you get me the prybar"
       }
     },
     "haunted": {
@@ -49,7 +49,7 @@
         "toSecond": "east",
         "npc": "ghost",
         "askAbout": "the house",
-        "understandPhrase": "pick up the tool on the floor"
+        "understandPhrase": "could you get me the poker"
       }
     },
     "jungle": {
@@ -74,7 +74,7 @@
         "toSecond": "north",
         "npc": "parrot",
         "askAbout": "the temple",
-        "understandPhrase": "pick up the tool on the floor"
+        "understandPhrase": "could you get me the machete"
       }
     }
   }

@@ -2,11 +2,14 @@
 // The pipeline, drawn: what the player typed → tokens → typo fixes → verb →
 // noun resolution → (interpreter) → Action → engine events → world changes → prose.
 import { computed, nextTick, ref, watch } from 'vue'
+import { understandingSummary } from '../lesson/understanding.js'
 import { describeAction } from '../engine/actions.js'
 import { buildStages } from '../stages.js'
 
 const props = defineProps({ turn: { type: Object, default: null } })
 
+const heading = ref(null)
+defineExpose({ focus: () => heading.value?.focus() })
 const stages = computed(() => {
   const all = buildStages(props.turn)
   const shown = props.turn?.revealed ?? all.length
@@ -21,8 +24,9 @@ watch(() => props.turn?.revealed, async () => {
 })
 
 const INTERP_STATUS = {
-  action: 'understood',
-  clarify: 'asked a question',
+  action: 'interpretation accepted',
+  clarify: 'requested clarification',
+  unresolved: 'could not resolve request',
   rejected: 'answer rejected',
   unavailable: 'unavailable',
 }
@@ -39,13 +43,17 @@ const errorLabel = e => ({
 <template>
   <section class="panel parser" aria-labelledby="parser-title">
     <header class="panel-head">
-      <h2 id="parser-title">How it was understood</h2>
+      <h2 ref="heading" tabindex="-1" id="parser-title">How it was understood</h2>
       <span v-if="turn" class="quote">“{{ turn.line }}”</span>
     </header>
 
     <p v-if="!turn" class="empty">Type a command. Each step the game takes to understand it will appear here.</p>
 
-    <ol v-else ref="list" class="pipeline">
+    <div v-else class="inspector-body">
+      <p class="plain-summary">{{ understandingSummary(turn) }}</p>
+      <details>
+        <summary>Details: command, rules, and world changes</summary>
+    <ol ref="list" class="pipeline">
       <li v-for="s in stages" :key="s.key" class="stage" :class="['stage-' + s.kind, s.status]">
         <div class="stage-title">{{ s.title }}</div>
         <div v-if="s.hint" class="hint">{{ s.hint }}</div>
@@ -126,7 +134,7 @@ const errorLabel = e => ({
 
         <div v-if="s.kind === 'interp'" class="interp">
           <template v-if="!s.interp">
-            <span class="muted">Not needed. The game understood by itself.</span>
+            <span class="muted">No AI command interpretation. See the reply stage for any AI-written prose.</span>
           </template>
           <template v-else-if="s.interp.status === 'skipped'">
             <span class="slot">The AI is off.</span>
@@ -152,12 +160,16 @@ const errorLabel = e => ({
               <code v-if="!s.interp.reread.result.parseError" class="result ok">{{ describeAction(s.interp.reread.result) }}</code>
               <code v-else class="result fail">{{ errorLabel(s.interp.reread.result) }}</code>
               <div class="muted small">
-                <template v-if="s.interp.via === 'reread' && !s.interp.reread.result.parseError">Its own reading wins over the model’s choice of command.</template>
+                <template v-if="s.interp.via === 'reread' && !s.interp.reread.result.parseError">This is the parsed proposal; the game also checks it against your request.</template>
                 <template v-else-if="s.interp.via === 'reread'">So the player is told, instead of the model guessing.</template>
-                <template v-else>Words the parser doesn’t know, so the model’s own command is used.</template>
+                <template v-else>The paraphrase could not be parsed. The model’s structured proposal must still pass the request check.</template>
               </div>
             </template>
-            <div v-if="s.interp.status === 'rejected'" class="small bad-text">
+            <div v-if="s.interp.refused?.reason === 'ungrounded'" class="small bad-text">
+              The AI guessed <code>{{ describeAction(s.interp.refused.action) }}</code>. Nothing you typed asked for that,
+              so the game threw the guess away and asked you instead.
+            </div>
+            <div v-else-if="s.interp.status === 'rejected'" class="small bad-text">
               That names something out of sight or isn’t a legal command, so the game threw it away.
             </div>
             <details v-if="s.interp.answer?.meta?.prompt" class="small">
@@ -185,10 +197,15 @@ const errorLabel = e => ({
         </ul>
       </li>
     </ol>
+      </details>
+    </div>
   </section>
 </template>
 
 <style scoped>
+.inspector-body { overflow-y: auto; min-height: 0; }
+.plain-summary { padding: 8px; margin: 0; font-size: 13px; line-height: 1.5; color: var(--fg-soft); }
+summary { padding: 8px; cursor: pointer; font-size: 12px; }
 .pipeline {
   list-style: none;
   margin: 0;
@@ -300,7 +317,7 @@ code.block {
 .verdict { font-size: 11.5px; padding: 0 6px; border-radius: 4px; background: var(--chip); }
 .verdict.action { background: var(--good-soft); color: var(--good); }
 .verdict.rejected, .verdict.unavailable { background: var(--bad-soft); color: var(--bad); }
-.verdict.clarify { background: var(--warn-soft); color: var(--warn); }
+.verdict.clarify, .verdict.unresolved { background: var(--warn-soft); color: var(--warn); }
 .bad-text { color: var(--bad); }
 .interp pre { font-family: var(--mono); font-size: 11px; white-space: pre-wrap; background: var(--chip); padding: 6px; border-radius: 5px; }
 .event-list, .change-list { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }

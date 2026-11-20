@@ -33,8 +33,10 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-You wake aboard the *Wayfarer*, a freighter drifting dead in space. Restore main
-power and get off the ship. Type `help` for the command list.
+The page opens on **Learn**, a six-level Hour of AI lesson built on three short
+worlds. **Play** in the top bar is the full game: you wake aboard the *Wayfarer*, a
+freighter drifting dead in space, and have to restore main power and get off the
+ship. Type `help` for the command list.
 
 The app is in [web/](web/); [web/README.md](web/README.md) has the details. It is
 deployed on CodeAI Cloud, publicly at https://adventure-lab.apps.code.org/ (no
@@ -57,7 +59,7 @@ reviewed release is merged.
   AI and set how much it may do, add one thing to the world with a short form, then
   set the same dial for three apps outside the game. It ends with a printable
   "My AI rules" card of what the student decided.
-- **Benchmark** — 59 sentences the parser can't understand, run through the language
+- **Benchmark** — 65 sentences the parser can't understand, run through the language
   model and scored, with every prompt open for inspection.
 
 `pronouns he` (or `she`, or `they`) sets how the game refers to your character. Worlds
@@ -71,6 +73,16 @@ The Wayfarer is the world in this repository. The engine also supports counters,
 timed deaths, triggers that fire on where the player is standing, and endings other
 than winning — none of which this world uses, all of which are documented in
 [docs/AUTHORING.md](docs/AUTHORING.md).
+
+### Repeat a lesson or playtest
+
+The [60-minute teacher guide](docs/HOUR_OF_AI_TEACHER_GUIDE.md) covers setup, the recorded route, hints, extensions, and debrief questions. It is also available inside each level’s **For teachers** section. Level 6 allows a card preview even with unfinished work.
+
+Use **Reset lesson** in the top bar, then **Clear lesson and restart**. This clears
+lesson answers, progress, saved dial choices and authored objects in every lesson
+world, and reloads at Level 1. Current game sessions and model conversation context
+restart. Downloaded model files and named game saves are kept; select the cached
+model again when needed. Cancel or Escape closes the confirmation without changes.
 
 ## Privacy
 
@@ -88,8 +100,9 @@ engine decides whether it is legal.
 
 Pick a model from **Interpreter** in the top bar. It runs in your browser on the GPU
 (WebGPU), so nothing you type leaves the machine; the first time, the model is
-downloaded and cached (about 1–2 GB). The recommended one, Qwen2.5 1.5B, gets 80% of
-the benchmark right.
+downloaded and cached (about 1–2 GB). Qwen2.5 1.5B is the
+recommended starting point. Earlier benchmark scores predate the current intent
+checks; use Benchmark to measure the current build.
 
 Terse commands never reach the model: the parser runs first, and only lines it cannot
 use are passed on. The model is given a deliberately small snapshot of what you can
@@ -97,6 +110,16 @@ currently see, and its output is constrained to a schema of entity IDs drawn fro
 snapshot. It also rephrases the request in plain words, which goes back through the
 parser — so the deterministic parser, not the model, makes the final match to what is
 in the room. If it names something you cannot see, you are told so instead.
+
+Every interpreted action, including looking and listening, must also agree with a
+conservative reading of the player's request. Common polite phrases are supported,
+objects must resolve to the same IDs, and movement must follow the requested
+bearing or known route. An unnamed “it” is not permission to choose an object.
+When the check cannot establish intent, the game asks for clarification without
+executing the proposal. This can refuse reasonable but unsupported paraphrases;
+it is a bounded command check, not a guarantee of natural-language understanding.
+See [grounding.js](web/src/engine/grounding.js). The benchmark reports accepted
+correct and incorrect actions separately from requests left unexecuted.
 
 ## Architecture
 

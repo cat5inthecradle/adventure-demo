@@ -37,7 +37,7 @@
         "poker",
         "iron poker"
       ],
-      "description": "A long iron poker with a hooked tip.",
+      "description": "A fire poker is a long iron tool for moving logs in a fireplace. Its hooked tip could lift a stuck latch.",
       "location": "entrance_hall",
       "portable": true
     },
@@ -62,7 +62,12 @@
       "alt_description": "The chest gapes open, its velvet lining torn.",
       "alt_flag": "chest_open",
       "location": "library",
-      "portable": false
+      "portable": false,
+      "open_flag": "chest_open",
+      "open_refusal": "The old chest is stuck shut. A tool may help. Examine it or ask the character here for a clue.",
+      "open_refusal_with": {
+        "fire_poker": "You have the fire poker. Try 'use fire poker on old chest'."
+      }
     },
     "winding_key": {
       "id": "winding_key",
@@ -87,6 +92,15 @@
       "description": "A pale girl in an old-fashioned dress, flickering like a candle.",
       "location": "library",
       "dialogue": [
+        {
+          "requires_flags": {
+            "chest_open": false
+          },
+          "requires_items": {
+            "fire_poker": true
+          },
+          "text": "You already have the fire poker. Try using it on the old chest."
+        },
         {
           "requires_flags": {
             "chest_open": false

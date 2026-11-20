@@ -75,6 +75,8 @@ describe('LessonController', () => {
     c.goTo(1, 4)
     expect(c.state().satisfied).toBe(false)
     c.recordUiEvent('ai_dial_set', 'fill_gaps')
+    expect(c.state().satisfied).toBe(false)
+    for (const task of c.experimentTasks()) c.saveExperiment(task.id, 'recorded', 'The evidence shows unchanged rules')
     expect(c.state().satisfied).toBe(true)
   })
 

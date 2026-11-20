@@ -91,6 +91,7 @@ export function conditionsMatch(world, rule) {
   const rooms = rule.rooms ?? []
   if (rooms.length && !rooms.includes(world.player_location)) return false
   return flagsMatch(world, rule.requires_flags)
+    && Object.entries(rule.requires_items ?? {}).every(([id, carried]) => (world.items[id]?.location === LOC_INVENTORY) === carried)
     && countersMatch(world, rule.requires_counters)
     && doorsMatch(world, rule.requires_doors)
 }

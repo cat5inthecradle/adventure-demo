@@ -34,6 +34,7 @@ const remaining = computed(() =>
 <template>
   <div class="real-life">
     <p v-if="gameDial" class="yours">In your game, you set the dial to <strong>{{ gameDial }}</strong>.</p>
+    <p class="reflection-help">What may AI do here? What happens if it is wrong? A short reason is enough. Different choices are worth discussing.</p>
     <div class="cards">
       <fieldset v-for="scenario in scenarios" :key="scenario.id" class="panel card">
         <legend>{{ scenario.title }}</legend>
@@ -53,14 +54,17 @@ const remaining = computed(() =>
           >
           <span><strong>{{ NAMES[key] }}.</strong> {{ scenario.options[key] }}</span>
         </label>
+        <p v-if="answers[scenario.id]?.setting" class="chosen-capability">
+          <strong>Your choice allows:</strong> {{ scenario.options[answers[scenario.id].setting] }}
+        </p>
         <label class="field">
-          Why there?
+          Why does that capability fit?
           <input
             type="text"
             maxlength="200"
             autocomplete="off"
             :value="answers[scenario.id]?.reason ?? ''"
-            placeholder="What could go right or wrong?"
+            placeholder="I would allow… because… If wrong…"
             @input="controller.setRealLife(scenario.id, { reason: $event.target.value })"
           >
         </label>
@@ -74,6 +78,8 @@ const remaining = computed(() =>
 
 <style scoped>
 .real-life { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 0 6px 6px 0; }
+.reflection-help { margin: 0; font-size: 13px; line-height: 1.5; }
+.chosen-capability { font-size: 13px; line-height: 1.5; background: var(--chip); padding: 8px; }
 .yours { margin: 0; padding: 8px 10px; border: 2px solid var(--edge); border-radius: 6px; background: var(--accent-soft); color: var(--fg-soft); font-size: 13px; }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; align-items: start; }
 .card { margin: 0; padding: 12px; min-width: 0; }

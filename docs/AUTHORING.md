@@ -137,6 +137,8 @@ Two optional fields on any item do this:
 }
 ```
 
+- **`open_flag`** optionally names the flag that means this item is already open.
+  When true, `open` reports “already open” instead of repeating a refusal.
 - **`open_refusal`** replaces the generic message when the player tries to open this.
 - **`open_refusal_with`** maps an item id to a sharper message, used when the player
   is *carrying* that item. The hint escalates as the player gets closer to the
@@ -250,13 +252,17 @@ When `power_restored` is true, players see the alternative instead. This is how 
 ship visibly comes back to life.
 
 **Guarding a rule.** Interactions, dialogue rules and triggers all carry the same
-three guards, and all three must pass:
+guards below; every supplied guard must pass:
 
 ```json
 "requires_flags":    { "power_restored": true },
 "requires_counters": { "exposure": { "at_least": 2, "at_most": 4 } },
-"requires_doors":    { "pod_door": true }
+"requires_doors":    { "pod_door": true },
+"requires_items":    { "prybar": true }
 ```
+
+`requires_items` maps item ids to booleans: true means carried, false means not
+carried. Use it to change a character’s advice after the player picks up a tool.
 
 Counter bounds are inclusive and either may be left out. `requires_doors` asks
 whether a door is open — use it instead of shadowing door state with a flag, which

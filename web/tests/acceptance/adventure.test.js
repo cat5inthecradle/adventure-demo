@@ -17,7 +17,7 @@ const NAMES = {
   play: ['game_won', 'turn_failed', 'examined_matching', 'saw_custom_refusal', 'saw_tool_hint',
     'opened_door_locked_by_flag', 'flag_set', 'interpreter_understood', 'interpreter_clarified', 'interpreter_guessed',
     'ai_filled_gap', 'ai_improvised'],
-  ui: ['viewed_understood_panel', 'ai_dial_set', 'real_life_dials_set'],
+  ui: ['ai_experiment_reviewed', 'ai_experiments_reviewed', 'viewed_understood_panel', 'ai_dial_set', 'real_life_dials_set'],
   definition: ['entity_named_matching', 'item_has_open_refusal', 'item_has_tool_hint', 'door_locked_by_flag'],
 }
 
@@ -107,13 +107,13 @@ describe('AdventureValidator', () => {
 
   it('tells an interpreted action from a clarifying question', async () => {
     const interpreter = new ScriptedInterpreter('test', {
-      'grab that iron bar': { kind: 'action', action: { type: 'take', item: 'crowbar' } },
-      'open the vault with my sandwich': { kind: 'clarify', question: "I don't see a sandwich here." },
+      'could you grab the crowbar for me': { kind: 'action', action: { type: 'take', item: 'crowbar' } },
+      'open the vault with my sandwich': { kind: 'clarify', question: "I don't see a sandwich here. Which tool do you mean?" },
     })
-    const understood = await played(['grab that iron bar'], { interpreter })
+    const understood = await played(['could you grab the crowbar for me'], { interpreter })
     expect(met(understood, { name: 'interpreter_understood' })).toBe(true)
     expect(met(understood, { name: 'interpreter_clarified' })).toBe(false)
-    const both = await played(['grab that iron bar', 'open the vault with my sandwich'], { interpreter })
+    const both = await played(['could you grab the crowbar for me', 'open the vault with my sandwich'], { interpreter })
     expect(met(both, { name: 'interpreter_understood' }, { name: 'interpreter_clarified' })).toBe(true)
     expect(met(await played(['take crowbar'], { interpreter }), { name: 'interpreter_understood' })).toBe(false)
   })

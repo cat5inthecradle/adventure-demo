@@ -116,6 +116,8 @@ describe('the lesson in each world', () => {
     c.setDial({ setting: 'fill_gaps' })
     c.game.state.pace = 0
     await c.game.submit('examine the statue')
+    expect(c.steps().find(s => /fill gaps/i.test(s.text)).done).toBe(false)
+    c.saveExperiment('scenery', 'live', 'The statue description changed no rules')
     expect(c.steps().find(s => /fill gaps/i.test(s.text)).done).toBe(true)
   })
 })

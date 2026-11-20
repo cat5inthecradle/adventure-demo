@@ -96,7 +96,7 @@ function save() {
       <input v-model="reason" type="text" maxlength="120" placeholder="Why does this setting fit?" @input="saved = false">
     </label>
     <button type="button" class="chunky" @click="save">Save my setting</button>
-    <span v-if="saved" class="saved" role="status">Saved.</span>
+    <span v-if="saved" class="saved" role="status">Preference saved. Review experiments separately.</span>
     <p v-else-if="problem" class="model-note" role="alert">{{ problem }}</p>
   </section>
 </template>

@@ -1,6 +1,8 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
 import { renderMarkdown } from '../lesson/markdown.js'
+import TeacherGuide from './TeacherGuide.vue'
+import LessonHint from './LessonHint.vue'
 import WorldPicker from './WorldPicker.vue'
 
 const props = defineProps({
@@ -9,7 +11,7 @@ const props = defineProps({
   cardOpen: Boolean,
 })
 
-const emit = defineEmits(['finish'])
+const emit = defineEmits(['finish', 'challenges'])
 const finished = ref(false)
 const level = computed(() => {
   props.revision
@@ -28,6 +30,7 @@ const currentIndex = computed(() => level.value.levels.findIndex(candidate =>
 ))
 const previous = computed(() => level.value.levels[currentIndex.value - 1] ?? null)
 const following = computed(() => level.value.levels[currentIndex.value + 1] ?? null)
+const overview = computed(() => renderMarkdown(properties.value.shortInstructions ?? properties.value.longInstructions))
 const instructions = computed(() => renderMarkdown(properties.value.longInstructions))
 const steps = computed(() => {
   props.revision
@@ -40,6 +43,7 @@ const statuses = computed(() => {
   props.revision
   return props.controller.levelStatuses()
 })
+const skipped = computed(() => statuses.value.filter(status => status === 'skipped').length)
 const canContinue = computed(() => {
   props.revision
   return props.controller.canContinue()
@@ -70,7 +74,7 @@ function continueLesson() {
 </script>
 
 <template>
-  <aside class="panel instructions">
+  <aside id="lesson-instructions" tabindex="-1" class="panel instructions">
     <nav class="level-nav" aria-label="Lesson levels">
       <a v-if="previous" :href="previous.path" aria-label="Previous level">← Previous</a>
       <span v-else></span>
@@ -87,15 +91,22 @@ function continueLesson() {
     <div class="scroll">
       <p class="progression">{{ level.progression }}</p>
       <h2>{{ properties.displayName }}</h2>
-      <div class="markdown" v-html="instructions"></div>
-
+      <LessonHint :controller="controller" :revision="revision" />
       <WorldPicker
         v-if="properties.levelData.worldPicker"
         :controller="controller"
         :revision="revision"
       />
 
-      <ol v-if="steps.length" class="steps" aria-label="Level steps">
+      <div class="markdown" v-html="overview"></div>
+      <details v-if="properties.shortInstructions" :key="properties.id" class="guide">
+        <summary>Full instructions and explanation</summary>
+        <div class="markdown" v-html="instructions"></div>
+      </details>
+
+      <details v-if="steps.length" :key="`steps-${properties.id}`" class="guide">
+      <summary>Live experiment steps and checklist</summary>
+      <ol class="steps" aria-label="Level steps">
         <li v-for="(step, index) in steps" :key="index" :class="{ done: step.done }">
           <span
             class="step-marker"
@@ -105,6 +116,7 @@ function continueLesson() {
           <div class="markdown step-text" v-html="step.html"></div>
         </li>
       </ol>
+      </details>
 
 
       <div v-if="progress.message" class="feedback" :class="{ success: progress.satisfied }" role="status">
@@ -112,8 +124,13 @@ function continueLesson() {
       </div>
 
       <template v-if="finished">
-        <p class="finished" role="status">You finished the lesson.</p>
+        <p v-if="skipped" class="finished partly" role="status">
+          You reached the end, with {{ skipped }} {{ skipped === 1 ? 'level' : 'levels' }} skipped.
+          <strong>← Previous</strong> takes you back to them.
+        </p>
+        <p v-else class="finished" role="status">You finished the lesson.</p>
         <button v-if="!cardOpen" type="button" class="continue chunky" @click="emit('finish')">See my AI rules card</button>
+        <p class="more">Choose an optional challenge below to keep exploring.</p>
       </template>
       <button
         v-else
@@ -126,10 +143,17 @@ function continueLesson() {
         Continue unlocks when you finish this level.<template v-if="following"> Stuck? <strong>Next →</strong> at the top skips it.</template>
       </p>
 
+      <button v-if="!following && !finished && !cardOpen" type="button" class="preview-card" @click="emit('finish')">Preview my card, including unfinished work</button>
+      <section v-if="level.position >= 3" class="extensions">
+        <h3>Have more time?</h3>
+        <p>Optional investigations: test the AI, improve your object, or explore The Wayfarer. About 5–15 minutes each.</p>
+        <button type="button" class="chunky" :disabled="controller.game?.state.busy" @click="emit('challenges')">Explore optional challenges</button>
+      </section>
       <span ref="result"></span>
       <details v-if="properties.teacherMarkdown" class="teachers">
         <summary>For teachers</summary>
         <div class="markdown" v-html="teacherNotes"></div>
+        <TeacherGuide />
       </details>
     </div>
   </aside>
@@ -167,8 +191,17 @@ h2 { margin: 0 0 12px; font-size: 24px; font-weight: 700; line-height: 1.15; }
 .feedback.success { background: var(--good-soft); color: var(--good); font-weight: 600; }
 .continue { width: 100%; padding: 9px 12px; background: var(--accent); color: var(--on-accent); font-size: 16px; font-weight: 700; cursor: pointer; }
 .continue:disabled { opacity: 0.45; cursor: default; }
+.finished.partly { background: var(--warn-soft); color: var(--fg); font-weight: 400; text-align: left; }
+.more { margin: 10px 0 0; font-size: 13px; }
+.more a { color: var(--accent); font-weight: 600; }
 .locked-hint { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
 .finished { margin: 0 0 10px; padding: 10px; border: 2px solid var(--edge); border-radius: 6px; background: var(--good-soft); color: var(--good); font-weight: 600; text-align: center; }
+.guide { margin: 10px 0; }
+.guide summary { cursor: pointer; font-size: 13px; color: var(--accent); margin-bottom: 8px; }
+.preview-card { margin-top: 10px; padding: 7px; color: var(--fg); background: var(--panel); border: 1px solid var(--line); cursor: pointer; }
+.extensions { margin-top: 18px; padding: 10px; background: var(--chip); font-size: 13px; }
+.extensions h3 { margin: 0; font-size: 14px; }
+.extensions button { padding: 7px; background: var(--panel); color: var(--fg); cursor: pointer; }
 .teachers { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
 .teachers summary { cursor: pointer; color: var(--muted); font-size: 12px; }
 .teachers .markdown { margin-top: 8px; font-size: 12px; }

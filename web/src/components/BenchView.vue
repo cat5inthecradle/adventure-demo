@@ -7,7 +7,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { MODELS, webgpuProblem } from '../llm/models.js'
 import { DEFAULT_PROMPT, PROMPT_LABELS, PROMPTS } from '../llm/prompts.js'
-import { CASES, contextFor, runCase } from '../bench/cases.js'
+import { CASES, actionCounts, contextFor, runCase } from '../bench/cases.js'
 import PromptMessages from './PromptMessages.vue'
 
 const params = new URLSearchParams(location.hash.split('?')[1] ?? '')
@@ -38,6 +38,7 @@ watch([promptVersion, inspectCase], async () => {
 
 const open = reactive({})   // result id -> expanded
 
+const actions = computed(() => actionCounts(ui.results))
 const passed = computed(() => ui.results.filter(r => r.pass).length)
 const score = computed(() => (ui.results.length ? Math.round((100 * passed.value) / ui.results.length) : 0))
 const medianMs = computed(() => {
@@ -53,6 +54,7 @@ function report() {
     passed: passed.value,
     score: score.value,
     medianMs: medianMs.value,
+    actions: actions.value,
     failures: ui.results.filter(r => !r.pass),
     results: ui.results,
   }
@@ -123,6 +125,10 @@ onMounted(() => { if (params.get('run')) run() })
       <p v-if="ui.results.length" class="score" :data-status="ui.status">
         <strong>{{ passed }} / {{ ui.results.length }}</strong> ({{ score }}%) · median {{ medianMs }} ms · {{ ui.buildId }} · prompt {{ ui.used }}
       </p>
+      <p v-if="ui.results.length" class="muted">
+        Accepted actions: {{ actions.correctAccepted }} correct, {{ actions.incorrectAccepted }} incorrect.
+        Requests expecting an action but not executed: {{ actions.expectedActionsNotAccepted }} / {{ actions.expectedActions }}.
+      </p>
     </header>
 
     <details class="inspector">
@@ -162,7 +168,7 @@ onMounted(() => { if (params.get('run')) run() })
                 <div><span class="muted small">model replied</span> <code>{{ r.raw ?? '—' }}</code></div>
                 <div v-if="r.reread">
                   <span class="muted small">parser re-read “{{ r.reread.text }}”</span>
-                  <span class="small">{{ r.reread.used ? '— and its reading was used' : '— words it did not know, so the model’s command stood' }}</span>
+                  <span class="small">{{ r.reread.used ? '— checked against the request' : '— not used as the final action' }}</span>
                 </div>
               </div>
               <PromptMessages v-if="r.messages" :messages="r.messages" />

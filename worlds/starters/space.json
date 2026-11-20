@@ -35,9 +35,10 @@
       "name": "prybar",
       "aliases": [
         "crowbar",
-        "bar"
+        "bar",
+        "pry bar"
       ],
-      "description": "A steel bar with a sharp, flattened end.",
+      "description": "A prybar is a steel bar used to lift or force things apart. Its flattened end can fit under a stuck lid.",
       "location": "cockpit",
       "portable": true
     },
@@ -63,7 +64,12 @@
       "alt_description": "The crate is open, its packing foam torn apart.",
       "alt_flag": "crate_open",
       "location": "cargo_bay",
-      "portable": false
+      "portable": false,
+      "open_flag": "crate_open",
+      "open_refusal": "The supply crate is stuck shut. A tool may help. Examine it or ask the character here for a clue.",
+      "open_refusal_with": {
+        "prybar": "You have the prybar. Try 'use prybar on supply crate'."
+      }
     },
     "power_cell": {
       "id": "power_cell",
@@ -88,6 +94,15 @@
       "description": "A dented repair droid with one patient green eye.",
       "location": "cargo_bay",
       "dialogue": [
+        {
+          "requires_flags": {
+            "crate_open": false
+          },
+          "requires_items": {
+            "prybar": true
+          },
+          "text": "You already have the prybar. Try using it on the supply crate."
+        },
         {
           "requires_flags": {
             "crate_open": false

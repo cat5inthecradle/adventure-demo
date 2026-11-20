@@ -76,6 +76,13 @@
     { "id": "yank-handle", "state": "pod_bay", "say": "yank the big handle", "expect": [{ "type": "use", "item": "launch_lever" }] },
     { "id": "launch-pod", "state": "pod_bay", "say": "launch the pod", "expect": [{ "type": "use", "item": "launch_lever" }, { "type": "use", "item": "escape_pod" }] },
     { "id": "get-me-out", "state": "pod_bay", "say": "get me out of here", "expect": [{ "type": "use", "item": "launch_lever" }, { "type": "use", "item": "escape_pod" }, "clarify"] },
-    { "id": "pod-closely", "state": "pod_bay", "say": "look at the pod closely", "expect": [{ "type": "examine", "target": "escape_pod" }] }
+    { "id": "pod-closely", "state": "pod_bay", "say": "look at the pod closely", "expect": [{ "type": "examine", "target": "escape_pod" }] },
+
+    { "id": "flight-not-listen", "state": "start", "say": "fly to the moon", "expect": ["clarify"] },
+    { "id": "light-not-manual", "state": "start", "say": "read the red emergency light", "expect": ["clarify"] },
+    { "id": "pod-not-south", "state": "pod_bay", "say": "could you go into escape pod", "expect": [{ "type": "use", "item": "escape_pod" }, "clarify"] },
+    { "id": "open-unspecified", "state": "start", "say": "open it", "expect": ["clarify"] },
+    { "id": "use-unspecified", "state": "start", "say": "use it", "expect": ["clarify"] },
+    { "id": "move-unspecified", "state": "start", "say": "go there", "expect": ["clarify"] }
   ]
 }

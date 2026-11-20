@@ -55,7 +55,7 @@ const askingLabel = computed(() => choices.find(choice => choice.key === asking.
 </template>
 
 <style scoped>
-.picker { margin: 12px 0 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.picker { margin: 0 0 14px; border-bottom: 2px dashed var(--line); padding-bottom: 12px; }
 h3 { margin: 0 0 8px; font-size: 14px; }
 .choices { display: grid; gap: 8px; padding-right: 3px; }
 button { display: grid; gap: 2px; width: 100%; border: 2px solid var(--edge); border-radius: 6px; padding: 7px 9px; background: var(--panel); color: var(--fg); font: inherit; text-align: left; cursor: pointer; box-shadow: var(--shadow-small); }

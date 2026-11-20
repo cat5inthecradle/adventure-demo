@@ -13,7 +13,7 @@ import { takeTurn } from '../../src/engine/turn.js'
 const CONDITION_NAMES = [
   'game_won', 'turn_failed', 'examined_matching', 'saw_custom_refusal', 'saw_tool_hint',
   'opened_door_locked_by_flag', 'flag_set', 'interpreter_understood', 'interpreter_clarified', 'interpreter_guessed',
-  'viewed_understood_panel', 'ai_dial_set', 'real_life_dials_set',
+  'ai_experiments_reviewed', 'viewed_understood_panel', 'ai_dial_set', 'real_life_dials_set',
   'entity_named_matching', 'item_has_open_refusal', 'item_has_tool_hint', 'door_locked_by_flag',
 ]
 const PANELS = ['understood', 'world']
@@ -58,12 +58,12 @@ describe('Space starter world', () => {
     expect(turns[0].events.some(e => e.type === 'entity_examined')).toBe(false)
   })
 
-  it('ships flaw 2: the crate gives the flat, generic refusal', async () => {
-    expect(space.items.supply_crate.open_refusal ?? null).toBeNull()
-    expect(Object.keys(space.items.supply_crate.open_refusal_with ?? {})).toEqual([])
+  it('gives a clue when bare hands cannot open the crate', async () => {
+    expect(space.items.supply_crate.open_refusal).toMatch(/tool/i)
+    expect(Object.keys(space.items.supply_crate.open_refusal_with)).toEqual(['prybar'])
     const { turns } = await play(['go south', 'open crate'])
     const refusal = turns[1].events.find(e => e.type === 'action_failed')
-    expect(refusal).toMatchObject({ reason: 'not_openable', message: null })
+    expect(refusal).toMatchObject({ reason: 'not_openable', message: space.items.supply_crate.open_refusal })
   })
 
   it('has a helper who points at leverage and the prybar', async () => {
@@ -145,14 +145,14 @@ describe('Hour of AI level properties', () => {
     const passing = position => props(position).validations.find(v => v.next).conditions
     expect(passing(1)).toEqual([{ name: 'game_won' }])
     expect(passing(2)).toEqual(expect.arrayContaining([{ name: 'turn_failed' }, { name: 'viewed_understood_panel' }]))
-    expect(passing(3)).toEqual(expect.arrayContaining([{ name: 'interpreter_understood' }, { name: 'interpreter_clarified' }]))
-    expect(passing(4)).toEqual([{ name: 'ai_dial_set' }])
+    expect(passing(3)).toEqual(expect.arrayContaining([{ name: 'ai_experiments_reviewed' }]))
+    expect(passing(4)).toEqual([{ name: 'ai_dial_set' }, { name: 'ai_experiments_reviewed' }])
     expect(passing(5)).toEqual([{ name: 'examined_matching', value: 'mug' }])
     expect(passing(6)).toEqual([{ name: 'real_life_dials_set' }])
   })
 
   it('puts the passing validation first and adds partway feedback where the design has it', () => {
-    for (const position of [3, 5]) {
+    for (const position of [5]) {
       const validations = props(position).validations
       expect(validations[0].next).toBe(true)
       expect(validations.some(v => !v.next)).toBe(true)

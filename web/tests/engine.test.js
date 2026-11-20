@@ -102,21 +102,25 @@ describe('re-reading the interpreter\'s paraphrase', () => {
     expect(result.interpreter.via).toBe('reread')
   })
 
-  it('asks when the paraphrase names something absent', async () => {
+  it('gives recovery guidance without exposing a model-invented lookup target', async () => {
     const world = loadWorld(wayfarer)
     const result = await takeTurn(world, 'I want to check out the console thing', {
       interpreter: answer({ type: 'take', item: 'emergency_manual' }, 'grab a crowbar'),
     })
     expect(result.events).toEqual([])
-    expect(result.text).toBe("I don't see any 'crowbar' here.")
+    expect(result.interpreter.status).toBe('unresolved')
+    expect(result.clarifying).toBe(false)
+    expect(result.text).not.toContain('crowbar')
+    expect(result.text).toMatch(/Try naming an action and object/)
   })
 
-  it('falls back to the model\'s action when the paraphrase uses unknown words', async () => {
+  it('does not let fallback substitute an unrelated object', async () => {
     const world = loadWorld(wayfarer)
     const result = await takeTurn(world, 'I want to check out the console thing', {
       interpreter: answer({ type: 'examine', target: 'emergency_manual' }, 'peruse the tome'),
     })
-    expect(result.action).toEqual({ type: 'examine', target: 'emergency_manual' })
+    expect(result.action).toBeNull()
+    expect(result.interpreter.status).toBe('rejected')
   })
 })
 

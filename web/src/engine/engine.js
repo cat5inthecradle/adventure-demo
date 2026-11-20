@@ -231,6 +231,8 @@ function open(world, targetId) {
   const entity = q.findEntity(world, targetId)
   if (!entity) return [notPresent(world, targetId)]
   if (q.kindOf(world, entity.id) !== 'door') {
+    if (!visibleById(world).has(entity.id)) return [notPresent(world, targetId)]
+    if (entity.open_flag && world.flags[entity.open_flag]) return [failed(Reason.ALREADY_OPEN, ref(entity))]
     return [failed(Reason.NOT_OPENABLE, ref(entity), openRefusal(world, entity))]
   }
   if (!q.doorsInRoom(world, world.player_location).some(d => d.id === entity.id)) {

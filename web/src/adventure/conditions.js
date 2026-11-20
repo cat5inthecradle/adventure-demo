@@ -41,17 +41,17 @@ export const AdventureConditions = {
   },
   INTERPRETER_UNDERSTOOD: {
     name: 'interpreter_understood',
-    description: 'Checks whether the language interpreter produced an action.',
+    description: 'Checks whether a model proposal passed the request check and was sent to the game rules.',
     source: 'play',
   },
   INTERPRETER_GUESSED: {
     name: 'interpreter_guessed',
-    description: 'Checks whether the language interpreter produced an action for a request that had no command word the game knows.',
+    description: 'Legacy condition retained for older curriculum; unrelated guesses are now rejected.',
     source: 'play',
   },
   INTERPRETER_CLARIFIED: {
     name: 'interpreter_clarified',
-    description: 'Checks whether the language interpreter asked for clarification instead of producing an action.',
+    description: 'Checks whether the model or the game asked a clarification question instead of executing a model proposal.',
     source: 'play',
   },
   AI_FILLED_GAP: {
@@ -69,6 +69,17 @@ export const AdventureConditions = {
   VIEWED_UNDERSTOOD_PANEL: {
     name: 'viewed_understood_panel',
     description: 'Checks whether the player viewed the understood panel.',
+    source: 'ui',
+  },
+  AI_EXPERIMENT_REVIEWED: {
+    name: 'ai_experiment_reviewed',
+    valueType: 'string',
+    description: 'Checks whether one investigation has reviewed evidence and an observation.',
+    source: 'ui',
+  },
+  AI_EXPERIMENTS_REVIEWED: {
+    name: 'ai_experiments_reviewed',
+    description: 'Checks whether the AI experiments have evidence and observations.',
     source: 'ui',
   },
   AI_DIAL_SET: {

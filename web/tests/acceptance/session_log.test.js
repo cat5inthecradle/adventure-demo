@@ -148,6 +148,7 @@ describe('the downloaded log', () => {
     expect(grab.interpreter.answer.meta.raw).toBe(RAW)
     expect(grab.parseTrace.length).toBeGreaterThan(0)
     expect(grab.text).toMatch(/prybar/)
+    expect(log.console.some(entry => entry.kind === 'echo' && entry.text.startsWith('(AI interpreted:'))).toBe(true)
     expect(look.route).toBe('parser')
   })
 

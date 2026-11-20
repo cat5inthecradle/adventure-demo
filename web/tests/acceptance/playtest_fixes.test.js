@@ -92,6 +92,8 @@ describe('the dial level', () => {
     expect(() => c.saveDialChoice('idk')).toThrow(/reason/i)   // round 2: one word is not a reason
     expect(c.canContinue()).toBe(false)
     c.saveDialChoice('It should only translate.')
+    expect(c.canContinue()).toBe(false)
+    for (const task of c.experimentTasks()) c.saveExperiment(task.id, 'recorded', 'The evidence shows unchanged rules')
     expect(c.canContinue()).toBe(true)
     expect(c.dialSaved).toMatchObject({ setting: 'understand', reason: 'It should only translate.' })
   })
@@ -105,12 +107,12 @@ describe('the dial level', () => {
 })
 
 describe('the AI level', () => {
-  it('suggests a request the game truly cannot do, and treats a wrong guess as part of the lesson', () => {
+  it('suggests a request the game truly cannot do, and says what the game does with a guess', () => {
     const text = levelProperties['9006'].longInstructions
-    expect(text).toMatch(/Interpreter/)                        // where to turn the AI on
+    expect(text).toMatch(/AI Interpreter/)                     // where to turn the AI on, as the menu is labelled
     expect(text).toMatch(/fly to the moon/)
     expect(text).not.toMatch(/sandwich/)
-    expect(text).toMatch(/guesses/)
+    expect(text).toMatch(/throws the guess away and asks you a question/)
   })
 
   // Round 2: the model often guesses instead of asking, and one student could never pass.
@@ -121,25 +123,49 @@ describe('the AI level', () => {
   const take = { kind: 'action', action: { type: 'take', item: 'prybar' }, rephrased: 'take prybar' }
   const south = { kind: 'action', action: { type: 'go', direction: 'south' }, rephrased: 'go south' }
 
-  it('passes when the AI understood one request and guessed at an impossible one', async () => {
+  const listen = { kind: 'action', action: { type: 'listen' }, rephrased: 'listen' }
+
+  it('turns a guessed move into a question: the player stays put, and the level passes', async () => {
     const c = controller()
     c.goTo(1, 3)
     c.setInterpreter(scripted([take, south]))
     c.game.state.pace = 0
     await c.game.submit('can you grab the prybar for me')
     expect(c.canContinue()).toBe(false)
-    expect(c.state().message).toMatch(/cannot do/)
-    await c.game.submit('order a pizza')
+    const before = c.game.world.value.player_location
+    await c.game.submit('order a pizza')                    // the model answers "go south"
+    const turn = c.game.state.turns.at(-1)
+    expect(c.game.world.value.player_location).toBe(before)
+    expect(turn.action ?? null).toBeNull()
+    expect(turn.text).toMatch(/What do you want to do\?/)
+    expect(turn.interpreter.refused).toEqual({ reason: 'ungrounded', action: { type: 'go', direction: 'south' } })
+    expect(c.canContinue()).toBe(false)
+    for (const task of c.experimentTasks()) c.saveExperiment(task.id, 'live', 'The reply shows what happened')
     expect(c.canContinue()).toBe(true)
-    expect(c.state().message).toMatch(/guessed/i)
+    expect(c.state().message).toMatch(/inspected/)
+  })
+
+  it('rejects an unrelated observation and counts the resulting clarification', async () => {
+    const c = controller()
+    c.goTo(1, 3)
+    c.setInterpreter(scripted([take, listen]))
+    c.game.state.pace = 0
+    await c.game.submit('can you grab the prybar for me')
+    await c.game.submit('make me a sandwich')               // the model answers "listen"
+    expect(c.game.state.turns.at(-1).action).toBeNull()
+    expect(c.game.state.turns.at(-1).interpreter.status).toBe('rejected')
+    expect(c.canContinue()).toBe(false)
+    for (const task of c.experimentTasks()) c.saveExperiment(task.id, 'live', 'The reply shows what happened')
+    expect(c.canContinue()).toBe(true)
+    expect(c.state().message).toMatch(/inspected/)
   })
 
   it('does not pass on a guess alone, or on two ordinary requests', async () => {
     const guessOnly = controller()
     guessOnly.goTo(1, 3)
-    guessOnly.setInterpreter(scripted([south]))
+    guessOnly.setInterpreter(scripted([listen]))
     guessOnly.game.state.pace = 0
-    await guessOnly.game.submit('order a pizza')
+    await guessOnly.game.submit('make me a sandwich')
     expect(guessOnly.canContinue()).toBe(false)
 
     const ordinary = controller()
@@ -147,19 +173,40 @@ describe('the AI level', () => {
     ordinary.setInterpreter(scripted([take, south]))
     ordinary.game.state.pace = 0
     await ordinary.game.submit('can you grab the prybar for me')
-    await ordinary.game.submit('could you please walk to the back of the ship')
+    await ordinary.game.submit('could you please go south')
     expect(ordinary.canContinue()).toBe(false)
   })
 
-  it('still passes, with a different message, when the AI asks a question', async () => {
+  it('passes after reviewing evidence when the AI asks a question', async () => {
     const c = controller()
     c.goTo(1, 3)
     c.setInterpreter(scripted([take, { kind: 'clarify', question: 'Where do you want to go?' }]))
     c.game.state.pace = 0
     await c.game.submit('can you grab the prybar for me')
     await c.game.submit('fly to the moon')
+    expect(c.canContinue()).toBe(false)
+    for (const task of c.experimentTasks()) c.saveExperiment(task.id, 'live', 'The reply shows what happened')
     expect(c.canContinue()).toBe(true)
-    expect(c.state().message).toMatch(/asked a question/)
+    expect(c.state().message).toMatch(/inspected/)
+  })
+})
+
+describe('arriving without a level in the address', () => {
+  it('opens the first level for a new student, and where they left off for a returning one', () => {
+    const store = memoryStore()
+    const c = controller(store)
+    expect(c.resumeLevel()).toBe(1)
+    c.goTo(1, 4)
+    expect(controller(store).resumeLevel()).toBe(4)
+  })
+
+  it('ignores a remembered level the lesson does not have', () => {
+    const store = memoryStore()
+    store.setItem('adventure-lab:lesson-level', '99')
+    expect(controller(store).resumeLevel()).toBe(1)
+    store.setItem('adventure-lab:lesson-level', 'banana')
+    expect(controller(store).resumeLevel()).toBe(1)
+    expect(controller(null).resumeLevel()).toBe(1)          // storage blocked
   })
 })
 
@@ -177,6 +224,30 @@ describe('coming back to a level', () => {
     const reloaded = controller(store)
     reloaded.goTo(1, 1)
     expect(reloaded.canContinue()).toBe(true)
+  })
+})
+
+describe('reasons', () => {
+  it('need three different words, not three keystrokes', async () => {
+    const { isReason } = await import('../../src/lesson/LessonController.js')
+    for (const junk of ['', 'idk', 'lol', 'a b c', 'asdf asdf asdf', 'x y zz']) expect(isReason(junk), junk).toBe(false)
+    for (const real of ['A wrong dose could hurt someone.', 'Hints are low risk', 'it is safer']) expect(isReason(real), real).toBe(true)
+  })
+})
+
+describe('the Level 4 comparison sentence', () => {
+  it('fails with the AI off and names the tool, so the AI can ground it', async () => {
+    const { parse, isParseError } = await import('../../src/engine/parser.js')
+    const { loadWorld } = await import('../../src/engine/loader.js')
+    const { isGrounded } = await import('../../src/engine/grounding.js')
+    for (const [key, raw] of Object.entries(starters)) {
+      const terms = lessonWorlds.worlds[key].terms
+      const world = loadWorld(raw)
+      expect(isParseError(parse(world, terms.understandPhrase)), terms.understandPhrase).toBe(true)
+      const tool = Object.values(world.items).find(item => item.name === terms.tool)
+      expect(tool, terms.tool).toBeTruthy()
+      expect(isGrounded(terms.understandPhrase, { type: 'take', item: tool.id }, world)).toBe(true)
+    }
   })
 })
 
@@ -203,5 +274,36 @@ describe('"How it was understood"', () => {
     }
     expect(titles).toContain('Split into words')
     expect(titles).toContain('What the game understood')
+  })
+})
+
+// A failed lookup and an unavailable model are not questions, even though all
+// three leave the action empty. Do not award the AI activity for those failures.
+describe('truthful interpretation outcomes', () => {
+  const replies = [
+    ['missing noun in paraphrase', { kind: 'action', action: { type: 'listen' }, rephrased: 'look for a way out' }, 'unresolved'],
+    ['model unavailable', { kind: 'unavailable', detail: 'test GPU unavailable' }, 'unavailable'],
+    ['statement in question field', { kind: 'clarify', question: 'There is no way out here.' }, 'unresolved'],
+  ]
+  for (const [label, reply, status] of replies) it(label, async () => {
+    const queue = [
+      { kind: 'action', action: { type: 'take', item: 'prybar' }, rephrased: 'take prybar' },
+      reply,
+    ]
+    const c = controller()
+    c.goTo(1, 3)
+    c.setInterpreter({ name: 'scripted', async interpret() { return queue.shift() } })
+    c.game.state.pace = 0
+    await c.game.submit('can you grab the prybar for me')
+    const before = c.game.world.value.turn_count
+    await c.game.submit('get me out of here')
+    const turn = c.game.state.turns.at(-1)
+    expect(turn.interpreter.status).toBe(status)
+    expect(turn.clarifying).toBe(false)
+    expect(turn.action).toBeNull()
+    expect(c.canContinue()).toBe(false)
+    expect(c.game.world.value.turn_count).toBe(before)
+    expect(turn.text).not.toContain('for way')
+    expect(turn.text).not.toContain('me of here')
   })
 })

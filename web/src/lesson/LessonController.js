@@ -1,3 +1,4 @@
+import { ChallengeManager, CHALLENGE_KEY } from './challenges.js'
 import { createGame } from '../game.js'
 import ProgressManager from '../lab2/ProgressManager.js'
 import { nextDestination, resolveCourseLevel } from '../lab2/resolveCourseLevel.js'
@@ -6,6 +7,7 @@ import { parseLevelProperties } from '../adventure/levelKind.js'
 import { loadWorld } from '../engine/loader.js'
 import { studentThing } from './addThing.js'
 import { DIAL } from './dial.js'
+import { EXPERIMENTS, summarizeTurn } from './experiments.js'
 import { storage } from '../storage.js'
 import lessonWorlds from '../../../curriculum/hour-of-ai/worlds.json'
 
@@ -14,13 +16,19 @@ const WORLD_KEY = 'adventure-lab:lesson-world'
 const REAL_LIFE_KEY = 'adventure-lab:lesson-real-life'
 const DIAL_KEY = 'adventure-lab:lesson-dial'
 const PASSED_KEY = 'adventure-lab:lesson-passed'
+const EXPERIMENT_KEY = 'adventure-lab:lesson-experiments-v1'
+const LEVEL_KEY = 'adventure-lab:lesson-level'
 
 // How long each step of "How it was understood" stays on screen in the lesson.
 // With no such panel there is nothing to watch, so the reply comes at once.
 const LESSON_PACE_MS = 150
 // A reason has to be a few words, not "idk".
 const MIN_REASON_WORDS = 3
-export const isReason = text => String(text ?? '').trim().split(/\s+/).filter(Boolean).length >= MIN_REASON_WORDS
+export function isReason(text) {
+  const words = new Set(String(text ?? '').toLowerCase().match(/[\p{L}\p{N}']+/gu) ?? [])
+  const real = [...words].filter(word => word.length >= 3)
+  return words.size >= MIN_REASON_WORDS && real.length >= 1    // "a b c" and "asdf asdf asdf" are not reasons
+}
 
 function substituteTerms(value, terms) {
   if (typeof value === 'string') {
@@ -51,6 +59,7 @@ export default class LessonController {
     this.starters = starters
     this.worlds = worlds
     this.store = store
+    this.challenges = new ChallengeManager(store)
     this.interpreter = interpreter
     this.level = null
     this.properties = null
@@ -81,6 +90,21 @@ export default class LessonController {
       const saved = JSON.parse(this.store?.getItem(PASSED_KEY) ?? '[]')
       if (Array.isArray(saved)) this.passed = new Set(saved.map(Number))
     } catch { /* blocked or damaged storage: no levels count as passed yet */ }
+    this.experiments = {}
+    try {
+      const saved = JSON.parse(this.store?.getItem(EXPERIMENT_KEY) ?? '{}')
+      for (const [level, tasks] of Object.entries(EXPERIMENTS)) {
+        this.experiments[level] = {}
+        for (const { id } of tasks) {
+          const entry = saved?.[level]?.[id]
+          if (['live', 'recorded'].includes(entry?.route) && isReason(entry.observation) && typeof entry.evidence === 'string') {
+            this.experiments[level][id] = entry
+          }
+        }
+        // Older completion flags do not imply the new investigations were done.
+        if (!this.experimentsComplete(level)) this.passed.delete(Number(level))
+      }
+    } catch { for (const id of Object.keys(EXPERIMENTS)) this.passed.delete(Number(id)) }
     this.realLife = {}
     try {
       const saved = JSON.parse(this.store?.getItem(REAL_LIFE_KEY) ?? 'null')
@@ -104,6 +128,36 @@ export default class LessonController {
     this.progress.setValidator(this.validator)
   }
 
+  /** Clear only this lesson's saved work; the caller must reload immediately.
+   * Reload also discards transcripts, model context and in-flight game state.
+   * Model downloads live outside these keys and are intentionally retained.
+   */
+  clearSavedLesson() {
+    const keys = new Set([WORLD_KEY, REAL_LIFE_KEY, DIAL_KEY, PASSED_KEY, LEVEL_KEY, EXPERIMENT_KEY, CHALLENGE_KEY])
+    const projectPrefixes = [...new Set(Object.values(this.levelProperties)
+      .map(level => level.projectTemplateLevelName).filter(Boolean))]
+      .map(template => PROJECT_PREFIX + template)
+    for (const prefix of projectPrefixes) {
+      keys.add(prefix) // Legacy/default-world project.
+      for (const world of Object.keys(this.worlds.worlds)) keys.add(`${prefix}:${world}`)
+    }
+    // Also cover old world variants of this lesson's templates, without
+    // deleting projects belonging to other lessons or any named game saves.
+    for (let i = 0; i < (this.store?.length ?? 0); i++) {
+      const key = this.store.key(i)
+      if (key && projectPrefixes.some(prefix => key.startsWith(`${prefix}:`))) keys.add(key)
+    }
+    try {
+      for (const key of keys) this.store?.removeItem(key)
+    } catch {
+      throw new Error('Could not clear all saved lesson work. Check browser storage permissions and try again.')
+    }
+    // A late model reply must not write the old session back before reload.
+    this.resetting = true
+    this.challenges.clear()
+    return `#learn/${this.unit.name}/1/1`
+  }
+
   goTo(lessonPosition, levelPosition) {
     const level = resolveCourseLevel(
       this.unit,
@@ -124,6 +178,9 @@ export default class LessonController {
     this.properties = properties
     this.lessonPosition = lessonPosition
     this.levelPosition = levelPosition
+    try {
+      this.store?.setItem(LEVEL_KEY, String(levelPosition))
+    } catch { /* blocked storage only prevents picking up where they left off */ }
 
     const template = properties.projectTemplateLevelName
     const worldData = this.loadProject(template) ??
@@ -152,10 +209,60 @@ export default class LessonController {
     this.validator.setDefinition(worldData)
     this.progress.onLevelChange(properties.validations)
     this.noteRealLife()
+    this.noteExperiments()
     this.progress.updateProgress()
     this.notePassed()
     this.notify()
     return this.level
+  }
+
+  experimentsComplete(level = this.properties?.id) {
+    return Boolean(EXPERIMENTS[level]?.every(task => this.experiments[level]?.[task.id]))
+  }
+
+  experimentTasks() {
+    return EXPERIMENTS[this.properties?.id] ?? []
+  }
+
+  liveEvidence(id) {
+    const turns = this.game?.state.turns ?? []
+    const previous = this.experiments[this.properties?.id]?.[id]
+    const savedEvidence = previous?.route === 'live' ? previous.evidence : null
+    if (id === 'interpret' || id === 'boundary') {
+      const candidates = turns.filter(t => t.route === 'interpreter')
+      const turn = id === 'interpret' ? candidates[0] : candidates.find(t => t.line !== candidates[0]?.line)
+      return turn ? summarizeTurn(turn) : savedEvidence
+    }
+    if (id === 'compare') {
+      const off = turns.find(t => t.ai?.aiMode === 'off' && turns.some(u => u.ai?.aiMode === 'understand' && u.line.trim().toLowerCase() === t.line.trim().toLowerCase()))
+      const understand = off && turns.find(t => t.ai?.aiMode === 'understand' && t.line.trim().toLowerCase() === off.line.trim().toLowerCase())
+      return off ? `Off:\n${summarizeTurn(off)}\n\nUnderstand:\n${summarizeTurn(understand)}` : savedEvidence
+    }
+    const turn = turns.find(t => t.route === (id === 'scenery' ? 'filled' : 'improvised'))
+    return turn ? summarizeTurn(turn) : savedEvidence
+  }
+
+  saveExperiment(id, route, observation) {
+    if (this.resetting) return
+    const task = this.experimentTasks().find(t => t.id === id)
+    const evidence = task && (route === 'recorded' ? task.recorded : route === 'live' ? this.liveEvidence(id) : null)
+    if (!evidence) throw new Error('Try the experiment first, or inspect the recorded example.')
+    const why = String(observation ?? '').trim().slice(0, 400)
+    if (!isReason(why)) throw new Error('Write a few words about the evidence you noticed.')
+    const level = this.properties.id
+    this.experiments[level] = { ...this.experiments[level], [id]: { route, evidence, observation: why, world: route === 'live' ? this.world : 'space' } }
+    try { this.store?.setItem(EXPERIMENT_KEY, JSON.stringify(this.experiments)) } catch { /* available for this visit */ }
+    this.noteExperiments()
+    this.progress.updateProgress()
+    this.notify()
+  }
+
+  noteExperiments() {
+    for (const task of this.experimentTasks()) {
+      if (this.experiments[this.properties.id]?.[task.id]) this.validator.recordUiEvent('ai_experiment_reviewed', task.id)
+    }
+    if (this.experimentsComplete()) this.validator.recordUiEvent('ai_experiments_reviewed')
+    if (this.dialSaved && isReason(this.dialSaved.reason)) this.validator.recordUiEvent('ai_dial_set', this.dialSaved.setting)
   }
 
   loadProject(template) {
@@ -171,12 +278,14 @@ export default class LessonController {
   }
 
   onTurn(turn, world) {
+    if (this.resetting) return
     this.validator.recordTurn(turn, world)
     this.progress.updateProgress()
     this.notePassed()
   }
 
   onWorldApplied(raw) {
+    if (this.resetting) return
     const template = this.properties?.projectTemplateLevelName
     if (template) {
       try {
@@ -226,12 +335,14 @@ export default class LessonController {
   }
 
   notify() {
+    if (this.resetting) return
     this.notePassed()
     for (const listener of this.listeners) listener()
   }
 
   /** Remember a level once its checks are met, so progress shows what was done, not what was visited. */
   notePassed() {
+    if (this.resetting) return
     if (!this.properties || this.properties.freePlay) return
     const id = Number(this.properties.id)
     if (this.passed.has(id) || !this.progress.getCurrentState().satisfied) return
@@ -239,6 +350,16 @@ export default class LessonController {
     try {
       this.store?.setItem(PASSED_KEY, JSON.stringify([...this.passed]))
     } catch { /* full or blocked: progress still shows for this visit */ }
+  }
+
+  /** The level to open when someone arrives without asking for one: where they left off, or the first. */
+  resumeLevel() {
+    const count = this.unit.lessons[0]?.levels.length ?? 1
+    let saved = NaN
+    try {
+      saved = Number(this.store?.getItem(LEVEL_KEY))
+    } catch { /* blocked storage: start at the beginning */ }
+    return Number.isInteger(saved) && saved >= 1 && saved <= count ? saved : 1
   }
 
   /** One entry per level of the lesson: 'passed', 'here', 'skipped' (behind, not passed) or 'ahead'. */
@@ -295,7 +416,7 @@ export default class LessonController {
 
   /**
    * The student's decision: the dial as it stands now, with their reason.
-   * This is what the card reports and what passes the dial level. Throws when
+   * This is what the card reports; experiments are tracked separately. Throws when
    * there is no real reason, in words a student can act on.
    */
   saveDialChoice(reason) {
@@ -322,13 +443,29 @@ export default class LessonController {
     const template = all.find(p => p.levelData?.addThing)?.projectTemplateLevelName
     const thing = studentThing(this.loadProject(template), starter)
     const scenarios = all.find(p => p.levelData?.realLife)?.levelData.realLife.scenarios ?? []
+    const experiments = Object.entries(EXPERIMENTS).flatMap(([level, tasks]) => tasks.map(task => ({
+      title: task.title, ...this.experiments[level]?.[task.id],
+    })))
+    const activity = (this.unit.lessons[0]?.levels ?? []).map(level => {
+      const id = Number(level.activeId)
+      let completed = this.passed.has(id)
+      if (EXPERIMENTS[id]) completed = this.experimentsComplete(id) && (id !== 9007 || Boolean(this.dialSaved && isReason(this.dialSaved.reason)))
+      if (id === 9003) completed = completed && Boolean(thing)
+      if (id === 9009) completed = scenarios.every(s => this.realLifeAnswered(s.id))
+      const routes = [...new Set(Object.values(this.experiments[id] ?? {}).map(e => e.route))]
+      return { title: this.levelProperties[id]?.displayName ?? String(id), completed,
+        route: routes.length === 2 ? 'live and recorded' : routes[0] === 'recorded' ? 'recorded examples' : routes[0] === 'live' ? 'live attempts' : null }
+    })
     return {
       title: starter.title,
+      activity,
+      observedExample: experiments.find(e => e.evidence && e.observation) ?? null,
+      experiments,
       dial: this.dialSaved
         ? { ...this.dialSaved, name: DIAL[this.dialSaved.setting].name, meaning: DIAL[this.dialSaved.setting].meaning }
         : null,
       thing: thing
-        ? { name: thing.name, description: thing.description, aliases: [...(thing.aliases ?? [])] }
+        ? { name: thing.name, description: thing.description, portable: thing.portable !== false, aliases: [...(thing.aliases ?? [])] }
         : null,
       realLife: scenarios.map(scenario => {
         const answer = this.realLife[scenario.id]
@@ -362,6 +499,7 @@ export default class LessonController {
       this.store?.setItem(REAL_LIFE_KEY, JSON.stringify(this.realLife))
     } catch { /* full or blocked: the answers still count for this visit */ }
     this.noteRealLife()
+    this.noteExperiments()
     this.progress.updateProgress()
     this.notePassed()
     this.notify()
@@ -398,6 +536,7 @@ export default class LessonController {
         dialSaved: this.dialSaved ? { ...this.dialSaved } : null,
         dialWasSet: this.dialWasSet,
         realLife: structuredClone(this.realLife),
+        experiments: structuredClone(this.experiments),
       },
     })
   }

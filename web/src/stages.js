@@ -42,7 +42,7 @@ export function buildStages(turn) {
 
   const parsed = first('result')?.result
   add('parsed', { title: 'What the game understood', status: isParseError(parsed) ? 'fail' : 'ok', parsed })
-  add('interp', { title: 'AI', interp: turn.interpreter })
+  add('interp', { title: 'AI command interpretation', interp: turn.interpreter })
 
   if (turn.action) {
     add('action', { title: 'The command', hint: 'The one thing the game’s rules ever receive.', action: turn.action })

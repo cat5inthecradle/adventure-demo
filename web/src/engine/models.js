@@ -18,6 +18,7 @@ function rule(r) {
   return {
     rooms: [],
     requires_flags: {},
+    requires_items: {},
     requires_counters: {},
     requires_doors: {},
     effects: [],

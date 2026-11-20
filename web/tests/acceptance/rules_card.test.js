@@ -47,7 +47,7 @@ describe('the AI rules card', () => {
     const card = c.card()
     expect(card.dial).toMatchObject({ setting: 'fill_gaps', name: 'Fill gaps', reason: 'Details are safe to make up.' })
     expect(card.dial.meaning).toMatch(/writes/)
-    expect(card.thing).toEqual({ name: 'coffee mug', description: 'Cold coffee.', aliases: ['mug', 'cup'] })
+    expect(card.thing).toEqual({ name: 'coffee mug', description: 'Cold coffee.', portable: true, aliases: ['mug', 'cup'] })
     const clinic = card.realLife.find(a => a.id === 'clinic')
     expect(clinic).toMatchObject({ title: 'A clinic app', name: 'Off', reason: 'A wrong dose could hurt someone.' })
     expect(clinic.means).toBe(levelProperties['9009'].levelData.realLife.scenarios[1].options.off)
@@ -97,6 +97,26 @@ describe('the AI rules card', () => {
     c.goTo(1, 4)
     c.setDial({ setting: 'fill_gaps' })
     expect(c.card().dial).toBeNull()
+  })
+
+  it('reports incomplete activity separately from saved preferences and an untested object', async () => {
+    const c = controller()
+    await doLesson(c)
+    expect(c.card().activity.map(a => a.completed)).toEqual([false, false, false, false, false, true])
+    expect(c.card().observedExample).toBeNull()
+    c.setRealLife('clinic', { reason: '' })
+    expect(c.card().activity.at(-1).completed).toBe(false)
+  })
+
+  it('includes recorded evidence and route without claiming live work', () => {
+    const c = controller()
+    c.goTo(1, 3)
+    for (const task of c.experimentTasks()) c.saveExperiment(task.id, 'recorded', 'The rules rejected an unrelated move')
+    const card = c.card()
+    expect(card.activity[2]).toMatchObject({ completed: true, route: 'recorded examples' })
+    expect(card.observedExample).toMatchObject({ route: 'recorded' })
+    expect(card.observedExample.evidence).toContain('prybar')
+    expect(card.activity[3].completed).toBe(false)
   })
 
   it('asks for no name on screen and prints the card alone', () => {

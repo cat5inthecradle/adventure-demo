@@ -1,22 +1,12 @@
 import ConditionsChecker from '../lab2/ConditionsChecker.js'
 import { Validator } from '../lab2/ProgressManager.js'
 import { normalizeWorld } from '../engine/models.js'
-import { DIRECTIONS, VERB_PHRASES, normalize } from '../engine/parser.js'
 import { AdventureConditions } from './conditions.js'
 
 const conditionNames = Object.values(AdventureConditions).map(condition => condition.name)
 const uiConditionNames = new Set(Object.values(AdventureConditions)
   .filter(condition => condition.source === 'ui')
   .map(condition => condition.name))
-
-// The first word of every command the game knows, leaving out one-letter
-// shortcuts ("i" for inventory would match "I want a pizza").
-const COMMAND_WORDS = new Set([...VERB_PHRASES.keys(), ...Object.keys(DIRECTIONS)]
-  .map(phrase => phrase.split(' ')[0])
-  .filter(word => word.length > 1))
-
-/** Whether a typed line contains any command word the game knows. */
-export const hasCommandWord = line => normalize(String(line ?? '')).some(word => COMMAND_WORDS.has(word))
 
 const sameCondition = (left, right) =>
   left.name === right.name && Object.is(left.value, right.value) &&
@@ -136,14 +126,13 @@ export default class AdventureValidator extends Validator {
     }
 
     if (turn?.route === 'interpreter') {
-      // An action for a line with no command word in it is a guess, not an
-      // understanding: "order a pizza" has nothing the game can do.
-      const name = !turn.action
-        ? AdventureConditions.INTERPRETER_CLARIFIED.name
-        : hasCommandWord(turn.line)
-          ? AdventureConditions.INTERPRETER_UNDERSTOOD.name
-          : AdventureConditions.INTERPRETER_GUESSED.name
-      this.addPlayOrUiCondition({ name })
+      // No action does not necessarily mean a question: lookup failures and
+      // unavailable models must not satisfy the clarification activity.
+      if (turn.interpreter?.status === 'action' && turn.action) {
+        this.addPlayOrUiCondition({ name: AdventureConditions.INTERPRETER_UNDERSTOOD.name })
+      } else if (turn.clarifying && ['clarify', 'rejected'].includes(turn.interpreter?.status)) {
+        this.addPlayOrUiCondition({ name: AdventureConditions.INTERPRETER_CLARIFIED.name })
+      }
     }
   }
 

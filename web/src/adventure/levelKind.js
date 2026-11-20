@@ -60,6 +60,7 @@ export const AdventureLevelPropertiesSchema = z.object({
   appName: z.literal('adventure'),
   type: z.string(),
   displayName: z.string(),
+  shortInstructions: z.string().optional(),
   longInstructions: z.string().optional(),
   teacherMarkdown: z.string().optional(),
   projectTemplateLevelName: z.string().optional(),

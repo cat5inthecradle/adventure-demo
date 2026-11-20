@@ -44,7 +44,7 @@ const VERB_LIST = [
   ['go', 'go'], ['walk', 'go'], ['move', 'go'], ['head', 'go'],
   ['take', 'take'], ['get', 'take'], ['grab', 'take'], ['pick up', 'take'],
   ['drop', 'drop'], ['put down', 'drop'],
-  ['open', 'open'], ['crack open', 'open'], ['unjam', 'open'], ['pry', 'open'],
+  ['cut', 'open'], ['open', 'open'], ['crack open', 'open'], ['unjam', 'open'], ['pry', 'open'],
   ['use', 'use'], ['slot', 'use'], ['yank', 'use'], ['fix', 'use'], ['turn on', 'use'],
   ['switch on', 'use'], ['pull', 'use'], ['push', 'use'], ['press', 'use'], ['put', 'use'],
   ['insert', 'use'], ['give', 'use'],
@@ -58,7 +58,7 @@ const VERB_LIST = [
   ['jump out of', 'traverse'], ['jump through', 'traverse'], ['leap', 'traverse'],
   ['leap out', 'traverse'], ['leap out of', 'traverse'], ['leap through', 'traverse'],
   ['crawl', 'traverse'], ['crawl through', 'traverse'], ['squeeze through', 'traverse'],
-  ['go through', 'traverse'], ['go out', 'traverse'], ['go out of', 'traverse'],
+  ['go into', 'traverse'], ['go in', 'traverse'], ['go through', 'traverse'], ['go out', 'traverse'], ['go out of', 'traverse'],
   ['talk to', 'talk'], ['talk', 'talk'], ['speak to', 'talk'], ['speak', 'talk'],
   ['ask', 'talk'], ['tell', 'talk'], ['wake', 'talk'], ['wake up', 'talk'],
   ['inventory', 'inventory'], ['i', 'inventory'], ['inv', 'inventory'],
@@ -349,14 +349,26 @@ export function entityTokens(entity) {
 // be unambiguous — if a token sits equally close to two known words we leave it.
 // Short words get no slack, and correction targets must be at least three letters.
 
+// Everyday words a sentence is likely to contain. They are never "corrected"
+// into game words: "please" must not become "place", nor "you" become "your".
+const EVERYDAY_WORDS = new Set([
+  'please', 'you', 'your', 'can', 'could', 'would', 'will', 'should', 'may', 'might', 'must',
+  'and', 'but', 'for', 'from', 'into', 'onto', 'over', 'off', 'out', 'about', 'around',
+  'just', 'now', 'then', 'here', 'there', 'some', 'any', 'all', 'more', 'very', 'really',
+  'want', 'need', 'like', 'have', 'has', 'had', 'let', 'lets', 'make', 'made', 'play',
+  'what', 'where', 'when', 'why', 'how', 'who', 'which', 'does', 'did', 'done',
+  'are', 'was', 'were', 'not', 'yes', 'okay', 'thanks', 'thank', 'hello', 'hey',
+  'she', 'him', 'her', 'his', 'they', 'them', 'their', 'our', 'mine',
+])
+
 /** Every word this world expects a player to type, right here, right now. */
 export function buildVocabulary(world) {
   const words = new Set([...FILLERS, ...Object.keys(DIRECTIONS), ...SELF_TOKENS, ...QUESTION_TOKENS])
   for (const phrase of VERB_PHRASES.keys()) {
     for (const w of phrase.split(' ')) {
       // Exact “tell” is a verb, but as a typo target it turns an absent “cell”
-      // into “tell” and changes the noun the player is told is missing.
-      if (w !== 'tell') words.add(w)
+      // into “tell”; “cut” similarly changes an absent “cup” into a verb.
+      if (!['tell', 'cut'].includes(w)) words.add(w)
     }
   }
   for (const e of q.visibleEntities(world)) for (const w of entityTokens(e)) words.add(w)
@@ -407,7 +419,7 @@ function isTransposition(a, b) {
  */
 export function fixTypos(tokens, vocabulary, fixes = []) {
   return tokens.map((token, position) => {
-    if (vocabulary.has(token)) return token
+    if (vocabulary.has(token) || EVERYDAY_WORDS.has(token)) return token
     const budget = typoBudget(token)
     if (budget === 0) return token
     let best = []

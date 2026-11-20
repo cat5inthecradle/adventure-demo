@@ -37,7 +37,7 @@
         "blade",
         "knife"
       ],
-      "description": "A notched machete, still sharp enough to cut vines.",
+      "description": "A machete is a broad blade for cutting plants. This one is still sharp enough to cut vines.",
       "location": "temple_steps",
       "portable": true
     },
@@ -57,13 +57,21 @@
       "aliases": [
         "urn",
         "jar",
-        "pot"
+        "pot",
+        "vines",
+        "vine",
+        "vine wrapped urn"
       ],
       "description": "A clay urn bound tight in thick vines.",
       "alt_description": "The urn sits open, cut vines curled around its base.",
       "alt_flag": "urn_open",
       "location": "inner_chamber",
-      "portable": false
+      "portable": false,
+      "open_flag": "urn_open",
+      "open_refusal": "Thick vines hold the urn shut. Cut them with a blade: 'cut vines with machete' works when the machete is here.",
+      "open_refusal_with": {
+        "machete": "You have the machete. Try 'use machete on clay urn'."
+      }
     },
     "jade_idol": {
       "id": "jade_idol",
@@ -88,6 +96,15 @@
       "description": "A scarlet parrot with one clever black eye.",
       "location": "inner_chamber",
       "dialogue": [
+        {
+          "requires_flags": {
+            "urn_open": false
+          },
+          "requires_items": {
+            "machete": true
+          },
+          "text": "You already have the machete. Try using it on the clay urn."
+        },
         {
           "requires_flags": {
             "urn_open": false

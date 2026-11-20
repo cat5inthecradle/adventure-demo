@@ -46,7 +46,7 @@ describe.skipIf(privacy === null)('docs/PRIVACY.md', () => {
     for (const path of files) {
       const text = read(path)
       expect(/sessionStorage|indexedDB/.test(text), `${path} uses another kind of storage`).toBe(false)
-      for (const [key] of text.matchAll(/adventure-lab:[a-z-]+(?::[a-z-]+)*:?/g)) keys.add(key)
+      for (const [key] of text.matchAll(/adventure-lab:[a-z0-9-]+(?::[a-z0-9-]+)*:?/g)) keys.add(key)
     }
     expect(keys.size).toBeGreaterThanOrEqual(6)
     for (const key of keys) {

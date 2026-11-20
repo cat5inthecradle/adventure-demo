@@ -115,7 +115,7 @@ export function createGame(options = {}) {
   // What is being played, as authored — also the common ancestor a live edit is
   // merged against, since it is the world the current game started from.
   const definition = shallowRef(structuredClone(worldData))
-  const world = shallowRef(loadWorld(worldData))
+  const world = shallowRef(loadWorld(options.initialState ?? worldData))
   const state = reactive({
     log: [],            // { id, kind: 'input'|'output'|'ai'|'system', text, turnId? }
     turns: [],          // turn records, oldest first
@@ -125,7 +125,7 @@ export function createGame(options = {}) {
     aiMode: 'understand',
     style: { tone: null, theme: null },
     busy: false,
-    pace: 500,          // ms between revealed phases; 0 = instant
+    pace: 250,          // ms between revealed phases; 0 = instant
   })
   const undoStack = []
   const transcript = []
@@ -190,7 +190,7 @@ export function createGame(options = {}) {
     print(w.title, 'title')
     print(pronounSets.apply(w.intro, pronouns()))
     print(renderEvent(describeRoom(w), undefined, pronouns()))
-    print("Type 'help' for commands. Click any command you typed to inspect how it was understood.", 'system')
+    print("Type 'help' for commands. Click any command you typed, or focus it and press Enter, to inspect how it was understood.", 'system')
   }
 
   // Slow motion. Each turn is computed at once (the engine is deterministic and
@@ -281,7 +281,7 @@ export function createGame(options = {}) {
       }
       turn.revealed = null
 
-      if (result.understood) print(`(${result.understood})`, 'echo', id)
+      if (result.understood) print(`(${result.route === 'interpreter' ? 'AI interpreted: ' : ''}${result.understood})`, 'echo', id)
       print(result.text, result.aiWritten ? 'ai' : 'output', id)
       transcript.push([line, result.text])
       if (result.outcome) {
@@ -428,6 +428,7 @@ export function createGame(options = {}) {
         answer: turn.interpreter.answer,
         context: turn.interpreter.context,
         reread: turn.interpreter.reread,
+        refused: turn.interpreter.refused ?? null,
         via: turn.interpreter.via,
       },
       filled: turn.filled ?? null,

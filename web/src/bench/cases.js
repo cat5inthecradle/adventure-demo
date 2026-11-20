@@ -34,8 +34,9 @@ const clean = action => Object.fromEntries(Object.entries(action ?? {}).filter((
 export function outcomeOf(turn) {
   if (turn.route === 'parser') return { kind: 'parser', action: clean(turn.action) }
   const status = turn.interpreter?.status
-  // A rejected answer ends with the game asking the player — the same as clarify.
-  if (status === 'clarify' || status === 'rejected') return { kind: 'clarify' }
+  // Preserve who declined: the model's question and the engine's rejection
+  // can both be appropriate, but are different observed outcomes.
+  if (status === 'clarify' || status === 'rejected') return { kind: status }
   if (status === 'action') return { kind: 'action', action: clean(turn.action) }
   return { kind: status ?? 'none' }
 }
@@ -48,7 +49,7 @@ const sameAction = (a, b) => {
 
 export function passes(testCase, outcome) {
   return testCase.expect.some(want => (want === 'clarify'
-    ? outcome.kind === 'clarify'
+    ? ['clarify', 'rejected'].includes(outcome.kind)
     : outcome.kind === 'action' && sameAction(want, outcome.action)))
 }
 
@@ -57,6 +58,16 @@ export const describeOutcome = o => (o.kind === 'action' || o.kind === 'parser')
   : o.kind
 
 export const describeExpect = c => c.expect.map(e => (e === 'clarify' ? 'clarify' : JSON.stringify(e))).join(' or ')
+
+/** Report action correctness separately from successful clarification/refusal. */
+export function actionCounts(results) {
+  return {
+    correctAccepted: results.filter(r => r.acceptedAction && r.pass).length,
+    incorrectAccepted: results.filter(r => r.acceptedAction && !r.pass).length,
+    expectedActions: results.filter(r => r.expectedAction).length,
+    expectedActionsNotAccepted: results.filter(r => r.expectedAction && !r.acceptedAction).length,
+  }
+}
 
 /** The context an interpreter would be handed for a case, without running one. */
 export async function contextFor(testCase) {
@@ -85,6 +96,9 @@ export async function runCase(testCase, interpreter) {
       ? { text: turn.interpreter.reread.text, used: turn.interpreter.via === 'reread' }
       : null,
     pass: passes(testCase, outcome),
+    acceptedAction: outcome.kind === 'action',
+    expectedAction: !testCase.expect.includes('clarify'),
+    disposition: turn.interpreter?.status ?? turn.route,
     ms: Math.round(performance.now() - started),
   }
 }

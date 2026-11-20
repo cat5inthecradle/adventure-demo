@@ -8,6 +8,7 @@ const props = defineProps({
   selectedTurnId: { type: Number, default: null },
   nudgeTurnId: { type: Number, default: null },
   busy: Boolean,
+  showDownload: { type: Boolean, default: true },
 })
 const emit = defineEmits(['submit', 'select', 'skip', 'restart', 'download-log'])
 
@@ -223,7 +224,7 @@ defineExpose({ focus: () => field.value?.focus(), scrollToEnd })
             selected: entry.turnId === selectedTurnId,
             nudge: entry.turnId === nudgeTurnId,
           }"
-          :title="'Inspect how this was understood'"
+          :title="'Inspect how this was understood (click or press Enter)'"
           @click="emit('select', entry.turnId)"
         >{{ entry.text }}</button>
         <button
@@ -271,6 +272,7 @@ defineExpose({ focus: () => field.value?.focus(), scrollToEnd })
       />
       <button
         type="button"
+        v-if="showDownload"
         class="download-log"
         aria-label="Download session log"
         title="Download this session as a log file"

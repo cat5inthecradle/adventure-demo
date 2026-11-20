@@ -279,12 +279,12 @@ describe('the lesson', () => {
   it('the dial level has the student try Improvise on the droid', () => {
     const level = levelProperties['9007']
     const steps = level.levelData.steps
-    const step = steps.find(s => (s.conditions ?? []).some(c => c.name === 'ai_improvised'))
+    const step = steps.find(s => (s.conditions ?? []).some(c => c.name === 'ai_experiment_reviewed' && c.value === 'dialogue'))
     expect(step).toBeTruthy()
     expect(step.text).toMatch(/improvise/i)
     expect(step.text).toMatch(/droid/i)
     expect(steps.at(-1).text).toMatch(/save/i)                 // choosing a setting stays last
-    expect(level.validations.flatMap(v => v.conditions)).toEqual([{ name: 'ai_dial_set' }])
+    expect(level.validations.flatMap(v => v.conditions)).toEqual([{ name: 'ai_dial_set' }, { name: 'ai_experiments_reviewed' }])
   })
 
   it('no longer says Improvise is not built', () => {

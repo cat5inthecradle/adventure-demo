@@ -3,11 +3,14 @@
 The game, its engine and its tools, running entirely in the browser. The page is a
 Vue 3 app with three views, kept in the URL hash:
 
-- **Play** (no hash): a 4:3 terminal on the left, and on the right a panel that
+- **Learn** (no hash, or `#learn/hoai-adventure/1/1`): the six-level Hour of AI
+  lesson. It is the front door: an address with no view in it opens the lesson at
+  the level the student was last on. Phones open Play instead, because the lesson
+  needs a bigger screen.
+- **Play** (`#play`): the full game, the Wayfarer. A 4:3 terminal on the left, and on the right a panel that
   shows step by step how each command was understood, plus a world panel (map,
   room, raw state).
 - **Benchmark** (`#bench`): scores the optional language model.
-- **Learn** (`#learn/hoai-adventure/1/1`): hosts the six-level Hour of AI lesson.
 
 ```bash
 npm install
@@ -121,24 +124,49 @@ used automatically.
 | Llama 3.2 1B | ~1 GB | 51% | 0.6 s | v1 |
 | **Qwen2.5 1.5B** | ~1.7 GB | **80%** | 1.6 s | v3 (recommended) |
 
-Scores are from the **Benchmark** view (top bar, or `#bench`). It also shows
+These are historical scores from before the stricter intent checks, not current
+accuracy claims. Rerun the **Benchmark** view (top bar, or `#bench`). It also shows
 the prompts. **Inspect prompt** builds the exact messages a model would get
 for any case: the system prompt, the worked-example turns and the live scene.
 Click a result row to see what was actually sent and what the model replied.
 The prompts are in `src/llm/prompts.js`.
 
 These scores were measured on an Apple-silicon Mac. Expect
-slower times on a Chromebook; the accuracy should be about the same.
+slower times on a Chromebook; validate the current build on target devices.
 
 The model sees only `buildContext()`: the room, its exits, the things in view,
 what the player carries, and what the parser said. Its output is constrained by
 `actionSchema()`, so it can only name ids in that context. `validateResolution`
 checks the answer again, and the engine still decides what happens.
 
+`engine/grounding.js` checks every model action, including observations, against a
+conservative reading of the original request. It strips supported polite wrappers,
+recognizes a small set of phrase equivalents, and asks the deterministic parser to
+resolve the action, all operands and any route. The proposed action must match.
+Unknown targets, pronouns without an explicit referent, unrelated observations and
+wrong directions are refused without advancing the turn. Both reparsed and
+structured fallback proposals use the same check. This is intentionally cautious;
+it cannot establish intent for arbitrary English.
+
+A model clarification, engine rejection, unresolved lookup and unavailable model
+are distinct statuses. Only accepted actions and actual clarification questions
+count toward their respective lesson activities. The transcript labels model
+interpretations; the inspector distinguishes interpretation from prose generation.
+
+The existing 51 benchmark requests requiring an action include 39 for which this
+check permits at least one expected action and 12 that now need clearer wording.
+That is a deterministic coverage check, **not** a live-model accuracy score. The
+refused cases include implied tools, implicit destinations and conversational
+pronouns. Their original expectations remain in the benchmark to expose the cost,
+not redefine it away. Six additional cases exercise the independent playtest
+failures. Benchmark reports accepted correct/incorrect actions separately from
+requests expecting actions that were not executed. See `tests/grounding.test.js`
+and `tests/nl_cases.test.js` for regression and coverage checks.
+
 ### How it got from 37% to 80%
 
-The benchmark has 59 sentences the parser can't understand (`tests/fixtures/nl_cases.json`),
-each played from a real game state. Some name things that aren't in the
+The historical benchmark had 59 sentences the parser could not understand,
+each played from a real game state. The current fixture has 65. Some name things that aren't in the
 room, and for those the right answer is to ask. Qwen2.5 1.5B's score with each change:
 
 | Change | Score |

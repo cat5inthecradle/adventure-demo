@@ -64,12 +64,16 @@ describe('LessonController.steps()', () => {
     c.setInterpreter(fake())
     c.setDial({ setting: 'fill_gaps' })
     await play(c, ['examine mug'])
+    expect(c.steps().some(s => s.done)).toBe(false)
+    c.saveExperiment('scenery', 'live', 'Words appeared without an object')
     const afterGap = c.steps()
     expect(afterGap.some(s => s.done)).toBe(true)
     expect(afterGap.some(s => s.checkable && !s.done)).toBe(true)
 
     c.setDial({ setting: 'improvise' })
     await play(c, ['south', 'ask the droid about the ship'])
+    c.saveExperiment('dialogue', 'live', 'The generated dialogue left rules unchanged')
+    c.saveExperiment('compare', 'recorded', 'Neither request took the prybar')
     expect(c.steps().at(-1).done).toBe(false)               // the last step is saving a setting
     c.saveDialChoice('It may describe things, not change them.')
     expect(c.steps().filter(s => s.checkable).every(s => s.done)).toBe(true)

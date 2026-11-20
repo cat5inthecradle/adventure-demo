@@ -6,6 +6,7 @@ import ParserPanel from './components/ParserPanel.vue'
 import WorldPanel from './components/WorldPanel.vue'
 import InterpreterPicker from './components/InterpreterPicker.vue'
 import LessonView from './components/LessonView.vue'
+import ResetLesson from './components/ResetLesson.vue'
 import LessonController from './lesson/LessonController.js'
 import { lessonWorlds, levelProperties, starters, unit } from './lesson/hourOfAi.js'
 import { downloadLog } from './sessionLog.js'
@@ -57,39 +58,55 @@ async function submit(line) {
   terminal.value?.focus()
 }
 
-// Three views over one app: playing, benchmarking, and the lesson host.
-// The hash keeps the view across reloads. The normal game stays mounted, so
+// Three views over one app: the lesson, the full game, and the benchmark.
+// The hash keeps the view across reloads. The full game stays mounted, so
 // switching back loses nothing.
-const lessonRoute = () => LessonController.parseRoute(location.hash)
-const initialLessonRoute = lessonRoute()
-if (initialLessonRoute?.unit === unit.name) {
-  lessonController.goTo(initialLessonRoute.lesson, initialLessonRoute.level)
+//
+// The lesson is the front door: an address with no view in it opens the lesson
+// where the student left off. Phones are the exception, because the lesson
+// needs a bigger screen and the game does not.
+const lessonRoute = () => {
+  const route = LessonController.parseRoute(location.hash)
+  return route?.unit === unit.name ? route : null
 }
+const lessonPath = () => `#learn/${unit.name}/1/${lessonController.resumeLevel()}`
 const viewFromHash = () => (location.hash.startsWith('#bench') ? 'bench'
-  : LessonController.parseRoute(location.hash)?.unit === unit.name ? 'learn' : 'play')
-const view = ref(viewFromHash())
-const onHash = () => {
+  : location.hash.startsWith('#play') ? 'play'
+    : lessonRoute() ? 'learn'
+      : phone.value ? 'play' : 'learn')
+
+/** Open the lesson level the address names, or put the resume level in the address. */
+function enterLesson() {
   const route = lessonRoute()
-  if (route?.unit === unit.name) {
-    lessonController.goTo(route.lesson, route.level)
-    view.value = 'learn'
-    return
-  }
-  view.value = viewFromHash()
-}
-function show(next) {
-  if (next === 'learn') {
-    location.hash = '#learn/hoai-adventure/1/1'
-    return
-  }
-  location.hash = next === 'play' ? '' : `#${next}`
-  view.value = next
-  if (next === 'play') setTimeout(() => terminal.value?.focus())
+  try {
+    if (route) return lessonController.goTo(route.lesson, route.level)
+  } catch { /* an address for a level that does not exist falls through to the resume level */ }
+  history.replaceState(null, '', lessonPath())
+  const resumed = lessonRoute()
+  lessonController.goTo(resumed.lesson, resumed.level)
 }
 
-const subtitle = computed(() => view.value === 'learn'
-  ? lessonController.game?.world.value.title ?? unit.title
-  : world.value.title)
+const view = ref(viewFromHash())
+if (view.value === 'learn') enterLesson()
+const onHash = () => {
+  view.value = viewFromHash()
+  if (view.value === 'learn') enterLesson()
+  if (view.value === 'play') setTimeout(() => terminal.value?.focus())
+}
+function show(next) {
+  location.hash = next === 'learn' ? lessonPath() : `#${next}`
+}
+
+// The lesson controller is plain JavaScript, so count its changes to keep the
+// title beside the logo in step when the student switches worlds.
+const lessonRevision = ref(0)
+lessonController.onChange(() => { lessonRevision.value++ })
+const subtitle = computed(() => {
+  lessonRevision.value
+  return view.value === 'learn'
+    ? lessonController.game?.world.value.title ?? unit.title
+    : world.value.title
+})
 
 // Restart asks once before throwing a game away; a finished game doesn't ask.
 const confirmingRestart = ref(false)
@@ -124,11 +141,12 @@ onBeforeUnmount(() => {
       <h1>Adventure Lab</h1>
       <span class="subtitle">{{ subtitle }}</span>
       <nav class="views" aria-label="Views">
-        <button type="button" :aria-current="view === 'play' && 'page'" @click="show('play')">Play</button>
-        <button v-if="!phone" type="button" :aria-current="view === 'bench' && 'page'" @click="show('bench')">Benchmark</button>
         <button type="button" :aria-current="view === 'learn' && 'page'" @click="show('learn')">Learn</button>
+        <button type="button" :aria-current="view === 'play' && 'page'" title="The Wayfarer, a longer game" @click="show('play')">Play</button>
+        <button v-if="!phone" type="button" :aria-current="view === 'bench' && 'page'" @click="show('bench')">Benchmark</button>
       </nav>
       <span class="spacer"></span>
+      <ResetLesson :controller="lessonController" />
       <span v-if="view === 'play'" class="restart">
         <template v-if="confirmingRestart">
           <span class="ask">{{ phone ? 'Lose your progress?' : 'Restart the story? Your progress will be lost.' }}</span>

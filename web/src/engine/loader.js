@@ -61,6 +61,7 @@ export function validateWorld(world) {
     if (item.location !== LOC_INVENTORY && item.location !== LOC_HIDDEN && !has(world.rooms, item.location)) {
       fail(`item '${itemId}' has location '${item.location}', which is not a room id, 'inventory', or 'hidden'`)
     }
+    if (item.open_flag != null && typeof item.open_flag !== 'string') fail(`item '${itemId}' open_flag must name a flag`)
     for (const toolId of Object.keys(item.open_refusal_with)) {
       if (!has(world.items, toolId)) fail(`item '${itemId}' has an open_refusal_with entry for '${toolId}', which is not an item id`)
     }
@@ -99,6 +100,9 @@ export function validateWorld(world) {
 }
 
 function checkRule(world, rule, where) {
+  for (const [id, carried] of Object.entries(rule.requires_items ?? {})) {
+    if (!has(world.items, id) || typeof carried !== 'boolean') fail(`${where}: requires_items needs an item id and a boolean`)
+  }
   for (const roomId of rule.rooms) {
     if (!has(world.rooms, roomId)) fail(`${where}: rooms names '${roomId}', which is not a room id`)
   }

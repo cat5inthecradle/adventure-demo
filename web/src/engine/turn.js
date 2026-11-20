@@ -12,13 +12,47 @@
 
 import { apply } from './engine.js'
 import { findGap, findTopic } from './gaps.js'
-import { FILLERS, isParseError, parse } from './parser.js'
+import { isGrounded } from './grounding.js'
+import { FILLERS, isParseError, normalize, parse } from './parser.js'
 import { buildContext, validateResolution } from './interpreter.js'
 import { Style, renderAction, renderEvents, renderParseError, renderSpeech } from './renderer.js'
 import { findEntity } from './queries.js'
 
 // Parse failures that mean "the thing you named is not here".
 const ABSENT = new Set(['unknown_noun', 'elsewhere', 'ambiguous'])
+
+// Said when the interpreter proposed an action the request does not support.
+// Observation commands must preserve intent too.
+const UNGROUNDED = "I couldn't verify that interpretation, so I won't guess. What do you want to do? Name an action and object, or a direction. Type 'help' for commands."
+
+/** A model sometimes writes an entity's id ("nav_console") where its name belongs. */
+function withNames(text, world) {
+  let out = String(text)
+  for (const table of [world.items, world.npcs, world.doors]) {
+    for (const entity of Object.values(table ?? {})) {
+      if (entity.id.includes('_')) out = out.replaceAll(entity.id, entity.name)
+    }
+  }
+  return out
+}
+
+/** Throw away an interpreter action the player's words do not support, and ask instead. */
+function refuseGuess(result, action) {
+  result.interpreter.status = 'rejected'
+  result.interpreter.refused = { reason: 'ungrounded', action }
+  result.clarifying = true
+  return say(result, UNGROUNDED)
+}
+
+const UNRESOLVED = "I couldn't resolve that request. Try naming an action and object, or a direction."
+
+// Keep a useful missing-object message only when its noun actually occurs in
+// the player's words. Otherwise avoid exposing fragments produced by reparsing.
+function unresolvedReply(line, error) {
+  const original = ` ${normalize(line).join(' ')} `
+  const noun = error?.noun && normalize(error.noun).join(' ')
+  return noun && original.includes(` ${noun} `) ? renderParseError(error) : UNRESOLVED
+}
 
 const UNAVAILABLE = detail =>
   `The language assistant is unavailable (${detail}). Classic commands still work — type 'help'.`
@@ -110,13 +144,16 @@ export async function takeTurn(world, line, {
       // A plain-English rephrasing goes back through the parser before the model's
       // own action is trusted. Small models often say the right thing in words
       // ("look at the status console") and then pick the wrong verb; the parser
-      // grounds the words deterministically. Measured on the bench: 59% → 80%.
+      // resolves the words deterministically. The request check below must also
+      // agree; a valid paraphrase alone is not evidence of the player's intent.
       if (answer.rephrased) {
         const trace = []
-        const reread = parse(world, answer.rephrased, trace)
-        result.interpreter.reread = { text: answer.rephrased, trace, result: reread }
+        const rephrased = withNames(answer.rephrased, world)
+        const reread = parse(world, rephrased, trace)
+        result.interpreter.reread = { text: rephrased, trace, result: reread }
         if (!isParseError(reread)) {
           result.interpreter.via = 'reread'
+          if (!isGrounded(line, reread, world)) return refuseGuess(result, reread)
           return finish(world, result, reread)
         }
         const rereadGap = canFill ? findGap(world, reread, trace) : null
@@ -127,19 +164,17 @@ export async function takeTurn(world, line, {
         // The paraphrase names something that is not here: say so, rather than
         // let the model's forced choice of a visible id stand in for it.
         if (ABSENT.has(reread.kind)) {
-          result.interpreter.status = 'clarify'
+          result.interpreter.status = 'unresolved'
           result.interpreter.via = 'reread'
-          result.clarifying = true
-          return say(result, renderParseError(reread))
+          return say(result, unresolvedReply(line, parsed))
         }
       }
       // If the player explicitly named something absent, a model action naming a
       // different visible entity is not a translation. Only a rephrasing that the
       // parser can ground may move past this error.
       if (proseGap) {
-        result.interpreter.status = 'clarify'
-        result.clarifying = true
-        return say(result, renderParseError(parsed))
+        result.interpreter.status = 'unresolved'
+        return say(result, unresolvedReply(line, parsed))
       }
       const action = validateResolution(context, answer.action)
       if (!action) {
@@ -147,14 +182,18 @@ export async function takeTurn(world, line, {
         result.clarifying = true
         return say(result, "I'm not sure what you mean. Could you say it another way?")
       }
+      if (!isGrounded(line, action, world)) return refuseGuess(result, action)
       return finish(world, result, action)
     }
     case 'clarify':
-      result.clarifying = true
+      // A model can put a statement in its question field. Preserve the text,
+      // but do not tell the lesson that a question was asked.
+      result.clarifying = typeof answer.question === 'string' && answer.question.includes('?')
+      if (!result.clarifying) result.interpreter.status = 'unresolved'
       return say(result, answer.question)
     default: {
       const detail = (answer.detail || 'no detail').trim().split('\n')[0].slice(0, 80)
-      return say(result, `${UNAVAILABLE(detail)}\n${renderParseError(parsed)}`)
+      return say(result, `${UNAVAILABLE(detail)}\n${unresolvedReply(line, parsed)}`)
     }
   }
 }

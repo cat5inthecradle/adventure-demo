@@ -8,9 +8,9 @@
 // benchmark (Benchmark view; scores in README.md). It differs by model: Llama
 // does worse when asked to paraphrase first, the Qwen models much better.
 export const MODELS = [
-  { id: 'Qwen2.5-0.5B-Instruct', label: 'Qwen2.5 0.5B', size: '~1 GB', note: 'fastest · gets about 4 in 10 right', prompt: 'v3' },
-  { id: 'Llama-3.2-1B-Instruct', label: 'Llama 3.2 1B', size: '~1 GB', note: 'gets about 5 in 10 right', prompt: 'v1' },
-  { id: 'Qwen2.5-1.5B-Instruct', label: 'Qwen2.5 1.5B', size: '~1.7 GB', note: 'recommended · gets 8 in 10 right', prompt: 'v3' },
+  { id: 'Qwen2.5-0.5B-Instruct', label: 'Qwen2.5 0.5B', size: '~1 GB', note: 'smallest Qwen model', prompt: 'v3' },
+  { id: 'Llama-3.2-1B-Instruct', label: 'Llama 3.2 1B', size: '~1 GB', note: 'alternative model', prompt: 'v1' },
+  { id: 'Qwen2.5-1.5B-Instruct', label: 'Qwen2.5 1.5B', size: '~1.7 GB', note: 'recommended', prompt: 'v3' },
 ]
 
 /** Why WebGPU cannot run here, or null when it can. */

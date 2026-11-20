@@ -137,7 +137,8 @@
         "crowbar",
         "bar",
         "tool",
-        "steel bar"
+        "steel bar",
+        "pry bar"
       ],
       "description": "A meter of solid steel with a flattened end. Good for opening things that don't want to open.",
       "location": "engine_room",
@@ -337,7 +338,7 @@
       "requires_flags": {
         "power_restored": true
       },
-      "message": "If you want to use the escape pod, you'll need to go into it."
+      "message": "The pod is ready. Use the launch lever beside it to strap in and launch."
     }
   ],
   "flags": {},
